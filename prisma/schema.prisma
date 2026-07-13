@@ -1,0 +1,139 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Nasabah {
+  id        Int      @id @default(autoincrement())
+  nama      String
+  nik       String   @unique
+  alamat    String?
+  telepon   String?
+  agunans   Agunan[]
+  createdAt DateTime @default(now())
+}
+
+model User {
+  id           Int      @id @default(autoincrement())
+  nama         String
+  email        String   @unique
+  passwordHash String
+  role         UserRole
+  createdAt    DateTime @default(now())
+}
+
+model Agunan {
+  id                  Int         @id @default(autoincrement())
+  kodeRegister        String      @unique
+  jenis               AgunanJenis
+  deskripsi           String
+  status              AgunanStatus @default(PENDING)
+  nasabah             Nasabah     @relation(fields: [nasabahId], references: [id])
+  nasabahId           Int
+  stockOpnames        StockOpname[]
+  beritaAcaras        BeritaAcara[]
+  keluarDariBrankas   Boolean     @default(false)
+  diserahkanKeNasabah Boolean     @default(false)
+  keluarOleh          String?
+  diserahkanOleh      String?
+  tujuan              String?
+  tanggalKeluar       DateTime?
+  tanggalSerah        DateTime?
+  warningPesan        String?
+  her5Reminder        DateTime?
+  nomorPolisi         String?
+  namaPemilik         String?
+  noRangka            String?
+  noMesin             String?
+  createdAt           DateTime    @default(now())
+  updatedAt           DateTime    @updatedAt
+}
+
+model BeritaAcara {
+  id             Int      @id @default(autoincrement())
+  agunan         Agunan   @relation(fields: [agunanId], references: [id])
+  agunanId       Int
+  nomorDokumen   String   @unique
+  nomorRegister  String
+  namaNasabah    String
+  alamat         String?
+  nomorRekening  String?
+  tanggalLunas   DateTime?
+  jenisAgunan    String
+  photoDataUrl   String?
+  yangMenyerahkan String
+  menyetujui     String
+  yangMenerima   String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model StockOpname {
+  id                 Int                     @id @default(autoincrement())
+  agunan             Agunan?                 @relation(fields: [agunanId], references: [id])
+  agunanId           Int?
+  pelaksana          StockOpnamePelaksana
+  tanggal            DateTime
+  hasilTemuan        String
+  rekomendasi        String
+  tindakLanjut       StockOpnameTindakLanjut
+  statusTindakLanjut StockOpnameStatus      @default(BELUM_DITINDAKLANJUTI)
+  targetSelesai      DateTime?
+  catatan            String?
+  createdAt          DateTime                @default(now())
+  updatedAt          DateTime                @updatedAt
+}
+
+enum AgunanJenis {
+  BPKB
+  SERTIFIKAT
+  EMAS
+  KENDARAAN
+  LAINNYA
+}
+
+enum AgunanStatus {
+  PENDING
+  DIKELUARKAN
+  DISETUJUI_OPERASIONAL
+  DISETUJUI_PIMPINAN
+  TRANSFER_CABANG
+  RE_DISBURSE
+  DISETUJUI
+  DISERAHKAN
+  KEMBALI
+}
+
+enum StockOpnamePelaksana {
+  SPI
+  OJK
+}
+
+enum StockOpnameTindakLanjut {
+  PERBAIKAN_ADMINISTRASI
+  PENGAMANAN_ULANG
+  PELAPORAN_MANAGEMENT
+  PEMANTAUAN
+  LAINNYA
+}
+
+enum StockOpnameStatus {
+  BELUM_DITINDAKLANJUTI
+  DALAM_PROSES
+  SELESAI
+}
+
+enum UserRole {
+  ADM_KREDIT_PUSAT
+  ADM_KREDIT_CABANG
+  KEPALA_KAS
+  KASUBAG_PUSAT
+  KASUBAG_CABANG
+  KABAG_OPERASIONAL
+  PIMPINAN_CABANG
+  DIREKTUR
+}

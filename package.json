@@ -1,0 +1,48 @@
+{
+  "name": "agunan-monitoring",
+  "version": "0.1.0",
+  "private": true,
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "node ./node_modules/next/dist/bin/next dev",
+    "dev:windows": "\"C:\\Program Files\\nodejs\\node.exe\" ./node_modules/next/dist/bin/next dev",
+    "build": "node ./node_modules/next/dist/bin/next build",
+    "start": "node ./node_modules/next/dist/bin/next start",
+    "lint": "next lint",
+    "prisma:generate": "node ./node_modules/prisma/build/index.js generate",
+    "db:push": "node ./node_modules/prisma/build/index.js db push",
+    "db:migrate": "node ./node_modules/prisma/build/index.js migrate dev --name init",
+    "db:deploy": "node ./node_modules/prisma/build/index.js migrate deploy"
+  },
+  "dependencies": {
+    "@prisma/client": "6.19.3",
+    "bcryptjs": "^2.4.3",
+    "canvg": "^4.0.0",
+    "date-fns": "2.30.0",
+    "html2canvas": "^1.4.1",
+    "iconv-lite": "^0.7.3",
+    "json2csv": "^5.0.7",
+    "jspdf": "^2.5.1",
+    "lucide-react": "^0.478.0",
+    "next": "14.2.5",
+    "pdfkit": "^0.14.0",
+    "react": "18.3.1",
+    "react-dom": "18.3.1"
+  },
+  "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
+    "@types/json2csv": "^5.0.7",
+    "@types/node": "20.14.2",
+    "@types/pdfkit": "^0.17.6",
+    "@types/react": "18.3.4",
+    "@types/react-dom": "18.3.0",
+    "@typescript-eslint/eslint-plugin": "^7.0.0",
+    "@typescript-eslint/parser": "^7.0.0",
+    "eslint": "^8.57.0",
+    "eslint-config-next": "14.2.5",
+    "prisma": "6.19.3",
+    "typescript": "5.5.4"
+  }
+}
