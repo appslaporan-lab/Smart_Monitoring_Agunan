@@ -10,10 +10,10 @@ export const verifyPassword = async (password: string, hash: string) => {
   return await bcrypt.compare(password, hash);
 };
 
-export const findUserByEmail = async (email: string) => {
-  return prisma.user.findUnique({ where: { email } });
+export const findUserByUsername = async (username: string) => {
+  return prisma.user.findUnique({ where: { username } });
 };
 
-export const createUser = async (data: { nama: string; email: string; passwordHash: string; role: UserRole; }) => {
+export const createUser = async (data: { nama: string; username: string; passwordHash: string; role: UserRole; }) => {
   return prisma.user.create({ data });
 };

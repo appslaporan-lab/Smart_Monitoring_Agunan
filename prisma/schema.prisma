@@ -21,7 +21,7 @@ model Nasabah {
 model User {
   id           Int      @id @default(autoincrement())
   nama         String
-  email        String   @unique
+  username     String   @unique
   passwordHash String
   role         UserRole
   createdAt    DateTime @default(now())

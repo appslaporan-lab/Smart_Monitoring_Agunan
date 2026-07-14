@@ -22,7 +22,6 @@ export default function RegisterPage({ searchParams }: RegisterPageProps) {
         <h1>Daftar Pengguna Baru</h1>
         <p>Buat akun untuk salah satu role yang tersedia di sistem.</p>
       </section>
-
       <div className="card" style={{ padding: 24 }}>
         {searchParams?.error && <div className="alert alert-danger">{searchParams.error}</div>}
         {searchParams?.success && <div className="alert alert-info">{searchParams.success}</div>}
@@ -33,8 +32,8 @@ export default function RegisterPage({ searchParams }: RegisterPageProps) {
               <input name="nama" className="inputField" required />
             </div>
             <div>
-              <label className="label">Email</label>
-              <input type="email" name="email" className="inputField" required />
+              <label className="label">Username</label>
+              <input type="text" name="username" className="inputField" required />
             </div>
             <div>
               <label className="label">Password</label>
@@ -52,7 +51,6 @@ export default function RegisterPage({ searchParams }: RegisterPageProps) {
             <button type="submit" className="button">Register</button>
           </div>
         </form>
-
         <p style={{ marginTop: 18 }}>
           Sudah punya akun? <Link href="/auth/login">Login</Link>
         </p>

@@ -1,19 +1,19 @@
 import { NextResponse } from 'next/server';
-import { findUserByEmail, verifyPassword } from '@/lib/auth';
+import { findUserByUsername, verifyPassword } from '@/lib/auth';
 import { setAuthCookie } from '@/lib/session';
 
 export async function POST(request: Request) {
   const form = await request.formData();
-  const email = form.get('email');
+  const username = form.get('username');
   const password = form.get('password');
 
-  if (!email || !password) {
-    return NextResponse.redirect(new URL('/auth/login?error=Email+atau+password+tidak+boleh+kosong', request.url));
+  if (!username || !password) {
+    return NextResponse.redirect(new URL('/auth/login?error=Username+atau+password+tidak+boleh+kosong', request.url));
   }
 
-  const user = await findUserByEmail(email.toString());
+  const user = await findUserByUsername(username.toString());
   if (!user) {
-    return NextResponse.redirect(new URL('/auth/login?error=Email+tidak+ditemukan', request.url));
+    return NextResponse.redirect(new URL('/auth/login?error=Username+tidak+ditemukan', request.url));
   }
 
   const passwordValid = await verifyPassword(password.toString(), user.passwordHash);
@@ -25,7 +25,7 @@ export async function POST(request: Request) {
   return setAuthCookie(response, {
     id: user.id,
     nama: user.nama,
-    email: user.email,
+    username: user.username,
     role: user.role,
   });
 }
