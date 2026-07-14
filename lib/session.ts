@@ -8,7 +8,7 @@ const MAX_AGE = 60 * 60 * 24 * 7;
 type SessionPayload = {
   id: number;
   nama: string;
-  Uusername: string;
+  username: string;
   role: string;
   exp: number;
 };
