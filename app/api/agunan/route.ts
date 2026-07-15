@@ -11,7 +11,7 @@ const generateKodeRegister = async () => {
   return `${prefix}${nextNumber}`;
 };
 
-const getOrCreateRegistrasi = async (nasabahId: number) => {
+const getOrCreateRegistrasi = async (nasabahId: number, nomorRekening?: string) => {
   const latest = await prisma.registrasi.findFirst({
     where: { nasabahId },
     orderBy: { createdAt: 'desc' },
@@ -26,6 +26,9 @@ const getOrCreateRegistrasi = async (nasabahId: number) => {
   };
 
   if (latest && !isSelesai(latest)) {
+    if (nomorRekening) {
+      await prisma.registrasi.update({ where: { id: latest.id }, data: { nomorRekening } });
+    }
     return latest;
   }
 
@@ -35,7 +38,7 @@ const getOrCreateRegistrasi = async (nasabahId: number) => {
 
   const kodeRegister = await generateKodeRegister();
   return prisma.registrasi.create({
-    data: { kodeRegister, nasabahId, status: 'AKTIF' },
+    data: { kodeRegister, nasabahId, status: 'AKTIF', nomorRekening },
   });
 };
 
@@ -45,24 +48,26 @@ export async function POST(request: Request) {
     jenis,
     deskripsi,
     tujuan,
-    keluarDariBrankas,
-    keluarOleh,
-    tanggalKeluar,
-    diserahkanKeNasabah,
-    diserahkanOleh,
-    tanggalSerah,
     warningPesan,
     her5Reminder,
     nomorPolisi,
     namaPemilik,
     noRangka,
     noMesin,
-    status,
+    jenisKendaraan,
+    tahunPembuatan,
+    nomorBPKB,
+    nomorSHM,
+    namaPemilikSHM,
+    beratEmas,
+    karatEmas,
+    taksiranHarga,
     nasabahId,
     newNasabah,
+    nomorRekening,
   } = body;
 
-  if (!jenis || !deskripsi || (!nasabahId && !newNasabah) || !status) {
+  if (!jenis || (!nasabahId && !newNasabah)) {
     return NextResponse.json({ error: 'Data tidak lengkap.' }, { status: 400 });
   }
 
@@ -80,33 +85,35 @@ export async function POST(request: Request) {
       connectedNasabahId = createdNasabah.id;
     }
 
-    const registrasi = await getOrCreateRegistrasi(connectedNasabahId);
+    const registrasi = await getOrCreateRegistrasi(connectedNasabahId, nomorRekening);
 
     const newAgunan = await prisma.agunan.create({
       data: {
         kodeRegister: registrasi.kodeRegister,
         registrasi: { connect: { id: registrasi.id } },
         jenis,
-        deskripsi,
-        status,
+        deskripsi: deskripsi || '',
+        status: 'PENDING',
         tujuan,
-        keluarDariBrankas: Boolean(keluarDariBrankas),
-        keluarOleh,
-        tanggalKeluar: tanggalKeluar ? new Date(tanggalKeluar) : null,
-        diserahkanKeNasabah: Boolean(diserahkanKeNasabah),
-        diserahkanOleh,
-        tanggalSerah: tanggalSerah ? new Date(tanggalSerah) : null,
         warningPesan,
         her5Reminder: her5Reminder ? new Date(her5Reminder) : null,
         nomorPolisi,
         namaPemilik,
         noRangka,
         noMesin,
+        jenisKendaraan,
+        tahunPembuatan,
+        nomorBPKB,
+        nomorSHM,
+        namaPemilikSHM,
+        beratEmas: beratEmas ? Number(beratEmas) : null,
+        karatEmas,
+        taksiranHarga: taksiranHarga ? Number(taksiranHarga) : null,
         nasabah: { connect: { id: connectedNasabahId } },
       },
     });
 
-    return NextResponse.json(newAgunan);
+    return NextResponse.json({ ...newAgunan, kodeRegister: registrasi.kodeRegister });
   } catch (error: any) {
     return NextResponse.json({ error: error.message || 'Terjadi kesalahan.' }, { status: 500 });
   }

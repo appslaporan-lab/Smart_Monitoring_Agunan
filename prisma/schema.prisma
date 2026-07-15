@@ -20,13 +20,14 @@ model Nasabah {
 }
 
 model Registrasi {
-  id           Int              @id @default(autoincrement())
-  kodeRegister String           @unique
-  nasabah      Nasabah          @relation(fields: [nasabahId], references: [id])
-  nasabahId    Int
-  status       RegistrasiStatus @default(AKTIF)
-  agunans      Agunan[]
-  createdAt    DateTime         @default(now())
+  id            Int              @id @default(autoincrement())
+  kodeRegister  String           @unique
+  nomorRekening String?
+  nasabah       Nasabah          @relation(fields: [nasabahId], references: [id])
+  nasabahId     Int
+  status        RegistrasiStatus @default(AKTIF)
+  agunans       Agunan[]
+  createdAt     DateTime         @default(now())
 }
 
 enum RegistrasiStatus {
@@ -68,6 +69,14 @@ model Agunan {
   namaPemilik         String?
   noRangka            String?
   noMesin             String?
+  jenisKendaraan      String?
+  tahunPembuatan      String?
+  nomorBPKB           String?
+  nomorSHM            String?
+  namaPemilikSHM      String?
+  beratEmas           Float?
+  karatEmas           String?
+  taksiranHarga       Float?
   createdAt           DateTime    @default(now())
   updatedAt           DateTime    @updatedAt
 }
