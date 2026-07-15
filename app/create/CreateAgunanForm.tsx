@@ -16,7 +16,7 @@ export default function CreateAgunanForm({ nasabahs }: { nasabahs: Nasabah[] }) 
   const [mode, setMode] = useState<'existing' | 'new'>('existing');
   const [selectedNasabahId, setSelectedNasabahId] = useState('');
   const [form, setForm] = useState({
-    kodeRegister: '',
+    
     jenis: 'BPKB',
     status: 'PENDING',
     deskripsi: '',
@@ -52,7 +52,7 @@ export default function CreateAgunanForm({ nasabahs }: { nasabahs: Nasabah[] }) 
     setErrorMessage(null);
 
     const payload: any = {
-      kodeRegister: form.kodeRegister,
+      
       jenis: form.jenis,
       status: form.status,
       deskripsi: form.deskripsi,
@@ -173,17 +173,6 @@ export default function CreateAgunanForm({ nasabahs }: { nasabahs: Nasabah[] }) 
           </div>
         </div>
       )}
-
-      <div>
-        <label className="label">Kode Register Agunan</label>
-        <input
-          className="inputField"
-          value={form.kodeRegister}
-          onChange={(event) => updateField('kodeRegister', event.target.value)}
-          placeholder="Contoh: AGN-2026-001"
-          required
-        />
-      </div>
 
       <div>
         <label className="label">Jenis Agunan</label>
