@@ -1,4 +1,4 @@
-generator client {
+﻿generator client {
   provider = "prisma-client-js"
 }
 
@@ -9,13 +9,29 @@ datasource db {
 }
 
 model Nasabah {
-  id        Int      @id @default(autoincrement())
-  nama      String
-  nik       String   @unique
-  alamat    String?
-  telepon   String?
-  agunans   Agunan[]
-  createdAt DateTime @default(now())
+  id          Int          @id @default(autoincrement())
+  nama        String
+  nik         String       @unique
+  alamat      String?
+  telepon     String?
+  agunans     Agunan[]
+  registrasis Registrasi[]
+  createdAt   DateTime     @default(now())
+}
+
+model Registrasi {
+  id           Int              @id @default(autoincrement())
+  kodeRegister String           @unique
+  nasabah      Nasabah          @relation(fields: [nasabahId], references: [id])
+  nasabahId    Int
+  status       RegistrasiStatus @default(AKTIF)
+  agunans      Agunan[]
+  createdAt    DateTime         @default(now())
+}
+
+enum RegistrasiStatus {
+  AKTIF
+  LUNAS
 }
 
 model User {
@@ -29,7 +45,9 @@ model User {
 
 model Agunan {
   id                  Int         @id @default(autoincrement())
-  kodeRegister        String      @unique
+  kodeRegister        String
+  registrasi          Registrasi  @relation(fields: [registrasiId], references: [id])
+  registrasiId        Int
   jenis               AgunanJenis
   deskripsi           String
   status              AgunanStatus @default(PENDING)
