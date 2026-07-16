@@ -10,13 +10,13 @@ export async function PUT(request: Request, { params }: { params: { id: string }
     nomorRekening,
     tanggalLunas,
     jenisAgunan,
-    photoDataUrl,
-    yangMenyerahkan,
-    menyetujui,
-    yangMenerima,
+    ttdAdmKredit,
+    ttdYangMenyerahkan,
+    ttdYangMenerima,
+    ttdMengetahui,
   } = body;
 
-  if (!nomorDokumen || !namaNasabah || !jenisAgunan || !yangMenyerahkan || !menyetujui || !yangMenerima) {
+  if (!nomorDokumen || !namaNasabah || !jenisAgunan || !ttdAdmKredit || !ttdYangMenyerahkan || !ttdYangMenerima || !ttdMengetahui) {
     return NextResponse.json({ error: 'Data berita acara tidak lengkap.' }, { status: 400 });
   }
 
@@ -28,12 +28,12 @@ export async function PUT(request: Request, { params }: { params: { id: string }
         namaNasabah,
         alamat,
         nomorRekening,
-        tanggalLunas: tanggalLunas ? new Date(tanggalLunas) : undefined,
+        tanggalLunas: tanggalLunas ? new Date(tanggalLunas) : null,
         jenisAgunan,
-        photoDataUrl,
-        yangMenyerahkan,
-        menyetujui,
-        yangMenerima,
+        ttdAdmKredit,
+        ttdYangMenyerahkan,
+        ttdYangMenerima,
+        ttdMengetahui,
       },
     });
 

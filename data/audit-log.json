@@ -1,1 +1,11 @@
-[]
+[
+  {
+    "agunanId": 5,
+    "agunanKodeRegister": "REG-2026-0001",
+    "action": "approve_pimpinan",
+    "actor": "Pimpinan",
+    "details": "Tidak ada catatan",
+    "id": "1784165454323-h9ky5e",
+    "createdAt": "2026-07-16T01:30:54.323Z"
+  }
+]

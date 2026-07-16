@@ -8,7 +8,14 @@ export const metadata = {
 export default async function FormalBeritaAcaraPage({ params }: { params: { id: string } }) {
   const agunan = await prisma.agunan.findUnique({
     where: { id: Number(params.id) },
-    include: { nasabah: true },
+    include: { 
+      nasabah: true,
+      registrasi: {
+        include: {
+          agunans: true
+        }
+      }
+    },
   });
 
   if (!agunan) {

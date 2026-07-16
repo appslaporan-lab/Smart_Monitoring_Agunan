@@ -5,6 +5,22 @@ export const metadata = {
   title: 'Edit Berita Acara',
 };
 
+type BeritaAcaraEdit = {
+  id: number;
+  nomorDokumen: string;
+  nomorRegister: string;
+  namaNasabah: string;
+  alamat: string | null;
+  nomorRekening: string | null;
+  tanggalLunas: Date | null;
+  jenisAgunan: string;
+  photoDataUrl: string | null;
+  ttdAdmKredit: string | null;
+  ttdYangMenyerahkan: string | null;
+  ttdYangMenerima: string | null;
+  ttdMengetahui: string | null;
+};
+
 export default async function EditPage({ params }: { params: { id: string } }) {
   const beritaAcara = await prisma.beritaAcara.findUnique({
     where: { id: Number(params.id) },

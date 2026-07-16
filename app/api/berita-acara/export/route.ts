@@ -51,11 +51,18 @@ export async function GET(request: Request) {
     records.forEach((item, index) => {
       doc.fontSize(10).text(`${index + 1}. ${item.nomorDokumen}`, { underline: true });
       doc.text(`   Nasabah: ${item.namaNasabah}`);
-      doc.text(`   Register: ${item.nomorRegister}`);
-      doc.text(`   Agunan: ${item.jenisAgunan}`);
-      doc.text(`   Tanggal Lunas: ${item.tanggalLunas ? item.tanggalLunas.toISOString().split('T')[0] : '-'}`);
-      doc.text(`   Menyerahkan: ${item.yangMenyerahkan}`);
-      doc.moveDown(0.5);
+      item.nomorDokumen;
+      item.nomorRegister;
+      item.namaNasabah;
+      item.alamat || '-';
+      item.nomorRekening || '-';
+      item.tanggalLunas ? item.tanggalLunas.toISOString().split('T')[0] : '-';
+      item.jenisAgunan;
+      item.ttdAdmKredit || '-';
+      item.ttdYangMenyerahkan || '-';
+      item.ttdYangMenerima || '-';
+      item.ttdMengetahui || '-';
+      item.createdAt.toISOString().split('T')[0];
     });
     doc.end();
     const pdfBuffer = await bufferFromStream(doc);

@@ -14,10 +14,16 @@ export default async function NasabahPage() {
 
   return (
     <main className="container">
-      <section style={{ marginBottom: 32 }}>
-        <h1>Data Nasabah</h1>
-        <p>Daftar nasabah yang terdaftar beserta jumlah agunan yang dimiliki.</p>
-      </section>
+      <div style={{ marginBottom: 32, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px' }}>
+        <div>
+          <h1 style={{ fontSize: '2rem', fontWeight: 800, color: '#0f172a', marginBottom: '8px' }}>Data Nasabah</h1>
+          <p style={{ color: '#64748b', fontSize: '1.05rem', margin: 0 }}>Daftar nasabah yang terdaftar beserta jumlah agunan yang dimiliki.</p>
+        </div>
+        <Link href="/nasabah/create" className="button" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg>
+          Tambah Nasabah
+        </Link>
+      </div>
 
       <div className="card" style={{ padding: 24 }}>
         {nasabahs.length === 0 ? (

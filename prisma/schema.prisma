@@ -9,14 +9,15 @@ datasource db {
 }
 
 model Nasabah {
-  id          Int          @id @default(autoincrement())
-  nama        String
-  nik         String       @unique
-  alamat      String?
-  telepon     String?
-  agunans     Agunan[]
-  registrasis Registrasi[]
-  createdAt   DateTime     @default(now())
+  id           Int          @id @default(autoincrement())
+  nama         String
+  nik          String       @unique
+  alamat       String?
+  telepon      String?
+  namaPasangan String?
+  agunans      Agunan[]
+  registrasis  Registrasi[]
+  createdAt    DateTime     @default(now())
 }
 
 model Registrasi {
@@ -72,11 +73,20 @@ model Agunan {
   jenisKendaraan      String?
   tahunPembuatan      String?
   nomorBPKB           String?
+  alamatBPKB          String?
   nomorSHM            String?
   namaPemilikSHM      String?
+  lokasiSHM           String?
+  luas                String?
   beratEmas           Float?
   karatEmas           String?
   taksiranHarga       Float?
+  nomorSK             String?
+  namaSK              String?
+  jabatan             String?
+  nomorDeposito       String?
+  namaDeposito        String?
+  nominalDeposito     Float?
   createdAt           DateTime    @default(now())
   updatedAt           DateTime    @updatedAt
 }
@@ -92,12 +102,13 @@ model BeritaAcara {
   nomorRekening  String?
   tanggalLunas   DateTime?
   jenisAgunan    String
-  photoDataUrl   String?
-  yangMenyerahkan String
-  menyetujui     String
-  yangMenerima   String
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  photoDataUrl       String?
+  ttdAdmKredit       String?
+  ttdYangMenyerahkan String?
+  ttdYangMenerima    String?
+  ttdMengetahui      String?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
 }
 
 model StockOpname {
@@ -121,6 +132,10 @@ enum AgunanJenis {
   SERTIFIKAT
   EMAS
   KENDARAAN
+  SHM
+  SK
+  AKTA_TANAH
+  DEPOSITO
   LAINNYA
 }
 
