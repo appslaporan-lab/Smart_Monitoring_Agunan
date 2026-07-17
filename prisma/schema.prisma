@@ -9,15 +9,23 @@ datasource db {
 }
 
 model Nasabah {
-  id           Int          @id @default(autoincrement())
-  nama         String
-  nik          String       @unique
-  alamat       String?
-  telepon      String?
-  namaPasangan String?
-  agunans      Agunan[]
-  registrasis  Registrasi[]
-  createdAt    DateTime     @default(now())
+  id                Int              @id @default(autoincrement())
+  nama              String
+  nik               String           @unique
+  alamat            String?
+  telepon           String?
+  statusPernikahan  StatusPernikahan @default(BELUM_NIKAH)
+  namaPasangan      String?
+  agunans           Agunan[]
+  registrasis       Registrasi[]
+  createdAt         DateTime         @default(now())
+}
+
+enum StatusPernikahan {
+  BELUM_NIKAH
+  MENIKAH
+  JANDA
+  DUDA
 }
 
 model Registrasi {
@@ -37,12 +45,14 @@ enum RegistrasiStatus {
 }
 
 model User {
-  id           Int      @id @default(autoincrement())
-  nama         String
-  username     String   @unique
-  passwordHash String
-  role         UserRole
-  createdAt    DateTime @default(now())
+  id                 Int      @id @default(autoincrement())
+  nama               String
+  username           String   @unique
+  passwordHash       String
+  role               UserRole
+  createdAt          DateTime @default(now())
+  pengajuanDiajukan  PengajuanKeluar[] @relation("PengajuanDiajukan")
+  stepDisetujui      PengajuanStep[]   @relation("StepDisetujui")
 }
 
 model Agunan {
@@ -51,64 +61,146 @@ model Agunan {
   registrasi          Registrasi  @relation(fields: [registrasiId], references: [id])
   registrasiId        Int
   jenis               AgunanJenis
-  deskripsi           String
-  status              AgunanStatus @default(PENDING)
+  deskripsi           String?
+  status              AgunanStatus @default(DI_BRANKAS)
   nasabah             Nasabah     @relation(fields: [nasabahId], references: [id])
   nasabahId           Int
   stockOpnames        StockOpname[]
   beritaAcaras        BeritaAcara[]
-  keluarDariBrankas   Boolean     @default(false)
-  diserahkanKeNasabah Boolean     @default(false)
-  keluarOleh          String?
-  diserahkanOleh      String?
+  pengajuanKeluar     PengajuanKeluar[]
+
   tujuan              String?
-  tanggalKeluar       DateTime?
-  tanggalSerah        DateTime?
   warningPesan        String?
-  her5Reminder        DateTime?
+
+  jenisKendaraan      String?
   nomorPolisi         String?
   namaPemilik         String?
+  merk                String?
+  tipeKendaraan       String?
+  warna               String?
+  tahunPembuatan      String?
   noRangka            String?
   noMesin             String?
-  jenisKendaraan      String?
-  tahunPembuatan      String?
   nomorBPKB           String?
-  alamatBPKB          String?
+  her5Reminder        DateTime?
+  statusHER           String?
+
   nomorSHM            String?
   namaPemilikSHM      String?
-  lokasiSHM           String?
-  luas                String?
+  lokasiTanah         String?
+  luasTanah           Float?
+
+  nomorSK             String?
+  namaPemilikSK       String?
+  dinasDesa           String?
+
   beratEmas           Float?
   karatEmas           String?
   taksiranHarga       Float?
-  nomorSK             String?
-  namaSK              String?
-  jabatan             String?
-  nomorDeposito       String?
-  namaDeposito        String?
-  nominalDeposito     Float?
+
+  nomorCovernote      String?
+  tanggalTerbitCovernote DateTime?
+  nomorAJB            String?
+  atasNamaSertifikasi String?
+  letakTanahSertifikasi String?
+  luasSertifikasi     Float?
+  perkiraanJadiSHM    DateTime?
+
   createdAt           DateTime    @default(now())
   updatedAt           DateTime    @updatedAt
 }
 
+enum AgunanJenis {
+  BPKB
+  SHM_AJB
+  SK
+  EMAS
+  DEPOSITO
+  PROSES_SERTIFIKASI
+  LAINNYA
+}
+
+enum AgunanStatus {
+  DI_BRANKAS
+  PROSES_KELUAR
+  HER_5_TAHUNAN
+  PROSES_SERTIFIKASI
+  TRANSFER_CABANG
+  PENCAIRAN_ULANG
+  DISERAHKAN
+  KEMBALI
+}
+
+model PengajuanKeluar {
+  id              Int              @id @default(autoincrement())
+  agunan          Agunan           @relation(fields: [agunanId], references: [id])
+  agunanId        Int
+  jenisPengajuan  PengajuanJenis
+  diajukanOleh    User             @relation("PengajuanDiajukan", fields: [diajukanOlehId], references: [id])
+  diajukanOlehId  Int
+  status          PengajuanStatus  @default(MENUNGGU)
+  catatan         String?
+  steps           PengajuanStep[]
+  beritaAcaras    BeritaAcara[]
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+}
+
+enum PengajuanJenis {
+  LUNAS_LANGSUNG
+  LUNAS_TRANSFER_PUSAT_KE_CABANG
+  LUNAS_TRANSFER_CABANG_KE_CABANG
+  PENCAIRAN_ULANG
+  HER_5_TAHUN
+  SERTIFIKASI
+}
+
+enum PengajuanStatus {
+  MENUNGGU
+  DISETUJUI
+  DITOLAK
+  SELESAI
+}
+
+model PengajuanStep {
+  id              Int              @id @default(autoincrement())
+  pengajuan       PengajuanKeluar  @relation(fields: [pengajuanId], references: [id])
+  pengajuanId     Int
+  urutan          Int
+  rolesDiizinkan  String
+  modeApproval    String           @default("OR")
+  status          StepStatus       @default(MENUNGGU)
+  disetujuiOleh   User?            @relation("StepDisetujui", fields: [disetujuiOlehId], references: [id])
+  disetujuiOlehId Int?
+  catatan         String?
+  updatedAt       DateTime         @updatedAt
+}
+
+enum StepStatus {
+  MENUNGGU
+  DISETUJUI
+  DILEWATI
+}
+
 model BeritaAcara {
-  id             Int      @id @default(autoincrement())
-  agunan         Agunan   @relation(fields: [agunanId], references: [id])
-  agunanId       Int
-  nomorDokumen   String   @unique
-  nomorRegister  String
-  namaNasabah    String
-  alamat         String?
-  nomorRekening  String?
-  tanggalLunas   DateTime?
-  jenisAgunan    String
-  photoDataUrl       String?
-  ttdAdmKredit       String?
-  ttdYangMenyerahkan String?
-  ttdYangMenerima    String?
-  ttdMengetahui      String?
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
+  id              Int              @id @default(autoincrement())
+  agunan          Agunan           @relation(fields: [agunanId], references: [id])
+  agunanId        Int
+  pengajuan       PengajuanKeluar? @relation(fields: [pengajuanId], references: [id])
+  pengajuanId     Int?
+  nomorDokumen    String           @unique
+  nomorRegister   String
+  namaNasabah     String
+  alamat          String?
+  nomorRekening   String?
+  tanggalLunas    DateTime?
+  jenisAgunan     String
+  photoDataUrl    String?
+  yangMenyerahkan String
+  menyetujui      String
+  yangMenerima    String
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
 }
 
 model StockOpname {
@@ -127,28 +219,14 @@ model StockOpname {
   updatedAt          DateTime                @updatedAt
 }
 
-enum AgunanJenis {
-  BPKB
-  SERTIFIKAT
-  EMAS
-  KENDARAAN
-  SHM
-  SK
-  AKTA_TANAH
-  DEPOSITO
-  LAINNYA
-}
-
-enum AgunanStatus {
-  PENDING
-  DIKELUARKAN
-  DISETUJUI_OPERASIONAL
-  DISETUJUI_PIMPINAN
-  TRANSFER_CABANG
-  RE_DISBURSE
-  DISETUJUI
-  DISERAHKAN
-  KEMBALI
+model AuditLog {
+  id                 Int      @id @default(autoincrement())
+  agunanId           Int?
+  agunanKodeRegister String?
+  action             String
+  actor              String
+  details            String?
+  createdAt          DateTime @default(now())
 }
 
 enum StockOpnamePelaksana {
