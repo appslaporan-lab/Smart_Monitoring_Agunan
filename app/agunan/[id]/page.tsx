@@ -2,6 +2,8 @@ import { prisma } from '@/lib/prisma';
 import { format } from 'date-fns';
 import Link from 'next/link';
 
+export const dynamic = 'force-dynamic';
+
 const formatDate = (date?: Date | string | null) => {
   if (!date) return '-';
   return format(new Date(date), 'dd MMM yyyy');
