@@ -6,10 +6,10 @@ import AgunanStatusChart from './AgunanStatusChart';
 
 export const dynamic = 'force-dynamic';
 
-type AgunanWithNasabah = Prisma.AgunanGetPayload<{ include: { nasabah: true } }>;
+type AgunanWithNasabah = Prisma.AgunanGetPayload<{ include: { nasabah: true; registrasi: true } }>;
 
 const fetchAgunans = async (): Promise<AgunanWithNasabah[]> => {
-  return prisma.agunan.findMany({ include: { nasabah: true }, orderBy: { updatedAt: 'desc' } });
+  return prisma.agunan.findMany({ include: { nasabah: true, registrasi: true }, orderBy: { updatedAt: 'desc' } });
 };
 
 const formatDate = (date?: Date | string | null) => {
@@ -19,15 +19,18 @@ const formatDate = (date?: Date | string | null) => {
 
 const statusClass = (status: string) => {
   switch (status) {
-    case 'DIKELUARKAN':
-      return 'status-dikeluarkan';
-    case 'DISETUJUI_OPERASIONAL':
-    case 'DISETUJUI_PIMPINAN':
-    case 'DISETUJUI':
-      return 'status-disetujui';
-    case 'TRANSFER_CABANG':
-    case 'RE_DISBURSE':
+    case 'DI_BRANKAS':
+      return 'status-pending';
+    case 'PROSES_KELUAR':
       return 'status-warning';
+    case 'HER_5_TAHUNAN':
+      return 'status-warning';
+    case 'PROSES_SERTIFIKASI':
+      return 'status-warning';
+    case 'TRANSFER_CABANG':
+      return 'status-dikeluarkan';
+    case 'PENCAIRAN_ULANG':
+      return 'status-disetujui';
     case 'DISERAHKAN':
       return 'status-diserahkan';
     case 'KEMBALI':
@@ -40,30 +43,31 @@ const statusClass = (status: string) => {
 export default async function Home() {
   const agunans = await fetchAgunans();
 
-  const warnings = agunans.filter((item) => item.keluarDariBrankas && !item.diserahkanKeNasabah);
-  const herWarnings = agunans.filter(
-    (item) => item.jenis === 'BPKB' && item.her5Reminder && new Date(item.her5Reminder) <= new Date(),
+  const warnings = agunans.filter((item) => item.status === 'PROSES_KELUAR');
+  const herWarnings = agunans.filter((item) => item.status === 'HER_5_TAHUNAN');
+  const sertifikasiWarnings = agunans.filter(
+    (item) => item.status === 'PROSES_SERTIFIKASI' && item.perkiraanJadiSHM && new Date(item.perkiraanJadiSHM) <= new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
   );
 
   const statusCounts = agunans.reduce(
     (acc, item) => {
-      if (item.status === 'DIKELUARKAN') acc.dikeluarkan += 1;
-      else if (item.status.includes('DISETUJUI')) acc.disetujui += 1;
+      if (item.status === 'DI_BRANKAS') acc.diBrankas += 1;
+      else if (item.status === 'PROSES_KELUAR') acc.prosesKeluar += 1;
       else if (item.status === 'DISERAHKAN') acc.diserahkan += 1;
-      else if (item.status === 'KEMBALI') acc.kembali += 1;
+      else if (item.status === 'HER_5_TAHUNAN' || item.status === 'PROSES_SERTIFIKASI') acc.proses += 1;
       else acc.lainnya += 1;
       return acc;
     },
-    { dikeluarkan: 0, disetujui: 0, diserahkan: 0, kembali: 0, lainnya: 0 },
+    { diBrankas: 0, prosesKeluar: 0, diserahkan: 0, proses: 0, lainnya: 0 },
   );
 
   const totalStatusCount = agunans.length || 1;
   const statusChartData = [
-    { label: 'Dikeluarkan', count: statusCounts.dikeluarkan, className: 'status-chart-dikeluarkan' },
-    { label: 'Disetujui', count: statusCounts.disetujui, className: 'status-chart-disetujui' },
+    { label: 'Di Brankas', count: statusCounts.diBrankas, className: 'status-chart-lainnya' },
+    { label: 'Proses Keluar', count: statusCounts.prosesKeluar, className: 'status-chart-dikeluarkan' },
     { label: 'Diserahkan', count: statusCounts.diserahkan, className: 'status-chart-diserahkan' },
-    { label: 'Kembali', count: statusCounts.kembali, className: 'status-chart-kembali' },
-    { label: 'Lainnya', count: statusCounts.lainnya, className: 'status-chart-lainnya' },
+    { label: 'HER/Sertifikasi', count: statusCounts.proses, className: 'status-chart-disetujui' },
+    { label: 'Lainnya', count: statusCounts.lainnya, className: 'status-chart-kembali' },
   ];
 
   const donutRadius = 72;
@@ -83,8 +87,8 @@ export default async function Home() {
 
   const summaryStats = [
     { label: 'Total Agunan', value: agunans.length, accent: 'status-chart-lainnya' },
-    { label: 'Dikeluarkan', value: statusCounts.dikeluarkan, accent: 'status-chart-dikeluarkan' },
-    { label: 'Disetujui', value: statusCounts.disetujui, accent: 'status-chart-disetujui' },
+    { label: 'Di Brankas', value: statusCounts.diBrankas, accent: 'status-chart-dikeluarkan' },
+    { label: 'Proses Keluar', value: statusCounts.prosesKeluar, accent: 'status-chart-disetujui' },
     { label: 'Diserahkan', value: statusCounts.diserahkan, accent: 'status-chart-diserahkan' },
   ];
 
@@ -94,18 +98,14 @@ export default async function Home() {
       return acc;
     }, {} as Record<string, number>),
   )
-    .map(([jenis, count]) => ({
-      jenis,
-      count,
-      percent: Math.round((count / totalStatusCount) * 100),
-    }))
+    .map(([jenis, count]) => ({ jenis, count, percent: Math.round((count / totalStatusCount) * 100) }))
     .sort((a, b) => b.count - a.count);
 
   return (
     <main className="container">
       <header style={{ marginBottom: 32 }}>
         <h1>Monitoring Agunan</h1>
-        <p>Aplikasi untuk memonitor pengecualian agunan, penyerahan, dan HER BPKB.</p>
+        <p>Aplikasi untuk memonitor agunan, HER BPKB, dan proses sertifikasi.</p>
       </header>
 
       <section className="grid" style={{ marginBottom: 32 }}>
@@ -119,30 +119,39 @@ export default async function Home() {
         </div>
 
         <div className="card" style={{ padding: 24 }}>
-          <h2>Peringatan Agunan Keluar</h2>
+          <h2>Agunan Dalam Proses Keluar</h2>
           {warnings.length === 0 ? (
-            <p>Tidak ada agunan yang keluar dan belum diserahkan.</p>
+            <p>Tidak ada agunan yang sedang dalam proses keluar.</p>
           ) : (
             <ul>
               {warnings.map((item) => (
-                <li key={item.id}>
-                  {item.kodeRegister} ({item.jenis}) - {item.nasabah.nama}, keluar: {formatDate(item.tanggalKeluar)}
-                </li>
+                <li key={item.id}>{item.kodeRegister} ({item.jenis}) - {item.nasabah.nama}</li>
               ))}
             </ul>
           )}
         </div>
 
         <div className="card" style={{ padding: 24 }}>
-          <h2>Peringatan BPKB HER 5 Tahunan</h2>
+          <h2>Peringatan HER 5 Tahunan</h2>
           {herWarnings.length === 0 ? (
-            <p>Tidak ada BPKB yang harus diambil ke Samsat sekarang.</p>
+            <p>Tidak ada BPKB dalam proses HER 5 Tahunan.</p>
           ) : (
             <ul>
               {herWarnings.map((item) => (
-                <li key={item.id}>
-                  {item.kodeRegister} - {item.nasabah.nama}, batas waktu: {formatDate(item.her5Reminder)}
-                </li>
+                <li key={item.id}>{item.kodeRegister} - {item.nasabah.nama} (STNK sementara, tunggu BPKB baru ~3 bulan)</li>
+              ))}
+            </ul>
+          )}
+        </div>
+
+        <div className="card" style={{ padding: 24 }}>
+          <h2>Peringatan Proses Sertifikasi</h2>
+          {sertifikasiWarnings.length === 0 ? (
+            <p>Tidak ada proses sertifikasi yang mendekati jatuh tempo.</p>
+          ) : (
+            <ul>
+              {sertifikasiWarnings.map((item) => (
+                <li key={item.id}>{item.kodeRegister} - {item.nasabah.nama}, perkiraan jadi: {formatDate(item.perkiraanJadiSHM)}</li>
               ))}
             </ul>
           )}
@@ -153,11 +162,9 @@ export default async function Home() {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 16, flexWrap: 'wrap' }}>
           <div>
             <h2>Daftar Agunan</h2>
-            <p>Semua agunan dan status penyerahan.</p>
+            <p>Semua agunan dan statusnya.</p>
           </div>
-          <Link href="/create" className="button">
-            Tambah Agunan
-          </Link>
+          <Link href="/create" className="button">Tambah Agunan</Link>
         </div>
 
         <div style={{ display: 'grid', gap: 18, marginTop: 24 }}>
@@ -169,19 +176,11 @@ export default async function Home() {
                 <div style={{ display: 'flex', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap' }}>
                   <div>
                     <strong>{item.kodeRegister}</strong>
-                    <p>{item.jenis} — {item.deskripsi}</p>
+                    <p>{item.jenis} — {item.deskripsi || '-'}</p>
                     <p>Nasabah: {item.nasabah.nama}</p>
+                    <p>No. Rekening: {item.registrasi?.nomorRekening ?? '-'}</p>
                   </div>
                   <span className={`status-pill ${statusClass(item.status)}`}>{item.status.replace(/_/g, ' ')}</span>
-                </div>
-                <div style={{ display: 'grid', gap: 10, marginTop: 12 }}>
-                  <p>Keluar dari brankas: {item.keluarDariBrankas ? 'Ya' : 'Tidak'}</p>
-                  <p>Diserahkan ke nasabah: {item.diserahkanKeNasabah ? 'Ya' : 'Tidak'}</p>
-                  <p>Keluar oleh: {item.keluarOleh ?? '-'}</p>
-                  <p>Diserahkan oleh: {item.diserahkanOleh ?? '-'}</p>
-                  <p>Tanggal keluar: {formatDate(item.tanggalKeluar)}</p>
-                  <p>Tanggal serah: {formatDate(item.tanggalSerah)}</p>
-                  <p>HER 5 reminder: {formatDate(item.her5Reminder)}</p>
                 </div>
                 <Link href={`/agunan/${item.id}`} className="button secondary" style={{ marginTop: 14 }}>
                   Detail Agunan

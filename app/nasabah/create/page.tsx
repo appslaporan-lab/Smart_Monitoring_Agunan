@@ -12,6 +12,7 @@ export default function CreateNasabahPage() {
     nik: '',
     alamat: '',
     telepon: '',
+    statusPernikahan: 'BELUM_NIKAH',
     namaPasangan: '',
     nomorRekening: ''
   });
@@ -19,7 +20,7 @@ export default function CreateNasabahPage() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
@@ -45,9 +46,7 @@ export default function CreateNasabahPage() {
       }
 
       setStatusMessage(`Berhasil! Nomor Register Anda: ${result.kodeRegister}`);
-      setTimeout(() => {
-        router.push('/nasabah');
-      }, 3000);
+      setTimeout(() => router.push('/nasabah'), 3000);
     } catch (error) {
       setErrorMessage('Terjadi kesalahan jaringan.');
       setIsLoading(false);
@@ -57,7 +56,7 @@ export default function CreateNasabahPage() {
   return (
     <div style={{ animation: 'fadeIn 0.3s ease', maxWidth: 800, margin: '0 auto' }}>
       <div style={{ marginBottom: 32, display: 'flex', gap: 16, alignItems: 'center' }}>
-        <div style={{ width: 48, height: 48, borderRadius: 12, background: '#eff6ff', color: '#3b82f6', display: 'flex', alignItems: 'center', justifyItems: 'center', justifyContent: 'center' }}>
+        <div style={{ width: 48, height: 48, borderRadius: 12, background: '#eff6ff', color: '#3b82f6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <Shield size={24} />
         </div>
         <div>
@@ -93,16 +92,28 @@ export default function CreateNasabahPage() {
             </div>
           </div>
 
-          <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 24, marginBottom: 32 }}>
+          <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 24, marginBottom: 24 }}>
             <div>
               <label className="label">Nomor HP / Telepon</label>
               <input type="tel" name="telepon" className="inputField" value={formData.telepon} onChange={handleChange} />
             </div>
             <div>
-              <label className="label">Nama Pasangan (Suami/Istri)</label>
-              <input type="text" name="namaPasangan" className="inputField" value={formData.namaPasangan} onChange={handleChange} placeholder="Kosongkan jika belum menikah" />
+              <label className="label">Status Pernikahan</label>
+              <select name="statusPernikahan" className="inputField" value={formData.statusPernikahan} onChange={handleChange}>
+                <option value="BELUM_NIKAH">Belum Menikah</option>
+                <option value="MENIKAH">Menikah</option>
+                <option value="JANDA">Janda</option>
+                <option value="DUDA">Duda</option>
+              </select>
             </div>
           </div>
+
+          {formData.statusPernikahan === 'MENIKAH' && (
+            <div style={{ marginBottom: 32 }}>
+              <label className="label">Nama Pasangan (Suami/Istri)</label>
+              <input type="text" name="namaPasangan" className="inputField" value={formData.namaPasangan} onChange={handleChange} />
+            </div>
+          )}
 
           <div style={{ display: 'flex', gap: 16, justifyContent: 'flex-end', paddingTop: 24, borderTop: '1px solid #f1f5f9' }}>
             <Link href="/nasabah" className="button secondary">Batal</Link>

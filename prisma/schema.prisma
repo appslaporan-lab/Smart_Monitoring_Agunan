@@ -196,11 +196,15 @@ model BeritaAcara {
   tanggalLunas    DateTime?
   jenisAgunan     String
   photoDataUrl    String?
-  yangMenyerahkan String
-  menyetujui      String
-  yangMenerima    String
+  yangMenyerahkan String?
+  menyetujui      String?
+  yangMenerima    String?
   createdAt       DateTime         @default(now())
   updatedAt       DateTime         @updatedAt
+  ttdAdmKredit        String?
+  ttdYangMenyerahkan  String?
+  ttdYangMenerima     String?
+  ttdMengetahui       String?
 }
 
 model StockOpname {

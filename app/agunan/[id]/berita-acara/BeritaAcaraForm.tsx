@@ -6,7 +6,7 @@ type AgunanDetail = {
   id: number;
   kodeRegister: string;
   jenis: string;
-  deskripsi: string;
+  deskripsi: string | null;
   status: string;
   nasabah: {
     nama: string;
