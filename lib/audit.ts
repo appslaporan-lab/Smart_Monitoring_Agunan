@@ -1,44 +1,54 @@
-import { promises as fs } from 'fs';
-import path from 'path';
+import { prisma } from '@/lib/prisma';
 
 export type AuditEntry = {
   id: string;
-  agunanId: number;
-  agunanKodeRegister: string;
+  agunanId: number | null;
+  agunanKodeRegister: string | null;
   action: string;
   actor: string;
   details: string;
   createdAt: string;
 };
 
-const auditLogPath = path.join(process.cwd(), 'data', 'audit-log.json');
-
-const ensureLogFile = async () => {
-  await fs.mkdir(path.dirname(auditLogPath), { recursive: true });
-
-  try {
-    await fs.access(auditLogPath);
-  } catch {
-    await fs.writeFile(auditLogPath, '[]', 'utf-8');
-  }
-};
-
 export const readAuditLog = async (): Promise<AuditEntry[]> => {
-  await ensureLogFile();
-  const content = await fs.readFile(auditLogPath, 'utf-8');
-  return JSON.parse(content) as AuditEntry[];
+  const rows = await prisma.auditLog.findMany({
+    orderBy: { createdAt: 'desc' },
+    take: 1000,
+  });
+  return rows.map((row) => ({
+    id: String(row.id),
+    agunanId: row.agunanId,
+    agunanKodeRegister: row.agunanKodeRegister,
+    action: row.action,
+    actor: row.actor,
+    details: row.details ?? '',
+    createdAt: row.createdAt.toISOString(),
+  }));
 };
 
-export const appendAuditLog = async (entry: Omit<AuditEntry, 'id' | 'createdAt'>) => {
-  await ensureLogFile();
-  const entries = await readAuditLog();
-  const newEntry: AuditEntry = {
-    ...entry,
-    id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-    createdAt: new Date().toISOString(),
+export const appendAuditLog = async (entry: {
+  agunanId?: number;
+  agunanKodeRegister?: string;
+  action: string;
+  actor: string;
+  details?: string;
+}) => {
+  const created = await prisma.auditLog.create({
+    data: {
+      agunanId: entry.agunanId,
+      agunanKodeRegister: entry.agunanKodeRegister,
+      action: entry.action,
+      actor: entry.actor,
+      details: entry.details ?? '',
+    },
+  });
+  return {
+    id: String(created.id),
+    agunanId: created.agunanId,
+    agunanKodeRegister: created.agunanKodeRegister,
+    action: created.action,
+    actor: created.actor,
+    details: created.details ?? '',
+    createdAt: created.createdAt.toISOString(),
   };
-
-  const updatedEntries = [newEntry, ...entries].slice(0, 5000);
-  await fs.writeFile(auditLogPath, JSON.stringify(updatedEntries, null, 2), 'utf-8');
-  return newEntry;
 };
