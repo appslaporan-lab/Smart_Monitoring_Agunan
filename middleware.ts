@@ -1,39 +1,39 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { getSessionFromCookie } from '@/lib/session';
 
-const protectedRoutes = ['/create', '/nasabah', '/agunan'];
-const createAllowedRoles = [
-  'ADM_KREDIT_PUSAT',
-  'ADM_KREDIT_CABANG',
-  'KABAG_OPERASIONAL',
-  'PIMPINAN_CABANG',
-  'DIREKTUR',
-];
+const PUBLIC_PATHS = ['/auth/login', '/auth/register', '/auth/login/api', '/auth/register/api', '/auth/logout/api'];
+
+const COOKIE_NAME = 'agunan_session';
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  const user = getSessionFromCookie(request);
 
-  if (protectedRoutes.some((route) => pathname.startsWith(route))) {
-    if (!user) {
-      const url = request.nextUrl.clone();
-      url.pathname = '/auth/login';
-      url.searchParams.set('error', 'Silakan login terlebih dahulu');
-      return NextResponse.redirect(url);
-    }
+  const isPublic = PUBLIC_PATHS.some((path) => pathname.startsWith(path));
+  if (isPublic) return NextResponse.next();
 
-    if (pathname.startsWith('/create') && !createAllowedRoles.includes(user.role)) {
-      const url = request.nextUrl.clone();
-      url.pathname = '/';
-      url.searchParams.set('error', 'Akses dilarang untuk role Anda');
-      return NextResponse.redirect(url);
+  const token = request.cookies.get(COOKIE_NAME)?.value;
+
+  if (!token) {
+    const loginUrl = new URL('/auth/login', request.url);
+    return NextResponse.redirect(loginUrl);
+  }
+
+  try {
+    const session = JSON.parse(Buffer.from(token, 'base64url').toString('utf-8'));
+    if (session.exp < Math.floor(Date.now() / 1000)) {
+      const loginUrl = new URL('/auth/login?error=Sesi+telah+berakhir', request.url);
+      const response = NextResponse.redirect(loginUrl);
+      response.cookies.set({ name: COOKIE_NAME, value: '', maxAge: 0, path: '/' });
+      return response;
     }
+  } catch {
+    const loginUrl = new URL('/auth/login', request.url);
+    return NextResponse.redirect(loginUrl);
   }
 
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ['/create/:path*', '/nasabah/:path*', '/agunan/:path*'],
+  matcher: ['/((?!_next/static|_next/image|favicon.ico|logo-bpr.svg|logo-bpr-resmi.png).*)'],
 };

@@ -3,6 +3,7 @@ import './globals.css';
 import { getCurrentUser } from '@/lib/session';
 import { LayoutDashboard, PlusCircle, Users, ClipboardCheck, FileText, ShieldCheck, LogOut, Shield, Archive, FileSignature, PackageOpen, CheckCircle2 } from 'lucide-react';
 import Link from 'next/link';
+import IdleLogout from '@/components/IdleLogout';
 
 export const metadata: Metadata = {
   title: 'Agunan Monitoring',
@@ -45,6 +46,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="id" suppressHydrationWarning>
       <body suppressHydrationWarning>
+        <IdleLogout />
         <div className="app-layout">
           {/* Sidebar */}
           <aside className="app-sidebar">
