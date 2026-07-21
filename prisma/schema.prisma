@@ -68,6 +68,7 @@ model Agunan {
   stockOpnames        StockOpname[]
   beritaAcaras        BeritaAcara[]
   beritaAcaraTransfers BeritaAcaraTransfer[]
+  beritaAcaraPencairans BeritaAcaraPencairan[]
   pengajuanKeluar     PengajuanKeluar[]
   tanggalKeluarBrankas DateTime?
   tujuan              String?
@@ -224,6 +225,29 @@ model BeritaAcaraTransfer {
   tanggalLunas          DateTime?
   cabangAsal            String?
   cabangTujuan          String?
+  namaPihakPertama      String?
+  jabatanPihakPertama   String?
+  ttdPihakPertamaImg    String?
+  namaPihakKedua        String?
+  jabatanPihakKedua     String?
+  ttdPihakKeduaImg      String?
+  namaMengetahui        String?
+  jabatanMengetahui     String?
+  ttdMengetahuiImg      String?
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+}
+
+model BeritaAcaraPencairan {
+  id                    Int      @id @default(autoincrement())
+  agunan                Agunan   @relation(fields: [agunanId], references: [id])
+  agunanId              Int
+  nomorDokumen          String   @unique
+  nomorRegister         String
+  namaNasabah           String
+  nomorRekening         String?
+  tanggalPencairan      DateTime?
+  keteranganPencairan   String?
   namaPihakPertama      String?
   jabatanPihakPertama   String?
   ttdPihakPertamaImg    String?
