@@ -14,9 +14,13 @@ export async function PUT(request: Request, { params }: { params: { id: string }
     ttdYangMenyerahkan,
     ttdYangMenerima,
     ttdMengetahui,
+    ttdAdmKreditImg,
+    ttdYangMenyerahkanImg,
+    ttdYangMenerimaImg,
+    ttdMengetahuiImg,
   } = body;
 
-  if (!nomorDokumen || !namaNasabah || !jenisAgunan || !ttdAdmKredit || !ttdYangMenyerahkan || !ttdYangMenerima || !ttdMengetahui) {
+  if (!nomorDokumen || !namaNasabah || !jenisAgunan) {
     return NextResponse.json({ error: 'Data berita acara tidak lengkap.' }, { status: 400 });
   }
 
@@ -34,6 +38,10 @@ export async function PUT(request: Request, { params }: { params: { id: string }
         ttdYangMenyerahkan,
         ttdYangMenerima,
         ttdMengetahui,
+        ...(ttdAdmKreditImg !== undefined ? { ttdAdmKreditImg } : {}),
+        ...(ttdYangMenyerahkanImg !== undefined ? { ttdYangMenyerahkanImg } : {}),
+        ...(ttdYangMenerimaImg !== undefined ? { ttdYangMenerimaImg } : {}),
+        ...(ttdMengetahuiImg !== undefined ? { ttdMengetahuiImg } : {}),
       },
     });
 

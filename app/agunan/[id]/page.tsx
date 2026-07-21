@@ -172,6 +172,7 @@ export default async function AgunanDetail({ params }: { params: { id: string } 
 
           <div>
             <Link href={`/agunan/${agunan.id}/berita-acara/formal`} className="button">Buat Berita Acara Formal</Link>
+            <Link href={`/agunan/${agunan.id}/berita-acara-transfer`} className="button secondary" style={{ marginLeft: 8 }}>Berita Acara Transfer Cabang</Link>
             <Link href="/reports" className="button secondary" style={{ marginLeft: 8 }}>Lihat Laporan</Link>
             <Link href="/audit" className="button" style={{ marginLeft: 8 }}>Lihat Audit Trail</Link>
           </div>

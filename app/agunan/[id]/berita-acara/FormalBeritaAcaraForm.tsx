@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
+import SignaturePad from '@/components/SignaturePad';
 
 type AgunanDetail = {
   id: number;
@@ -45,6 +46,11 @@ export default function FormalBeritaAcaraForm({ agunan }: { agunan: AgunanDetail
     ttdYangMenerima: '',
     ttdMengetahui: '',
   });
+  const [sigAdmKredit, setSigAdmKredit] = useState<string | null>(null);
+  const [sigMenyerahkan, setSigMenyerahkan] = useState<string | null>(null);
+  const [sigMenerima, setSigMenerima] = useState<string | null>(null);
+  const [sigMengetahui, setSigMengetahui] = useState<string | null>(null);
+
   const [photoDataUrl, setPhotoDataUrl] = useState<string | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
@@ -89,6 +95,10 @@ export default function FormalBeritaAcaraForm({ agunan }: { agunan: AgunanDetail
         ttdYangMenyerahkan: form.ttdYangMenyerahkan,
         ttdYangMenerima: form.ttdYangMenerima,
         ttdMengetahui: form.ttdMengetahui,
+        ttdAdmKreditImg: sigAdmKredit,
+        ttdYangMenyerahkanImg: sigMenyerahkan,
+        ttdYangMenerimaImg: sigMenerima,
+        ttdMengetahuiImg: sigMengetahui,
       }),
     });
 
@@ -112,7 +122,6 @@ export default function FormalBeritaAcaraForm({ agunan }: { agunan: AgunanDetail
     pdf.save(`${form.nomorDokumen}.pdf`);
   };
 
-  // Format tanggal ke bahasa Indonesia
   const formatTanggalIndo = (dateStr: string) => {
     if (!dateStr) return '____________';
     const bulan = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
@@ -120,9 +129,15 @@ export default function FormalBeritaAcaraForm({ agunan }: { agunan: AgunanDetail
     return `${d.getDate()} ${bulan[d.getMonth()]} ${d.getFullYear()}`;
   };
 
+  const signatureRows = [
+    { label: 'Adm Kredit', name: form.ttdAdmKredit, img: sigAdmKredit },
+    { label: 'Yang Menyerahkan', name: form.ttdYangMenyerahkan, img: sigMenyerahkan },
+    { label: 'Yang Menerima', name: form.ttdYangMenerima, img: sigMenerima },
+    { label: 'Mengetahui', name: form.ttdMengetahui, img: sigMengetahui },
+  ];
+
   return (
     <div className="formal-print-shell">
-      {/* ===== KONTROL (TIDAK TERCETAK) ===== */}
       <div className="no-print" style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginBottom: 8 }}>
         <button className="button" type="button" onClick={() => window.print()}>Cetak</button>
         <button className="button secondary" type="button" onClick={downloadPDF}>Unduh PDF</button>
@@ -136,7 +151,6 @@ export default function FormalBeritaAcaraForm({ agunan }: { agunan: AgunanDetail
         <div className="no-print alert alert-info" style={{ marginBottom: 12 }}>{statusMessage}</div>
       )}
 
-      {/* ===== FORM INPUT (TIDAK TERCETAK) ===== */}
       <div className="no-print card" style={{ padding: 24, marginBottom: 24 }}>
         <h3 style={{ margin: '0 0 16px', fontSize: '1rem', color: '#334155' }}>Data untuk Berita Acara</h3>
 
@@ -164,23 +178,25 @@ export default function FormalBeritaAcaraForm({ agunan }: { agunan: AgunanDetail
         </div>
 
         <div style={{ borderTop: '1px solid #e2e8f0', paddingTop: 16, marginTop: 4 }}>
-          <p style={{ margin: '0 0 12px', fontWeight: 600, color: '#334155', fontSize: '0.95rem' }}>Nama Penandatangan</p>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+          <p style={{ margin: '0 0 12px', fontWeight: 600, color: '#334155', fontSize: '0.95rem' }}>Tanda Tangan Digital</p>
+          <p style={{ margin: '0 0 16px', fontSize: '0.85rem', color: '#64748b' }}>Isi nama, lalu minta pihak terkait tanda tangan langsung di kotak menggunakan jari/stylus.</p>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
             <div>
-              <label className="label">Adm Kredit</label>
-              <input className="inputField" value={form.ttdAdmKredit} onChange={(e) => updateField('ttdAdmKredit', e.target.value)} />
+              <input className="inputField" style={{ marginBottom: 8 }} placeholder="Nama Adm Kredit" value={form.ttdAdmKredit} onChange={(e) => updateField('ttdAdmKredit', e.target.value)} />
+              <SignaturePad label="Tanda Tangan Adm Kredit" onChange={setSigAdmKredit} />
             </div>
             <div>
-              <label className="label">Yang Menyerahkan</label>
-              <input className="inputField" value={form.ttdYangMenyerahkan} onChange={(e) => updateField('ttdYangMenyerahkan', e.target.value)} />
+              <input className="inputField" style={{ marginBottom: 8 }} placeholder="Nama Yang Menyerahkan" value={form.ttdYangMenyerahkan} onChange={(e) => updateField('ttdYangMenyerahkan', e.target.value)} />
+              <SignaturePad label="Tanda Tangan Yang Menyerahkan" onChange={setSigMenyerahkan} />
             </div>
             <div>
-              <label className="label">Yang Menerima</label>
-              <input className="inputField" value={form.ttdYangMenerima} onChange={(e) => updateField('ttdYangMenerima', e.target.value)} />
+              <input className="inputField" style={{ marginBottom: 8 }} placeholder="Nama Yang Menerima" value={form.ttdYangMenerima} onChange={(e) => updateField('ttdYangMenerima', e.target.value)} />
+              <SignaturePad label="Tanda Tangan Yang Menerima" onChange={setSigMenerima} />
             </div>
             <div>
-              <label className="label">Mengetahui</label>
-              <input className="inputField" value={form.ttdMengetahui} onChange={(e) => updateField('ttdMengetahui', e.target.value)} />
+              <input className="inputField" style={{ marginBottom: 8 }} placeholder="Nama Mengetahui" value={form.ttdMengetahui} onChange={(e) => updateField('ttdMengetahui', e.target.value)} />
+              <SignaturePad label="Tanda Tangan Mengetahui" onChange={setSigMengetahui} />
             </div>
           </div>
         </div>
@@ -196,10 +212,7 @@ export default function FormalBeritaAcaraForm({ agunan }: { agunan: AgunanDetail
         </div>
       </div>
 
-      {/* ===== DOKUMEN A4 (YANG DICETAK) ===== */}
       <div className="formal-a4-sheet">
-
-        {/* KOP SURAT */}
         <div className="formal-header" style={{ borderBottom: '3px solid #1e3a8a', paddingBottom: 16, marginBottom: 20 }}>
           <img
             src="/logo-bpr-resmi.png"
@@ -212,7 +225,6 @@ export default function FormalBeritaAcaraForm({ agunan }: { agunan: AgunanDetail
           </div>
         </div>
 
-        {/* JUDUL */}
         <div style={{ textAlign: 'center', marginBottom: 20 }}>
           <h1 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 800, letterSpacing: '0.05em', textTransform: 'uppercase', color: '#0f172a' }}>
             BERITA ACARA SERAH TERIMA AGUNAN
@@ -220,13 +232,11 @@ export default function FormalBeritaAcaraForm({ agunan }: { agunan: AgunanDetail
           <div style={{ width: 60, height: 3, background: '#1e3a8a', margin: '8px auto 0' }} />
         </div>
 
-        {/* KALIMAT PEMBUKA */}
         <p style={{ margin: '0 0 18px', lineHeight: 1.8, color: '#334155', textAlign: 'justify' }}>
           Pada hari ini, <strong>{formatTanggalIndo(form.tanggalSerahTerima)}</strong>, kami yang bertanda tangan di bawah ini
           telah melakukan serah terima agunan kepada nasabah yang bersangkutan, dengan rincian sebagai berikut:
         </p>
 
-        {/* DATA NASABAH */}
         <div style={{ border: '1px solid #cbd5e1', borderRadius: 8, padding: 16, marginBottom: 20, background: '#f8fafc' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.92rem' }}>
             <tbody>
@@ -254,7 +264,6 @@ export default function FormalBeritaAcaraForm({ agunan }: { agunan: AgunanDetail
           </table>
         </div>
 
-        {/* TABEL AGUNAN */}
         <div style={{ marginBottom: 24 }}>
           <h3 style={{ fontSize: '0.95rem', fontWeight: 700, margin: '0 0 10px', borderLeft: '3px solid #1e3a8a', paddingLeft: 10, color: '#0f172a' }}>
             Daftar Agunan yang Diserahkan
@@ -281,7 +290,6 @@ export default function FormalBeritaAcaraForm({ agunan }: { agunan: AgunanDetail
           </table>
         </div>
 
-        {/* FOTO PENYERAHAN */}
         {photoPreview && (
           <div style={{ marginBottom: 24 }}>
             <h3 style={{ fontSize: '0.95rem', fontWeight: 700, margin: '0 0 10px', borderLeft: '3px solid #1e3a8a', paddingLeft: 10, color: '#0f172a' }}>
@@ -293,22 +301,20 @@ export default function FormalBeritaAcaraForm({ agunan }: { agunan: AgunanDetail
           </div>
         )}
 
-        {/* TANGGAL SERAH TERIMA + TANDA TANGAN */}
         <div style={{ marginTop: 32 }}>
-          <p style={{ textAlign: 'right', marginBottom: 40, color: '#334155', fontSize: '0.9rem' }}>
+          <p style={{ textAlign: 'right', marginBottom: 24, color: '#334155', fontSize: '0.9rem' }}>
             Tulungagung, {formatTanggalIndo(form.tanggalSerahTerima)}
           </p>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8, textAlign: 'center' }}>
-            {[
-              { label: 'Adm Kredit', name: form.ttdAdmKredit },
-              { label: 'Yang Menyerahkan', name: form.ttdYangMenyerahkan },
-              { label: 'Yang Menerima', name: form.ttdYangMenerima },
-              { label: 'Mengetahui', name: form.ttdMengetahui },
-            ].map((ttd) => (
+            {signatureRows.map((ttd) => (
               <div key={ttd.label} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                <p style={{ margin: '0 0 0 0', fontWeight: 600, fontSize: '0.88rem', color: '#475569' }}>{ttd.label}</p>
-                <div style={{ height: 64, width: '100%' }} />
+                <p style={{ margin: '0 0 4px', fontWeight: 600, fontSize: '0.88rem', color: '#475569' }}>{ttd.label}</p>
+                <div style={{ height: 64, width: '100%', display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}>
+                  {ttd.img ? (
+                    <img src={ttd.img} alt={`Tanda tangan ${ttd.label}`} style={{ maxHeight: 60, maxWidth: '100%', objectFit: 'contain' }} />
+                  ) : null}
+                </div>
                 <p style={{ margin: 0, fontWeight: 700, fontSize: '0.9rem', borderTop: '1px solid #0f172a', paddingTop: 4, width: '100%' }}>
                   {ttd.name || '............................'}
                 </p>
@@ -317,13 +323,11 @@ export default function FormalBeritaAcaraForm({ agunan }: { agunan: AgunanDetail
           </div>
         </div>
 
-        {/* FOOTER */}
         <p style={{ marginTop: 32, fontSize: '0.8rem', color: '#94a3b8', textAlign: 'center', borderTop: '1px solid #e2e8f0', paddingTop: 12 }}>
           Dokumen ini dicetak secara resmi untuk keperluan administrasi serah terima agunan — PT BPR Bank Tulungagung Perseroda
         </p>
       </div>
 
-      {/* PREVIEW MODE */}
       {previewMode && (
         <div className="no-print card" style={{ padding: 24, marginTop: 24 }}>
           <h2>Preview Data Final</h2>
@@ -333,10 +337,9 @@ export default function FormalBeritaAcaraForm({ agunan }: { agunan: AgunanDetail
           <p><strong>Nomor Rekening:</strong> {form.nomorRekening}</p>
           <p><strong>Tanggal Lunas:</strong> {form.tanggalLunas ? formatTanggalIndo(form.tanggalLunas) : '-'}</p>
           <p><strong>Tanggal Serah Terima:</strong> {formatTanggalIndo(form.tanggalSerahTerima)}</p>
-          <p><strong>Adm Kredit:</strong> {form.ttdAdmKredit}</p>
-          <p><strong>Yang Menyerahkan:</strong> {form.ttdYangMenyerahkan}</p>
-          <p><strong>Yang Menerima:</strong> {form.ttdYangMenerima}</p>
-          <p><strong>Mengetahui:</strong> {form.ttdMengetahui}</p>
+          {signatureRows.map((s) => (
+            <p key={s.label}><strong>{s.label}:</strong> {s.name} {s.img ? '(sudah tanda tangan)' : '(belum tanda tangan)'}</p>
+          ))}
         </div>
       )}
     </div>

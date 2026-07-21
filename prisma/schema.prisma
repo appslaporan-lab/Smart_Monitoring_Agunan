@@ -67,6 +67,7 @@ model Agunan {
   nasabahId           Int
   stockOpnames        StockOpname[]
   beritaAcaras        BeritaAcara[]
+  beritaAcaraTransfers BeritaAcaraTransfer[]
   pengajuanKeluar     PengajuanKeluar[]
   tanggalKeluarBrankas DateTime?
   tujuan              String?
@@ -184,6 +185,7 @@ enum StepStatus {
 
 model BeritaAcara {
   id              Int              @id @default(autoincrement())
+  jenisBerita     String?          @default("SERAH_TERIMA_NASABAH")
   agunan          Agunan           @relation(fields: [agunanId], references: [id])
   agunanId        Int
   pengajuan       PengajuanKeluar? @relation(fields: [pengajuanId], references: [id])
@@ -205,6 +207,34 @@ model BeritaAcara {
   ttdYangMenyerahkan  String?
   ttdYangMenerima     String?
   ttdMengetahui       String?
+  ttdAdmKreditImg       String?
+  ttdYangMenyerahkanImg String?
+  ttdYangMenerimaImg    String?
+  ttdMengetahuiImg      String?
+}
+
+model BeritaAcaraTransfer {
+  id                    Int      @id @default(autoincrement())
+  agunan                Agunan   @relation(fields: [agunanId], references: [id])
+  agunanId              Int
+  nomorDokumen          String   @unique
+  nomorRegister         String
+  namaNasabah           String
+  nomorRekening         String?
+  tanggalLunas          DateTime?
+  cabangAsal            String?
+  cabangTujuan          String?
+  namaPihakPertama      String?
+  jabatanPihakPertama   String?
+  ttdPihakPertamaImg    String?
+  namaPihakKedua        String?
+  jabatanPihakKedua     String?
+  ttdPihakKeduaImg      String?
+  namaMengetahui        String?
+  jabatanMengetahui     String?
+  ttdMengetahuiImg      String?
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
 }
 
 model StockOpname {

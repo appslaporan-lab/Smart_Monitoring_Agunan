@@ -17,6 +17,10 @@ export async function POST(request: Request) {
     ttdYangMenyerahkan,
     ttdYangMenerima,
     ttdMengetahui,
+    ttdAdmKreditImg,
+    ttdYangMenyerahkanImg,
+    ttdYangMenerimaImg,
+    ttdMengetahuiImg,
   } = body;
 
   if (!agunanId || !nomorDokumen || !nomorRegister || !namaNasabah || !jenisAgunan || !ttdYangMenyerahkan || !ttdMengetahui || !ttdYangMenerima) {
@@ -39,6 +43,10 @@ export async function POST(request: Request) {
         ttdYangMenyerahkan: ttdYangMenyerahkan || '',
         ttdYangMenerima: ttdYangMenerima || '',
         ttdMengetahui: ttdMengetahui || '',
+        ttdAdmKreditImg: ttdAdmKreditImg || null,
+        ttdYangMenyerahkanImg: ttdYangMenyerahkanImg || null,
+        ttdYangMenerimaImg: ttdYangMenerimaImg || null,
+        ttdMengetahuiImg: ttdMengetahuiImg || null,
       },
     });
 
