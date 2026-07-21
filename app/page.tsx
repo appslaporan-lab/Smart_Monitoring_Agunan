@@ -1,7 +1,7 @@
 import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import Link from 'next/link';
-import { format } from 'date-fns';
+import { format, differenceInDays } from 'date-fns';
 import AgunanStatusChart from './AgunanStatusChart';
 
 export const dynamic = 'force-dynamic';
@@ -15,6 +15,11 @@ const fetchAgunans = async (): Promise<AgunanWithNasabah[]> => {
 const formatDate = (date?: Date | string | null) => {
   if (!date) return '-';
   return format(new Date(date), 'dd MMM yyyy');
+};
+
+const hitungHari = (date?: Date | string | null) => {
+  if (!date) return null;
+  return differenceInDays(new Date(), new Date(date));
 };
 
 const statusClass = (status: string) => {
@@ -124,9 +129,15 @@ export default async function Home() {
             <p>Tidak ada agunan yang sedang dalam proses keluar.</p>
           ) : (
             <ul>
-              {warnings.map((item) => (
-                <li key={item.id}>{item.kodeRegister} ({item.jenis}) - {item.nasabah.nama}</li>
-              ))}
+              {warnings.map((item) => {
+                const hari = hitungHari(item.tanggalKeluarBrankas);
+                return (
+                  <li key={item.id}>
+                    {item.kodeRegister} ({item.jenis}) - {item.nasabah.nama}
+                    {hari !== null && <strong> — sudah {hari} hari</strong>}
+                  </li>
+                );
+              })}
             </ul>
           )}
         </div>
@@ -137,9 +148,15 @@ export default async function Home() {
             <p>Tidak ada BPKB dalam proses HER 5 Tahunan.</p>
           ) : (
             <ul>
-              {herWarnings.map((item) => (
-                <li key={item.id}>{item.kodeRegister} - {item.nasabah.nama} (STNK sementara, tunggu BPKB baru ~3 bulan)</li>
-              ))}
+              {herWarnings.map((item) => {
+                const hari = hitungHari(item.tanggalKeluarBrankas);
+                return (
+                  <li key={item.id}>
+                    {item.kodeRegister} - {item.nasabah.nama} (STNK sementara, tunggu BPKB baru ~3 bulan)
+                    {hari !== null && <strong> — sudah {hari} hari</strong>}
+                  </li>
+                );
+              })}
             </ul>
           )}
         </div>
@@ -150,9 +167,15 @@ export default async function Home() {
             <p>Tidak ada proses sertifikasi yang mendekati jatuh tempo.</p>
           ) : (
             <ul>
-              {sertifikasiWarnings.map((item) => (
-                <li key={item.id}>{item.kodeRegister} - {item.nasabah.nama}, perkiraan jadi: {formatDate(item.perkiraanJadiSHM)}</li>
-              ))}
+              {sertifikasiWarnings.map((item) => {
+                const hari = hitungHari(item.tanggalTerbitCovernote || item.createdAt);
+                return (
+                  <li key={item.id}>
+                    {item.kodeRegister} - {item.nasabah.nama}, perkiraan jadi: {formatDate(item.perkiraanJadiSHM)}
+                    {hari !== null && <strong> — sudah proses {hari} hari</strong>}
+                  </li>
+                );
+              })}
             </ul>
           )}
         </div>
@@ -171,22 +194,28 @@ export default async function Home() {
           {agunans.length === 0 ? (
             <p>Belum ada agunan terdaftar.</p>
           ) : (
-            agunans.map((item) => (
-              <article key={item.id} className="card" style={{ padding: 18 }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap' }}>
-                  <div>
-                    <strong>{item.kodeRegister}</strong>
-                    <p>{item.jenis} — {item.deskripsi || '-'}</p>
-                    <p>Nasabah: {item.nasabah.nama}</p>
-                    <p>No. Rekening: {item.registrasi?.nomorRekening ?? '-'}</p>
+            agunans.map((item) => {
+              const hariKeluar = (item.status === 'PROSES_KELUAR' || item.status === 'HER_5_TAHUNAN') ? hitungHari(item.tanggalKeluarBrankas) : null;
+              const hariSertifikasi = item.status === 'PROSES_SERTIFIKASI' ? hitungHari(item.tanggalTerbitCovernote || item.createdAt) : null;
+              return (
+                <article key={item.id} className="card" style={{ padding: 18 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap' }}>
+                    <div>
+                      <strong>{item.kodeRegister}</strong>
+                      <p>{item.jenis} — {item.deskripsi || '-'}</p>
+                      <p>Nasabah: {item.nasabah.nama}</p>
+                      <p>No. Rekening: {item.registrasi?.nomorRekening ?? '-'}</p>
+                      {hariKeluar !== null && <p style={{ color: '#dc2626', fontWeight: 600 }}>Sudah keluar brankas {hariKeluar} hari</p>}
+                      {hariSertifikasi !== null && <p style={{ color: '#dc2626', fontWeight: 600 }}>Proses sertifikasi {hariSertifikasi} hari</p>}
+                    </div>
+                    <span className={`status-pill ${statusClass(item.status)}`}>{item.status.replace(/_/g, ' ')}</span>
                   </div>
-                  <span className={`status-pill ${statusClass(item.status)}`}>{item.status.replace(/_/g, ' ')}</span>
-                </div>
-                <Link href={`/agunan/${item.id}`} className="button secondary" style={{ marginTop: 14 }}>
-                  Detail Agunan
-                </Link>
-              </article>
-            ))
+                  <Link href={`/agunan/${item.id}`} className="button secondary" style={{ marginTop: 14 }}>
+                    Detail Agunan
+                  </Link>
+                </article>
+              );
+            })
           )}
         </div>
       </section>

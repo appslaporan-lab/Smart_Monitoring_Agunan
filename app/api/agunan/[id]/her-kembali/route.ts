@@ -21,7 +21,11 @@ export async function POST(request: Request, { params }: { params: { id: string 
 
   const updated = await prisma.agunan.update({
     where: { id: Number(params.id) },
-    data: { status: nextStatus, warningPesan: warning },
+    data: {
+      status: nextStatus,
+      warningPesan: warning,
+      tanggalKeluarBrankas: isSTNK ? agunan.tanggalKeluarBrankas : null,
+    },
   });
 
   await appendAuditLog({
@@ -29,7 +33,7 @@ export async function POST(request: Request, { params }: { params: { id: string 
     agunanKodeRegister: agunan.kodeRegister,
     action: 'her_kembali',
     actor: `${user.nama} (${user.role})`,
-    details: `Yang kembali: ${jenisKembali}. Status baru: ${nextStatus}`,
+    details: `Yang kembali: ${jenisKembali === 'STNK' ? 'STNK/Notice' : 'BPKB'}. Status baru: ${nextStatus}`,
   });
 
   return NextResponse.json(updated);

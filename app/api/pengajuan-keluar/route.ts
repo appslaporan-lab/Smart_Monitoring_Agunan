@@ -43,8 +43,10 @@ export async function POST(request: Request) {
       include: { steps: true },
     });
 
-    const statusAgunanBaru = jenisPengajuan === 'HER_5_TAHUN' ? 'PROSES_KELUAR' : 'PROSES_KELUAR';
-    await prisma.agunan.update({ where: { id: Number(agunanId) }, data: { status: statusAgunanBaru } });
+    await prisma.agunan.update({
+      where: { id: Number(agunanId) },
+      data: { status: 'PROSES_KELUAR', tanggalKeluarBrankas: new Date() },
+    });
 
     await appendAuditLog({
       agunanId: agunan.id,

@@ -1,12 +1,18 @@
 import { prisma } from '@/lib/prisma';
-import { format } from 'date-fns';
+import { format, differenceInDays } from 'date-fns';
 import Link from 'next/link';
+import HerKembaliForm from '@/components/HerKembaliForm';
 
 export const dynamic = 'force-dynamic';
 
 const formatDate = (date?: Date | string | null) => {
   if (!date) return '-';
   return format(new Date(date), 'dd MMM yyyy');
+};
+
+const hitungHari = (date?: Date | string | null) => {
+  if (!date) return null;
+  return differenceInDays(new Date(), new Date(date));
 };
 
 const statusClass = (status: string) => {
@@ -58,6 +64,10 @@ export default async function AgunanDetail({ params }: { params: { id: string } 
     );
   }
 
+  const hariKeluar = hitungHari(agunan.tanggalKeluarBrankas);
+  const hariSertifikasi = hitungHari(agunan.tanggalTerbitCovernote || agunan.createdAt);
+  const showHerKembaliForm = agunan.status === 'PROSES_KELUAR' || agunan.status === 'HER_5_TAHUNAN';
+
   return (
     <main className="container">
       <section style={{ marginBottom: 32 }}>
@@ -71,6 +81,20 @@ export default async function AgunanDetail({ params }: { params: { id: string } 
             <strong>{agunan.kodeRegister}</strong>
             <p>{agunan.jenis} — {agunan.deskripsi || '-'}</p>
             <p>Status: <span className={`status-pill ${statusClass(agunan.status)}`}>{agunan.status.replace(/_/g, ' ')}</span></p>
+
+            {(agunan.status === 'PROSES_KELUAR' || agunan.status === 'HER_5_TAHUNAN') && hariKeluar !== null && (
+              <div className="alert alert-danger" style={{ marginTop: 10 }}>
+                Agunan sudah keluar dari brankas selama <strong>{hariKeluar} hari</strong> ({formatDate(agunan.tanggalKeluarBrankas)}).
+                {agunan.status === 'HER_5_TAHUNAN' && ' STNK/Notice sudah kembali, menunggu BPKB baru dari Samsat.'}
+              </div>
+            )}
+
+            {agunan.status === 'PROSES_SERTIFIKASI' && hariSertifikasi !== null && (
+              <div className="alert alert-danger" style={{ marginTop: 10 }}>
+                Proses sertifikasi sudah berjalan selama <strong>{hariSertifikasi} hari</strong> (estimasi 6 bulan / ~180 hari).
+                {agunan.perkiraanJadiSHM && ` Perkiraan jadi SHM: ${formatDate(agunan.perkiraanJadiSHM)}.`}
+              </div>
+            )}
           </div>
 
           <div>
@@ -143,6 +167,8 @@ export default async function AgunanDetail({ params }: { params: { id: string } 
               <strong>Catatan/Peringatan:</strong> {agunan.warningPesan}
             </div>
           )}
+
+          {showHerKembaliForm && <HerKembaliForm agunanId={agunan.id} />}
 
           <div>
             <Link href={`/agunan/${agunan.id}/berita-acara/formal`} className="button">Buat Berita Acara Formal</Link>

@@ -68,7 +68,7 @@ model Agunan {
   stockOpnames        StockOpname[]
   beritaAcaras        BeritaAcara[]
   pengajuanKeluar     PengajuanKeluar[]
-
+  tanggalKeluarBrankas DateTime?
   tujuan              String?
   warningPesan        String?
 
