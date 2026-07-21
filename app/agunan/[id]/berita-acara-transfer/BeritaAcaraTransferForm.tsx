@@ -143,10 +143,11 @@ export default function BeritaAcaraTransferForm({ agunan }: { agunan: AgunanDeta
 
       <div className="formal-a4-sheet">
         <div className="formal-header" style={{ borderBottom: '3px solid #1e3a8a', paddingBottom: 12, marginBottom: 16 }}>
-          <div>
-            <p style={{ margin: 0, fontWeight: 800, fontSize: '1.05rem', color: '#1e3a8a' }}>PT BPR BANK TULUNGAGUNG PERSERODA</p>
-            <p style={{ margin: 0, fontSize: '0.75rem', color: '#475569' }}>Jl. Contoh Alamat Kantor Pusat No. 1, Tulungagung</p>
-          </div>
+          <img
+            src="/logo-bpr-resmi.png"
+            alt="Logo PT BPR Bank Tulungagung"
+            style={{ height: 60, width: 'auto', objectFit: 'contain' }}
+          />
           <div style={{ marginLeft: 'auto', textAlign: 'right' }}>
             <p style={{ margin: 0, fontSize: '0.75rem', color: '#475569' }}>No. Dokumen:</p>
             <p style={{ margin: 0, fontWeight: 700, fontSize: '0.85rem' }}>{form.nomorDokumen}</p>
