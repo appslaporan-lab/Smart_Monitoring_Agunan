@@ -37,6 +37,8 @@ model Registrasi {
   status        RegistrasiStatus @default(AKTIF)
   agunans       Agunan[]
   createdAt     DateTime         @default(now())
+  @@index([nasabahId])
+  @@index([status])
 }
 
 enum RegistrasiStatus {
@@ -117,6 +119,10 @@ model Agunan {
 
   createdAt           DateTime    @default(now())
   updatedAt           DateTime    @updatedAt
+  
+  @@index([status])
+  @@index([nasabahId])
+  @@index([registrasiId])
 }
 
 enum AgunanJenis {
