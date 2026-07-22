@@ -37,7 +37,16 @@ export default function RegisterPage({ searchParams }: RegisterPageProps) {
             </div>
             <div>
               <label className="label">Password</label>
-              <input type="password" name="password" className="inputField" required minLength={6} />
+              <input
+  		type="password"
+  		name="password"
+  		className="inputField"
+  		required
+ 		minLength={8}
+  		pattern="(?=.*[A-Za-z])(?=.*\d).{8,}"
+  		title="Minimal 8 karakter, kombinasi huruf dan angka"
+	      />
+	      <p style={{ fontSize: '0.8rem', color: '#64748b', marginTop: 4 }}>Minimal 8 karakter, harus ada huruf dan angka.</p>
             </div>
             <div>
               <label className="label">Role</label>

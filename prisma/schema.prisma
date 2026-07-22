@@ -53,6 +53,8 @@ model User {
   passwordHash       String
   role               UserRole
   status             UserStatus @default(PENDING)
+  failedLoginAttempts Int       @default(0)
+  lockedUntil          DateTime?
   createdAt          DateTime @default(now())
   pengajuanDiajukan  PengajuanKeluar[] @relation("PengajuanDiajukan")
   stepDisetujui      PengajuanStep[]   @relation("StepDisetujui")
@@ -159,6 +161,8 @@ model PengajuanKeluar {
   beritaAcaras    BeritaAcara[]
   createdAt       DateTime         @default(now())
   updatedAt       DateTime         @updatedAt
+  @@index([status])
+  @@index([agunanId])
 }
 
 enum PengajuanJenis {
