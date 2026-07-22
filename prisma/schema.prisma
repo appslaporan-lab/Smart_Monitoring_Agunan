@@ -50,9 +50,16 @@ model User {
   username           String   @unique
   passwordHash       String
   role               UserRole
+  status             UserStatus @default(PENDING)
   createdAt          DateTime @default(now())
   pengajuanDiajukan  PengajuanKeluar[] @relation("PengajuanDiajukan")
   stepDisetujui      PengajuanStep[]   @relation("StepDisetujui")
+}
+
+enum UserStatus {
+  PENDING
+  APPROVED
+  REJECTED
 }
 
 model Agunan {
@@ -307,6 +314,7 @@ enum StockOpnameStatus {
 }
 
 enum UserRole {
+  SUPERADMIN
   ADM_KREDIT_PUSAT
   ADM_KREDIT_CABANG
   KEPALA_KAS

@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import { getCurrentUser } from '@/lib/session';
-import { LayoutDashboard, PlusCircle, Users, ClipboardCheck, FileText, ShieldCheck, LogOut, Shield, Archive, FileSignature, PackageOpen, CheckCircle2 } from 'lucide-react';
+import { LayoutDashboard, PlusCircle, Users, ClipboardCheck, FileText, ShieldCheck, LogOut, Shield, Archive, FileSignature, PackageOpen, CheckCircle2, UserCog } from 'lucide-react';
 import Link from 'next/link';
 import IdleLogout from '@/components/IdleLogout';
 
@@ -13,6 +13,7 @@ export const metadata: Metadata = {
 type MenuItem = { href: string; label: string; roles: string[] | 'all'; icon: any };
 
 const MENU_CONFIG: MenuItem[] = [
+  { href: '/superadmin/users', label: 'Approval User', roles: ['SUPERADMIN'], icon: UserCog },
   { href: '/', label: 'Dashboard', roles: 'all', icon: LayoutDashboard },
   { href: '/pengambilan', label: 'Pengambilan Agunan', roles: ['ADM_KREDIT_PUSAT', 'ADM_KREDIT_CABANG', 'KEPALA_KAS'], icon: PackageOpen },
   { href: '/approval', label: 'Approval', roles: ['KABAG_OPERASIONAL', 'PIMPINAN_CABANG', 'DIREKTUR', 'ADM_KREDIT_PUSAT', 'ADM_KREDIT_CABANG'], icon: CheckCircle2 },
