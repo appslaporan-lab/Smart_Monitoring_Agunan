@@ -207,6 +207,9 @@ export default async function Home() {
                       <p>No. Rekening: {item.registrasi?.nomorRekening ?? '-'}</p>
                       {hariKeluar !== null && <p style={{ color: '#dc2626', fontWeight: 600 }}>Sudah keluar brankas {hariKeluar} hari</p>}
                       {hariSertifikasi !== null && <p style={{ color: '#dc2626', fontWeight: 600 }}>Proses sertifikasi {hariSertifikasi} hari</p>}
+		      {item.status === 'DISERAHKAN' && (
+                        <p style={{ color: '#16a34a', fontWeight: 600 }}>Tanggal Diserahkan: {formatDate(item.updatedAt)}</p>
+                      )}
                     </div>
                     <span className={`status-pill ${statusClass(item.status)}`}>{item.status.replace(/_/g, ' ')}</span>
                   </div>

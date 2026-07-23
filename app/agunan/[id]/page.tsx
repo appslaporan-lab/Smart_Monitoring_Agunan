@@ -81,6 +81,9 @@ export default async function AgunanDetail({ params }: { params: { id: string } 
             <strong>{agunan.kodeRegister}</strong>
             <p>{agunan.jenis} — {agunan.deskripsi || '-'}</p>
             <p>Status: <span className={`status-pill ${statusClass(agunan.status)}`}>{agunan.status.replace(/_/g, ' ')}</span></p>
+	    {agunan.status === 'DISERAHKAN' && (
+              <p style={{ color: '#16a34a', fontWeight: 600, marginTop: 6 }}>Tanggal Diserahkan: {formatDate(agunan.updatedAt)}</p>
+            )}
 
             {(agunan.status === 'PROSES_KELUAR' || agunan.status === 'HER_5_TAHUNAN') && hariKeluar !== null && (
               <div className="alert alert-danger" style={{ marginTop: 10 }}>
