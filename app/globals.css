@@ -981,3 +981,29 @@ button, input, select, textarea {
     min-height: auto;
   }
 }
+
+@media (max-width: 768px) {
+  h1 { font-size: 1.5rem !important; }
+  h2 { font-size: 1.15rem !important; }
+
+  .chart-card {
+    min-width: 0 !important;
+  }
+
+  body {
+    overflow-x: hidden;
+  }
+
+  img {
+    max-width: 100%;
+    height: auto;
+  }
+
+  .app-content {
+    padding: 16px 12px;
+  }
+
+  .login-graphic-content h1 {
+    font-size: 2rem !important;
+  }
+}

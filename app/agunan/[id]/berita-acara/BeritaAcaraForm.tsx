@@ -101,7 +101,7 @@ export default function BeritaAcaraForm({ agunan }: { agunan: AgunanDetail }) {
         <div className="photo-box">
           <div>
             <label className="label">Foto Penyerahan</label>
-            <input className="inputField" type="file" accept="image/*" onChange={handlePhotoChange} />
+            <input className="inputField" type="file" accept="image/*" capture="environment" onChange={handlePhotoChange} />
           </div>
           <div className="photo-preview">
             {photoPreview ? <img src={photoPreview} alt="Foto penyerahan" /> : <p>Belum ada foto yang dipilih.</p>}
