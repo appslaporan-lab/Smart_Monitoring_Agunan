@@ -204,8 +204,11 @@ enum StepStatus {
 model BeritaAcara {
   id              Int              @id @default(autoincrement())
   jenisBerita     String?          @default("SERAH_TERIMA_NASABAH")
-  agunan          Agunan           @relation(fields: [agunanId], references: [id])
-  agunanId        Int
+  agunan          Agunan?          @relation(fields: [agunanId], references: [id])
+  agunanId        Int?
+  isManual        Boolean          @default(false)
+  daftarAgunanManual String?
+  alamatManual    String?
   pengajuan       PengajuanKeluar? @relation(fields: [pengajuanId], references: [id])
   pengajuanId     Int?
   nomorDokumen    String           @unique

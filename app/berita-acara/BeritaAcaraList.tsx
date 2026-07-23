@@ -14,7 +14,8 @@ type BeritaAcaraWithAgunan = {
   agunan: {
     id: number;
     kodeRegister: string;
-  };
+  } | null;
+  isManual?: boolean;
 };
 
 export default function BeritaAcaraList({ beritaAcaras }: { beritaAcaras: BeritaAcaraWithAgunan[] }) {
@@ -54,7 +55,7 @@ export default function BeritaAcaraList({ beritaAcaras }: { beritaAcaras: Berita
         item.nomorRegister,
         item.namaNasabah,
         item.jenisAgunan,
-        item.agunan.kodeRegister,
+        item.agunan?.kodeRegister || '',
       ]
         .join(' ')
         .toLowerCase();
@@ -146,7 +147,11 @@ export default function BeritaAcaraList({ beritaAcaras }: { beritaAcaras: Berita
                 </div>
                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                   <Link href={`/berita-acara/${item.id}/edit`} className="button secondary">Edit</Link>
-                  <Link href={`/agunan/${item.agunan.id}/berita-acara/formal`} className="button">Lihat Cetak</Link>
+                  {item.agunan ? (
+                    <Link href={`/agunan/${item.agunan.id}/berita-acara/formal`} className="button">Lihat Cetak</Link>
+                  ) : (
+                    <span className="status-pill status-pending">Manual</span>
+                  )}
                   <button className="button danger" type="button" onClick={() => handleDelete(item.id)}>
                     Hapus
                   </button>
