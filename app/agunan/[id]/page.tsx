@@ -170,13 +170,6 @@ export default async function AgunanDetail({ params }: { params: { id: string } 
 
           {showHerKembaliForm && <HerKembaliForm agunanId={agunan.id} />}
 
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
-            <Link href={`/agunan/${agunan.id}/berita-acara/formal`} className="button">Buat Berita Acara Formal</Link>
-            <Link href={`/agunan/${agunan.id}/berita-acara-transfer`} className="button secondary">Berita Acara Transfer Cabang</Link>
-            <Link href={`/agunan/${agunan.id}/berita-acara-pencairan`} className="button secondary">Berita Acara Pencairan Ulang</Link>
-            <Link href="/reports" className="button secondary">Lihat Laporan</Link>
-            <Link href="/audit" className="button">Lihat Audit Trail</Link>
-          </div>
         </div>
       </div>
     </main>
