@@ -9,6 +9,10 @@ export const metadata: Metadata = {
   title: 'Agunan Monitoring',
   description: 'Aplikasi monitoring agunan kredit dengan peringatan HER BPKB dan penyerahan brankas.',
 };
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1,
+};
 
 type MenuItem = { href: string; label: string; roles: string[] | 'all'; icon: any };
 
