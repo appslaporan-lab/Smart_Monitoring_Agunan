@@ -92,6 +92,9 @@ export default function BeritaAcaraList({ beritaAcaras }: { beritaAcaras: Berita
             onChange={(event) => setSearchQuery(event.target.value)}
             style={{ flex: 1, minWidth: 220 }}
           />
+          <button type="button" className="button">
+            Cari
+          </button>
           <button type="button" className="button secondary" onClick={() => setSearchQuery('')}>
             Reset
           </button>
