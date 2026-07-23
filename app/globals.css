@@ -539,8 +539,14 @@ button, input, select, textarea {
     box-shadow: none;
     max-width: none;
     min-height: auto;
-    padding: 20mm 20mm 20mm 25mm;
+    padding: 10mm 15mm 10mm 18mm;
     margin: 0;
+  }
+  .formal-a4-sheet p,
+  .formal-a4-sheet h1,
+  .formal-a4-sheet h3 {
+    margin-top: 0.4em !important;
+    margin-bottom: 0.4em !important;
   }
   .formal-print-shell { gap: 0 !important; }
   .formal-logo { width: 80px; }
@@ -878,7 +884,7 @@ button, input, select, textarea {
 }
 
 /* ==========================================================================
-   RESPONSIVE � MOBILE FIXES
+   RESPONSIVE   MOBILE FIXES
    ========================================================================== */
 
 @media (max-width: 900px) {

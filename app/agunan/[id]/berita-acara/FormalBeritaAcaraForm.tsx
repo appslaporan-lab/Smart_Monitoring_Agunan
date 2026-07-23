@@ -205,10 +205,15 @@ export default function FormalBeritaAcaraForm({ agunan }: { agunan: AgunanDetail
           <label className="label">Foto Penyerahan</label>
           <input className="inputField" type="file" accept="image/*" capture="environment" onChange={handlePhotoChange} style={{ marginBottom: 8 }} />
           {photoPreview && (
-            <div style={{ marginTop: 8 }}>
-              <img src={photoPreview} alt="Foto penyerahan" style={{ maxHeight: 160, objectFit: 'contain', border: '1px dashed #cbd5e1' }} />
+          <div style={{ marginBottom: 12 }}>
+            <h3 style={{ fontSize: '0.85rem', fontWeight: 700, margin: '0 0 6px', borderLeft: '3px solid #1e3a8a', paddingLeft: 10, color: '#0f172a' }}>
+              Dokumentasi Penyerahan
+            </h3>
+            <div style={{ textAlign: 'center' }}>
+              <img src={photoPreview} alt="Foto penyerahan" style={{ maxHeight: 100, maxWidth: '100%', objectFit: 'contain', border: '1px solid #e2e8f0' }} />
             </div>
-          )}
+          </div>
+        )}
         </div>
       </div>
 

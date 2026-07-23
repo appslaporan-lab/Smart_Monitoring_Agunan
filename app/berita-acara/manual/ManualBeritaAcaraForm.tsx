@@ -288,12 +288,12 @@ export default function ManualBeritaAcaraForm() {
         </div>
 
         {photoPreview && (
-          <div style={{ marginBottom: 24 }}>
-            <h3 style={{ fontSize: '0.95rem', fontWeight: 700, margin: '0 0 10px', borderLeft: '3px solid #1e3a8a', paddingLeft: 10, color: '#0f172a' }}>
+          <div style={{ marginBottom: 12 }}>
+            <h3 style={{ fontSize: '0.85rem', fontWeight: 700, margin: '0 0 6px', borderLeft: '3px solid #1e3a8a', paddingLeft: 10, color: '#0f172a' }}>
               Dokumentasi Penyerahan
             </h3>
             <div style={{ textAlign: 'center' }}>
-              <img src={photoPreview} alt="Foto penyerahan" style={{ maxHeight: 200, maxWidth: '100%', objectFit: 'contain', border: '1px solid #e2e8f0' }} />
+              <img src={photoPreview} alt="Foto penyerahan" style={{ maxHeight: 100, maxWidth: '100%', objectFit: 'contain', border: '1px solid #e2e8f0' }} />
             </div>
           </div>
         )}
