@@ -21,6 +21,7 @@ export async function POST(request: Request) {
     ttdYangMenyerahkanImg,
     ttdYangMenerimaImg,
     ttdMengetahuiImg,
+    pdfDataUrl,
   } = body;
 
   if (!agunanId || !nomorDokumen || !nomorRegister || !namaNasabah || !jenisAgunan || !ttdYangMenyerahkan || !ttdMengetahui || !ttdYangMenerima) {
@@ -47,6 +48,7 @@ export async function POST(request: Request) {
         ttdYangMenyerahkanImg: ttdYangMenyerahkanImg || null,
         ttdYangMenerimaImg: ttdYangMenerimaImg || null,
         ttdMengetahuiImg: ttdMengetahuiImg || null,
+        pdfDataUrl: pdfDataUrl || null,
       },
     });
 

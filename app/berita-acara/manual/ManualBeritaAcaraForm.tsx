@@ -65,41 +65,9 @@ export default function ManualBeritaAcaraForm() {
     reader.readAsDataURL(file);
   };
 
-  const saveDocument = async () => {
-    setStatusMessage(null);
-    const response = await fetch('/api/berita-acara/manual', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        nomorDokumen: form.nomorDokumen,
-        namaNasabah: form.namaNasabah,
-        alamat: form.alamat,
-        nomorRekening: form.nomorRekening,
-        tanggalLunas: form.tanggalLunas,
-        daftarAgunan,
-        photoDataUrl,
-        ttdAdmKredit: form.ttdAdmKredit,
-        ttdYangMenyerahkan: form.ttdYangMenyerahkan,
-        ttdYangMenerima: form.ttdYangMenerima,
-        ttdMengetahui: form.ttdMengetahui,
-        ttdAdmKreditImg: sigAdmKredit,
-        ttdYangMenyerahkanImg: sigMenyerahkan,
-        ttdYangMenerimaImg: sigMenerima,
-        ttdMengetahuiImg: sigMengetahui,
-      }),
-    });
-
-    const result = await response.json();
-    if (!response.ok) {
-      setStatusMessage(result.error || 'Gagal menyimpan berita acara.');
-      return;
-    }
-    setStatusMessage('Berita acara manual berhasil disimpan ke database.');
-  };
-
-  const downloadPDF = async () => {
+  const generatePdfDataUrl = async (): Promise<string | null> => {
     const element = document.querySelector('.formal-a4-sheet');
-    if (!element) return;
+    if (!element) return null;
     const canvas = await html2canvas(element as HTMLElement, { scale: 2, useCORS: true });
     const imgData = canvas.toDataURL('image/png');
     const pdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
@@ -122,7 +90,52 @@ export default function ManualBeritaAcaraForm() {
       heightLeft -= pageHeight;
     }
 
-    pdf.save(`${form.nomorDokumen}.pdf`);
+    return pdf.output('datauristring');
+  };
+
+  const saveDocument = async () => {
+    setStatusMessage(null);
+    setStatusMessage('Menyiapkan PDF...');
+    const pdfDataUrl = await generatePdfDataUrl();
+
+    const response = await fetch('/api/berita-acara/manual', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        nomorDokumen: form.nomorDokumen,
+        namaNasabah: form.namaNasabah,
+        alamat: form.alamat,
+        nomorRekening: form.nomorRekening,
+        tanggalLunas: form.tanggalLunas,
+        daftarAgunan,
+        photoDataUrl,
+        ttdAdmKredit: form.ttdAdmKredit,
+        ttdYangMenyerahkan: form.ttdYangMenyerahkan,
+        ttdYangMenerima: form.ttdYangMenerima,
+        ttdMengetahui: form.ttdMengetahui,
+        ttdAdmKreditImg: sigAdmKredit,
+        ttdYangMenyerahkanImg: sigMenyerahkan,
+        ttdYangMenerimaImg: sigMenerima,
+        ttdMengetahuiImg: sigMengetahui,
+        pdfDataUrl,
+      }),
+    });
+
+    const result = await response.json();
+    if (!response.ok) {
+      setStatusMessage(result.error || 'Gagal menyimpan berita acara.');
+      return;
+    }
+    setStatusMessage('Berita acara manual & PDF berhasil disimpan ke database.');
+  };
+
+  const downloadPDF = async () => {
+    const dataUrl = await generatePdfDataUrl();
+    if (!dataUrl) return;
+    const link = document.createElement('a');
+    link.href = dataUrl;
+    link.download = `${form.nomorDokumen}.pdf`;
+    link.click();
   };
 
   const formatTanggalIndo = (dateStr: string) => {

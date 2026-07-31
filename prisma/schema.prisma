@@ -232,6 +232,7 @@ model BeritaAcara {
   ttdYangMenyerahkanImg String?
   ttdYangMenerimaImg    String?
   ttdMengetahuiImg      String?
+  pdfDataUrl      String?
 }
 
 model BeritaAcaraTransfer {

@@ -76,43 +76,9 @@ export default function FormalBeritaAcaraForm({ agunan }: { agunan: AgunanDetail
     reader.readAsDataURL(file);
   };
 
-  const saveDocument = async () => {
-    setStatusMessage(null);
-    const response = await fetch('/api/berita-acara', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        agunanId: agunan.id,
-        nomorDokumen: form.nomorDokumen,
-        nomorRegister: form.nomorRegister,
-        namaNasabah: form.namaNasabah,
-        alamat: form.alamat,
-        nomorRekening: form.nomorRekening,
-        tanggalLunas: form.tanggalLunas,
-        jenisAgunan: 'KUMPULAN AGUNAN',
-        photoDataUrl,
-        ttdAdmKredit: form.ttdAdmKredit,
-        ttdYangMenyerahkan: form.ttdYangMenyerahkan,
-        ttdYangMenerima: form.ttdYangMenerima,
-        ttdMengetahui: form.ttdMengetahui,
-        ttdAdmKreditImg: sigAdmKredit,
-        ttdYangMenyerahkanImg: sigMenyerahkan,
-        ttdYangMenerimaImg: sigMenerima,
-        ttdMengetahuiImg: sigMengetahui,
-      }),
-    });
-
-    const result = await response.json();
-    if (!response.ok) {
-      setStatusMessage(result.error || 'Gagal menyimpan berita acara.');
-      return;
-    }
-    setStatusMessage('Berita acara berhasil disimpan ke database.');
-  };
-
-  const downloadPDF = async () => {
+  const generatePdfDataUrl = async (): Promise<string | null> => {
     const element = document.querySelector('.formal-a4-sheet');
-    if (!element) return;
+    if (!element) return null;
     const canvas = await html2canvas(element as HTMLElement, { scale: 2, useCORS: true });
     const imgData = canvas.toDataURL('image/png');
     const pdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
@@ -135,7 +101,54 @@ export default function FormalBeritaAcaraForm({ agunan }: { agunan: AgunanDetail
       heightLeft -= pageHeight;
     }
 
-    pdf.save(`${form.nomorDokumen}.pdf`);
+    return pdf.output('datauristring');
+  };
+
+  const saveDocument = async () => {
+    setStatusMessage(null);
+    setStatusMessage('Menyiapkan PDF...');
+    const pdfDataUrl = await generatePdfDataUrl();
+
+    const response = await fetch('/api/berita-acara', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        agunanId: agunan.id,
+        nomorDokumen: form.nomorDokumen,
+        nomorRegister: form.nomorRegister,
+        namaNasabah: form.namaNasabah,
+        alamat: form.alamat,
+        nomorRekening: form.nomorRekening,
+        tanggalLunas: form.tanggalLunas,
+        jenisAgunan: 'KUMPULAN AGUNAN',
+        photoDataUrl,
+        ttdAdmKredit: form.ttdAdmKredit,
+        ttdYangMenyerahkan: form.ttdYangMenyerahkan,
+        ttdYangMenerima: form.ttdYangMenerima,
+        ttdMengetahui: form.ttdMengetahui,
+        ttdAdmKreditImg: sigAdmKredit,
+        ttdYangMenyerahkanImg: sigMenyerahkan,
+        ttdYangMenerimaImg: sigMenerima,
+        ttdMengetahuiImg: sigMengetahui,
+        pdfDataUrl,
+      }),
+    });
+
+    const result = await response.json();
+    if (!response.ok) {
+      setStatusMessage(result.error || 'Gagal menyimpan berita acara.');
+      return;
+    }
+    setStatusMessage('Berita acara & PDF berhasil disimpan ke database.');
+  };
+
+  const downloadPDF = async () => {
+    const dataUrl = await generatePdfDataUrl();
+    if (!dataUrl) return;
+    const link = document.createElement('a');
+    link.href = dataUrl;
+    link.download = `${form.nomorDokumen}.pdf`;
+    link.click();
   };
 
   const formatTanggalIndo = (dateStr: string) => {
@@ -221,15 +234,10 @@ export default function FormalBeritaAcaraForm({ agunan }: { agunan: AgunanDetail
           <label className="label">Foto Penyerahan</label>
           <input className="inputField" type="file" accept="image/*" capture="environment" onChange={handlePhotoChange} style={{ marginBottom: 8 }} />
           {photoPreview && (
-          <div style={{ marginBottom: 12 }}>
-            <h3 style={{ fontSize: '0.85rem', fontWeight: 700, margin: '0 0 6px', borderLeft: '3px solid #1e3a8a', paddingLeft: 10, color: '#0f172a' }}>
-              Dokumentasi Penyerahan
-            </h3>
-            <div style={{ textAlign: 'center' }}>
-              <img src={photoPreview} alt="Foto penyerahan" style={{ maxHeight: 100, maxWidth: '100%', objectFit: 'contain', border: '1px solid #e2e8f0' }} />
+            <div style={{ marginTop: 8 }}>
+              <img src={photoPreview} alt="Foto penyerahan" style={{ maxHeight: 160, objectFit: 'contain', border: '1px dashed #cbd5e1' }} />
             </div>
-          </div>
-        )}
+          )}
         </div>
       </div>
 
@@ -312,12 +320,12 @@ export default function FormalBeritaAcaraForm({ agunan }: { agunan: AgunanDetail
         </div>
 
         {photoPreview && (
-          <div style={{ marginBottom: 24 }}>
-            <h3 style={{ fontSize: '0.95rem', fontWeight: 700, margin: '0 0 10px', borderLeft: '3px solid #1e3a8a', paddingLeft: 10, color: '#0f172a' }}>
+          <div style={{ marginBottom: 12 }}>
+            <h3 style={{ fontSize: '0.85rem', fontWeight: 700, margin: '0 0 6px', borderLeft: '3px solid #1e3a8a', paddingLeft: 10, color: '#0f172a' }}>
               Dokumentasi Penyerahan
             </h3>
             <div style={{ textAlign: 'center' }}>
-              <img src={photoPreview} alt="Foto penyerahan" style={{ maxHeight: 200, maxWidth: '100%', objectFit: 'contain', border: '1px solid #e2e8f0' }} />
+              <img src={photoPreview} alt="Foto penyerahan" style={{ maxHeight: 100, maxWidth: '100%', objectFit: 'contain', border: '1px solid #e2e8f0' }} />
             </div>
           </div>
         )}

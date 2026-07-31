@@ -11,6 +11,7 @@ type BeritaAcaraWithAgunan = {
   tanggalLunas: Date | null;
   jenisAgunan: string;
   createdAt: Date;
+  pdfDataUrl?: string | null;
   agunan: {
     id: number;
     kodeRegister: string;
@@ -38,7 +39,7 @@ export default function BeritaAcaraList({ beritaAcaras }: { beritaAcaras: Berita
         return false;
       }
 
-      const tanggalLunasValue = item.tanggalLunas ? item.tanggalLunas.toISOString().split('T')[0] : '';
+      const tanggalLunasValue = item.tanggalLunas ? item.tanggalLunas.toString().split('T')[0] : '';
       if (startDate && tanggalLunasValue < startDate) {
         return false;
       }
@@ -79,6 +80,15 @@ export default function BeritaAcaraList({ beritaAcaras }: { beritaAcaras: Berita
 
     setItems((current) => current.filter((item) => item.id !== id));
     setStatusMessage('Berita acara berhasil dihapus.');
+  };
+
+  const handleViewPdf = (pdfDataUrl: string) => {
+    const win = window.open();
+    if (win) {
+      win.document.write(
+        `<iframe src="${pdfDataUrl}" style="width:100%;height:100vh;border:none;"></iframe>`
+      );
+    }
   };
 
   return (
@@ -147,10 +157,12 @@ export default function BeritaAcaraList({ beritaAcaras }: { beritaAcaras: Berita
                 </div>
                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                   <Link href={`/berita-acara/${item.id}/edit`} className="button secondary">Edit</Link>
-                  {item.agunan ? (
+                  {item.pdfDataUrl ? (
+                    <button type="button" className="button" onClick={() => handleViewPdf(item.pdfDataUrl!)}>Lihat PDF</button>
+                  ) : item.agunan ? (
                     <Link href={`/agunan/${item.agunan.id}/berita-acara/formal`} className="button">Lihat Cetak</Link>
                   ) : (
-                    <span className="status-pill status-pending">Manual</span>
+                    <span className="status-pill status-pending">PDF belum ada</span>
                   )}
                   <button className="button danger" type="button" onClick={() => handleDelete(item.id)}>
                     Hapus
