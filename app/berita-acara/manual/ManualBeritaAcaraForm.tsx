@@ -68,7 +68,7 @@ export default function ManualBeritaAcaraForm() {
   const generatePdfDataUrl = async (): Promise<string | null> => {
     const element = document.querySelector('.formal-a4-sheet');
     if (!element) return null;
-    const canvas = await html2canvas(element as HTMLElement, { scale: 2, useCORS: true });
+    const canvas = await html2canvas(element as HTMLElement, { scale: 2, useCORS: true, logging: false });
     const imgData = canvas.toDataURL('image/png');
     const pdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
 
@@ -94,48 +94,69 @@ export default function ManualBeritaAcaraForm() {
   };
 
   const saveDocument = async () => {
-    setStatusMessage(null);
     setStatusMessage('Menyiapkan PDF...');
-    const pdfDataUrl = await generatePdfDataUrl();
 
-    const response = await fetch('/api/berita-acara/manual', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        nomorDokumen: form.nomorDokumen,
-        namaNasabah: form.namaNasabah,
-        alamat: form.alamat,
-        nomorRekening: form.nomorRekening,
-        tanggalLunas: form.tanggalLunas,
-        daftarAgunan,
-        photoDataUrl,
-        ttdAdmKredit: form.ttdAdmKredit,
-        ttdYangMenyerahkan: form.ttdYangMenyerahkan,
-        ttdYangMenerima: form.ttdYangMenerima,
-        ttdMengetahui: form.ttdMengetahui,
-        ttdAdmKreditImg: sigAdmKredit,
-        ttdYangMenyerahkanImg: sigMenyerahkan,
-        ttdYangMenerimaImg: sigMenerima,
-        ttdMengetahuiImg: sigMengetahui,
-        pdfDataUrl,
-      }),
-    });
-
-    const result = await response.json();
-    if (!response.ok) {
-      setStatusMessage(result.error || 'Gagal menyimpan berita acara.');
-      return;
+    let pdfDataUrl: string | null = null;
+    try {
+      pdfDataUrl = await generatePdfDataUrl();
+    } catch (err: any) {
+      console.error('Gagal generate PDF:', err);
+      setStatusMessage(`Gagal menyiapkan PDF: ${err?.message || 'error tidak diketahui'}. Menyimpan tanpa PDF...`);
     }
-    setStatusMessage('Berita acara manual & PDF berhasil disimpan ke database.');
+
+    try {
+      const response = await fetch('/api/berita-acara/manual', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          nomorDokumen: form.nomorDokumen,
+          namaNasabah: form.namaNasabah,
+          alamat: form.alamat,
+          nomorRekening: form.nomorRekening,
+          tanggalLunas: form.tanggalLunas,
+          daftarAgunan,
+          photoDataUrl,
+          ttdAdmKredit: form.ttdAdmKredit,
+          ttdYangMenyerahkan: form.ttdYangMenyerahkan,
+          ttdYangMenerima: form.ttdYangMenerima,
+          ttdMengetahui: form.ttdMengetahui,
+          ttdAdmKreditImg: sigAdmKredit,
+          ttdYangMenyerahkanImg: sigMenyerahkan,
+          ttdYangMenerimaImg: sigMenerima,
+          ttdMengetahuiImg: sigMengetahui,
+          pdfDataUrl,
+        }),
+      });
+
+      const result = await response.json();
+      if (!response.ok) {
+        setStatusMessage(result.error || 'Gagal menyimpan berita acara.');
+        return;
+      }
+      setStatusMessage(pdfDataUrl ? 'Berita acara & PDF berhasil disimpan ke database.' : 'Berita acara berhasil disimpan (tanpa PDF).');
+    } catch (err: any) {
+      console.error('Gagal simpan ke server:', err);
+      setStatusMessage(`Gagal menghubungi server: ${err?.message || 'error tidak diketahui'}`);
+    }
   };
 
   const downloadPDF = async () => {
-    const dataUrl = await generatePdfDataUrl();
-    if (!dataUrl) return;
-    const link = document.createElement('a');
-    link.href = dataUrl;
-    link.download = `${form.nomorDokumen}.pdf`;
-    link.click();
+    try {
+      setStatusMessage('Menyiapkan PDF...');
+      const dataUrl = await generatePdfDataUrl();
+      if (!dataUrl) {
+        setStatusMessage('Gagal membuat PDF: elemen dokumen tidak ditemukan.');
+        return;
+      }
+      const link = document.createElement('a');
+      link.href = dataUrl;
+      link.download = `${form.nomorDokumen}.pdf`;
+      link.click();
+      setStatusMessage(null);
+    } catch (err: any) {
+      console.error('Gagal unduh PDF:', err);
+      setStatusMessage(`Gagal membuat PDF: ${err?.message || 'error tidak diketahui'}`);
+    }
   };
 
   const formatTanggalIndo = (dateStr: string) => {
@@ -243,6 +264,7 @@ export default function ManualBeritaAcaraForm() {
           <img
             src="/logo-bpr-resmi.png"
             alt="Logo PT BPR Bank Tulungagung"
+            crossOrigin="anonymous"
             style={{ height: 70, width: 'auto', objectFit: 'contain' }}
           />
           <div style={{ marginLeft: 'auto', textAlign: 'right' }}>
