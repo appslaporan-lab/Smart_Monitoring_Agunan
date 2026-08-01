@@ -79,8 +79,8 @@ export default function BeritaAcaraPencairanForm({ agunan }: { agunan: AgunanDet
   const downloadPDF = async () => {
     const element = document.querySelector('.formal-a4-sheet');
     if (!element) return;
-    const canvas = await html2canvas(element as HTMLElement, { scale: 2, useCORS: true });
-    const imgData = canvas.toDataURL('image/png');
+    const canvas = await html2canvas(element as HTMLElement, { scale: 1.5, useCORS: true, logging: false });
+    const imgData = canvas.toDataURL('image/jpeg', 0.85);
     const pdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
 
     const pageWidth = 210;

@@ -79,8 +79,8 @@ export default function FormalBeritaAcaraForm({ agunan }: { agunan: AgunanDetail
   const generatePdfDataUrl = async (): Promise<string | null> => {
     const element = document.querySelector('.formal-a4-sheet');
     if (!element) return null;
-    const canvas = await html2canvas(element as HTMLElement, { scale: 2, useCORS: true, logging: false });
-    const imgData = canvas.toDataURL('image/png');
+    const canvas = await html2canvas(element as HTMLElement, { scale: 1.5, useCORS: true, logging: false });
+    const imgData = canvas.toDataURL('image/jpeg', 0.85);
     const pdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
 
     const pageWidth = 210;
@@ -91,13 +91,13 @@ export default function FormalBeritaAcaraForm({ agunan }: { agunan: AgunanDetail
     let heightLeft = imgHeight;
     let position = 0;
 
-    pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+    pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
     heightLeft -= pageHeight;
 
     while (heightLeft > 0) {
       position = heightLeft - imgHeight;
       pdf.addPage();
-      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+      pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
       heightLeft -= pageHeight;
     }
 
