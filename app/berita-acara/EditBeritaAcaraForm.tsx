@@ -47,10 +47,21 @@ export default function EditBeritaAcaraForm({ beritaAcara }: { beritaAcara: Beri
     setStatusMessage(null);
     setErrorMessage(null);
 
+    const uppercasedForm = {
+      ...form,
+      namaNasabah: form.namaNasabah.toUpperCase(),
+      alamat: form.alamat.toUpperCase(),
+      jenisAgunan: form.jenisAgunan.toUpperCase(),
+      ttdAdmKredit: form.ttdAdmKredit.toUpperCase(),
+      ttdYangMenyerahkan: form.ttdYangMenyerahkan.toUpperCase(),
+      ttdYangMenerima: form.ttdYangMenerima.toUpperCase(),
+      ttdMengetahui: form.ttdMengetahui.toUpperCase(),
+    };
+
     const response = await fetch(`/api/berita-acara/${beritaAcara.id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(form),
+      body: JSON.stringify(uppercasedForm),
     });
 
     const result = await response.json();

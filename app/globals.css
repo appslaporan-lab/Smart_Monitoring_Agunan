@@ -1013,3 +1013,15 @@ button, input, select, textarea {
     font-size: 2rem !important;
   }
 }
+
+/* ==========================================================================
+   AUTO UPPERCASE INPUT (tampilan)
+   ========================================================================== */
+.inputField {
+  text-transform: uppercase;
+}
+.login-form-group .inputField,
+input[type="password"],
+input[type="email"] {
+  text-transform: none !important;
+}
