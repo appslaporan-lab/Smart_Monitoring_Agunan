@@ -148,6 +148,10 @@ export default function ManualBeritaAcaraForm() {
           ttdYangMenyerahkan: form.ttdYangMenyerahkan.toUpperCase(),
           ttdYangMenerima: form.ttdYangMenerima.toUpperCase(),
           ttdMengetahui: form.ttdMengetahui.toUpperCase(),
+          ttdAdmKreditImg: sigAdmKredit,
+          ttdYangMenyerahkanImg: sigMenyerahkan,
+          ttdYangMenerimaImg: sigMenerima,
+          ttdMengetahuiImg: sigMengetahui,
           pdfDataUrl,
         }),
       });
@@ -283,52 +287,52 @@ export default function ManualBeritaAcaraForm() {
         </div>
       </div>
 
-      <div className="formal-a4-sheet">
-        <div className="formal-header" style={{ borderBottom: '3px solid #1e3a8a', paddingBottom: 16, marginBottom: 20 }}>
+      <div className="formal-a4-sheet" style={{ padding: '10mm 15mm' }}>
+        <div className="formal-header" style={{ borderBottom: '3px solid #1e3a8a', paddingBottom: 8, marginBottom: 10 }}>
           <img
             src="/logo-bpr-resmi.png"
             alt="Logo PT BPR Bank Tulungagung"
             crossOrigin="anonymous"
-            style={{ height: 70, width: 'auto', objectFit: 'contain' }}
+            style={{ height: 55, width: 'auto', objectFit: 'contain' }}
           />
           <div style={{ marginLeft: 'auto', textAlign: 'right' }}>
-            <p style={{ margin: 0, fontSize: '0.8rem', color: '#475569' }}>No. Dokumen:</p>
-            <p style={{ margin: 0, fontWeight: 700, fontSize: '0.9rem', color: '#0f172a' }}>{form.nomorDokumen}</p>
+            <p style={{ margin: 0, fontSize: '0.7rem', color: '#475569' }}>No. Dokumen:</p>
+            <p style={{ margin: 0, fontWeight: 700, fontSize: '0.8rem', color: '#0f172a' }}>{form.nomorDokumen}</p>
           </div>
         </div>
 
-        <div style={{ textAlign: 'center', marginBottom: 20 }}>
-          <h1 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 800, letterSpacing: '0.05em', textTransform: 'uppercase', color: '#0f172a' }}>
+        <div style={{ textAlign: 'center', marginBottom: 10 }}>
+          <h1 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800, letterSpacing: '0.05em', textTransform: 'uppercase', color: '#0f172a' }}>
             BERITA ACARA SERAH TERIMA AGUNAN
           </h1>
-          <div style={{ width: 60, height: 3, background: '#1e3a8a', margin: '8px auto 0' }} />
+          <div style={{ width: 60, height: 3, background: '#1e3a8a', margin: '6px auto 0' }} />
         </div>
 
-        <p style={{ margin: '0 0 18px', lineHeight: 1.8, color: '#334155', textAlign: 'justify' }}>
+        <p style={{ margin: '0 0 10px', lineHeight: 1.5, fontSize: '0.85rem', color: '#334155', textAlign: 'justify' }}>
           Pada hari ini, <strong>{formatTanggalIndo(form.tanggalSerahTerima)}</strong>, kami yang bertanda tangan di bawah ini
           telah melakukan serah terima agunan kepada nasabah yang bersangkutan, dengan rincian sebagai berikut:
         </p>
 
-        <div style={{ border: '1px solid #cbd5e1', borderRadius: 8, padding: 16, marginBottom: 20, background: '#f8fafc' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.92rem' }}>
+        <div style={{ border: '1px solid #cbd5e1', borderRadius: 8, padding: 10, marginBottom: 10, background: '#f8fafc' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
             <tbody>
               <tr>
-                <td style={{ width: '35%', padding: '5px 0', color: '#475569', fontWeight: 600 }}>Nomor Rekening</td>
+                <td style={{ width: '35%', padding: '3px 0', color: '#475569', fontWeight: 600 }}>Nomor Rekening</td>
                 <td style={{ width: '5%' }}>:</td>
                 <td style={{ fontWeight: 700 }}>{form.nomorRekening || '__________________________'}</td>
               </tr>
               <tr>
-                <td style={{ padding: '5px 0', color: '#475569', fontWeight: 600 }}>Nama Peminjam</td>
+                <td style={{ padding: '3px 0', color: '#475569', fontWeight: 600 }}>Nama Peminjam</td>
                 <td>:</td>
                 <td style={{ fontWeight: 700 }}>{form.namaNasabah || '-'}</td>
               </tr>
               <tr>
-                <td style={{ padding: '5px 0', color: '#475569', fontWeight: 600 }}>Alamat</td>
+                <td style={{ padding: '3px 0', color: '#475569', fontWeight: 600 }}>Alamat</td>
                 <td>:</td>
                 <td>{form.alamat || '-'}</td>
               </tr>
               <tr>
-                <td style={{ padding: '5px 0', color: '#475569', fontWeight: 600 }}>Tanggal Lunas</td>
+                <td style={{ padding: '3px 0', color: '#475569', fontWeight: 600 }}>Tanggal Lunas</td>
                 <td>:</td>
                 <td>{form.tanggalLunas ? formatTanggalIndo(form.tanggalLunas) : '-'}</td>
               </tr>
@@ -336,26 +340,26 @@ export default function ManualBeritaAcaraForm() {
           </table>
         </div>
 
-        <div style={{ marginBottom: 24 }}>
-          <h3 style={{ fontSize: '0.95rem', fontWeight: 700, margin: '0 0 10px', borderLeft: '3px solid #1e3a8a', paddingLeft: 10, color: '#0f172a' }}>
+        <div style={{ marginBottom: 10 }}>
+          <h3 style={{ fontSize: '0.8rem', fontWeight: 700, margin: '0 0 6px', borderLeft: '3px solid #1e3a8a', paddingLeft: 10, color: '#0f172a' }}>
             Daftar Agunan yang Diserahkan
           </h3>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.88rem' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.8rem' }}>
             <thead>
               <tr style={{ background: '#1e3a8a', color: 'white' }}>
-                <th style={{ padding: '8px 10px', textAlign: 'center', width: '5%' }}>No</th>
-                <th style={{ padding: '8px 10px', textAlign: 'left', width: '25%' }}>Jenis Agunan</th>
-                <th style={{ padding: '8px 10px', textAlign: 'left', width: '35%' }}>Identitas (No. BPKB / SHM / Plat)</th>
-                <th style={{ padding: '8px 10px', textAlign: 'left' }}>Nama Pemilik Agunan</th>
+                <th style={{ padding: '5px 8px', textAlign: 'center', width: '5%' }}>No</th>
+                <th style={{ padding: '5px 8px', textAlign: 'left', width: '25%' }}>Jenis Agunan</th>
+                <th style={{ padding: '5px 8px', textAlign: 'left', width: '35%' }}>Identitas (No. BPKB / SHM / Plat)</th>
+                <th style={{ padding: '5px 8px', textAlign: 'left' }}>Nama Pemilik Agunan</th>
               </tr>
             </thead>
             <tbody>
               {daftarAgunan.map((row, idx) => (
                 <tr key={idx} style={{ background: idx % 2 === 0 ? '#ffffff' : '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
-                  <td style={{ padding: '8px 10px', textAlign: 'center' }}>{idx + 1}</td>
-                  <td style={{ padding: '8px 10px' }}>{row.jenis || '-'}</td>
-                  <td style={{ padding: '8px 10px' }}>{row.identitas || '-'}</td>
-                  <td style={{ padding: '8px 10px' }}>{row.namaPemilik || '-'}</td>
+                  <td style={{ padding: '5px 8px', textAlign: 'center' }}>{idx + 1}</td>
+                  <td style={{ padding: '5px 8px' }}>{row.jenis || '-'}</td>
+                  <td style={{ padding: '5px 8px' }}>{row.identitas || '-'}</td>
+                  <td style={{ padding: '5px 8px' }}>{row.namaPemilik || '-'}</td>
                 </tr>
               ))}
             </tbody>
@@ -363,31 +367,31 @@ export default function ManualBeritaAcaraForm() {
         </div>
 
         {photoPreview && (
-          <div style={{ marginBottom: 12 }}>
-            <h3 style={{ fontSize: '0.85rem', fontWeight: 700, margin: '0 0 6px', borderLeft: '3px solid #1e3a8a', paddingLeft: 10, color: '#0f172a' }}>
+          <div style={{ marginBottom: 8 }}>
+            <h3 style={{ fontSize: '0.78rem', fontWeight: 700, margin: '0 0 4px', borderLeft: '3px solid #1e3a8a', paddingLeft: 10, color: '#0f172a' }}>
               Dokumentasi Penyerahan
             </h3>
             <div style={{ textAlign: 'center' }}>
-              <img src={photoPreview} alt="Foto penyerahan" style={{ maxHeight: 100, maxWidth: '100%', objectFit: 'contain', border: '1px solid #e2e8f0' }} />
+              <img src={photoPreview} alt="Foto penyerahan" style={{ maxHeight: 65, maxWidth: '100%', objectFit: 'contain', border: '1px solid #e2e8f0' }} />
             </div>
           </div>
         )}
 
-        <div style={{ marginTop: 32 }}>
-          <p style={{ textAlign: 'right', marginBottom: 40, color: '#334155', fontSize: '0.9rem' }}>
+        <div style={{ marginTop: 14 }}>
+          <p style={{ textAlign: 'right', marginBottom: 16, color: '#334155', fontSize: '0.8rem' }}>
             Tulungagung, {formatTanggalIndo(form.tanggalSerahTerima)}
           </p>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8, textAlign: 'center' }}>
             {signatureRows.map((ttd) => (
               <div key={ttd.label} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                <p style={{ margin: '0 0 4px', fontWeight: 600, fontSize: '0.88rem', color: '#475569' }}>{ttd.label}</p>
-                <div style={{ height: 64, width: '100%', display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}>
+                <p style={{ margin: '0 0 2px', fontWeight: 600, fontSize: '0.75rem', color: '#475569' }}>{ttd.label}</p>
+                <div style={{ height: 40, width: '100%', display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}>
                   {ttd.img ? (
-                    <img src={ttd.img} alt={`Tanda tangan ${ttd.label}`} style={{ maxHeight: 60, maxWidth: '100%', objectFit: 'contain' }} />
+                    <img src={ttd.img} alt={`Tanda tangan ${ttd.label}`} style={{ maxHeight: 36, maxWidth: '100%', objectFit: 'contain' }} />
                   ) : null}
                 </div>
-                <p style={{ margin: 0, fontWeight: 700, fontSize: '0.9rem', borderTop: '1px solid #0f172a', paddingTop: 4, width: '100%' }}>
+                <p style={{ margin: 0, fontWeight: 700, fontSize: '0.8rem', borderTop: '1px solid #0f172a', paddingTop: 3, width: '100%' }}>
                   {ttd.name || '............................'}
                 </p>
               </div>
@@ -395,7 +399,7 @@ export default function ManualBeritaAcaraForm() {
           </div>
         </div>
 
-        <p style={{ marginTop: 32, fontSize: '0.8rem', color: '#94a3b8', textAlign: 'center', borderTop: '1px solid #e2e8f0', paddingTop: 12 }}>
+        <p style={{ marginTop: 10, fontSize: '0.7rem', color: '#94a3b8', textAlign: 'center', borderTop: '1px solid #e2e8f0', paddingTop: 8 }}>
           Dokumen ini dicetak secara resmi untuk keperluan administrasi serah terima agunan — PT BPR Bank Tulungagung Perseroda
         </p>
       </div>
