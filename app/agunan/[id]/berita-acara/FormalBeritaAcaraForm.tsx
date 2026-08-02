@@ -60,6 +60,29 @@ export default function FormalBeritaAcaraForm({ agunan }: { agunan: AgunanDetail
     setForm((current) => ({ ...current, [field]: value }));
   };
 
+  const resizeImage = (dataUrl: string, maxDimension: number, quality: number): Promise<string> => {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => {
+        let { width, height } = img;
+        if (width > height && width > maxDimension) {
+          height = Math.round((height * maxDimension) / width);
+          width = maxDimension;
+        } else if (height > maxDimension) {
+          width = Math.round((width * maxDimension) / height);
+          height = maxDimension;
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx?.drawImage(img, 0, 0, width, height);
+        resolve(canvas.toDataURL('image/jpeg', quality));
+      };
+      img.src = dataUrl;
+    });
+  };
+
   const handlePhotoChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) {
@@ -68,10 +91,11 @@ export default function FormalBeritaAcaraForm({ agunan }: { agunan: AgunanDetail
       return;
     }
     const reader = new FileReader();
-    reader.onload = () => {
-      const result = reader.result as string;
-      setPhotoPreview(result);
-      setPhotoDataUrl(result);
+    reader.onload = async () => {
+      const original = reader.result as string;
+      const resized = await resizeImage(original, 900, 0.7);
+      setPhotoPreview(resized);
+      setPhotoDataUrl(resized);
     };
     reader.readAsDataURL(file);
   };
