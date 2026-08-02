@@ -8,6 +8,7 @@ export async function POST(request: Request) {
     daftarAgunan, photoDataUrl,
     ttdAdmKredit, ttdYangMenyerahkan, ttdYangMenerima, ttdMengetahui,
     ttdAdmKreditImg, ttdYangMenyerahkanImg, ttdYangMenerimaImg, ttdMengetahuiImg,
+    pdfDataUrl,
   } = body;
 
   if (!nomorDokumen || !namaNasabah) {
@@ -37,6 +38,7 @@ export async function POST(request: Request) {
         ttdYangMenyerahkanImg: ttdYangMenyerahkanImg || null,
         ttdYangMenerimaImg: ttdYangMenerimaImg || null,
         ttdMengetahuiImg: ttdMengetahuiImg || null,
+        pdfDataUrl: pdfDataUrl || null,
       },
     });
     return NextResponse.json(created);
