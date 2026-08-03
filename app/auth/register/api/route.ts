@@ -24,7 +24,13 @@ export async function POST(request: Request) {
   }
 
   const passwordHash = await hashPassword(passwordStr);
-  await createUser({ nama: nama.toString(), username: username.toString(), passwordHash, role: role.toString() as any });
+  await createUser({
+    nama: nama.toString(),
+    username: username.toString(),
+    passwordHash,
+    passwordChangedAt: new Date(),
+    role: role.toString() as any,
+  });
 
   return NextResponse.redirect(new URL('/auth/login?success=Registrasi+berhasil.+Akun+Anda+menunggu+persetujuan+Superadmin+sebelum+bisa+login.', request.url));
 }

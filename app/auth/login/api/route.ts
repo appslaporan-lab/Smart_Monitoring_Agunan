@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { findUserByUsername, verifyPassword } from '@/lib/auth';
+import { findUserByUsername, isPasswordExpired, verifyPassword } from '@/lib/auth';
 import { setAuthCookie } from '@/lib/session';
 import { verifyCaptcha } from '@/lib/captcha';
 import { prisma } from '@/lib/prisma';
@@ -58,6 +58,16 @@ export async function POST(request: Request) {
   }
   if (user.status === 'REJECTED') {
     return NextResponse.redirect(new URL('/auth/login?error=Akun+Anda+ditolak.+Hubungi+Superadmin', request.url));
+  }
+
+  if (isPasswordExpired(user.passwordChangedAt)) {
+    const response = NextResponse.redirect(new URL('/auth/change-password?expired=1', request.url));
+    return setAuthCookie(response, {
+      id: user.id,
+      nama: user.nama,
+      username: user.username,
+      role: user.role,
+    });
   }
 
   await prisma.user.update({

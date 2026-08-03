@@ -51,6 +51,7 @@ model User {
   nama               String
   username           String   @unique
   passwordHash       String
+  passwordChangedAt  DateTime @default(now())
   role               UserRole
   status             UserStatus @default(PENDING)
   failedLoginAttempts Int       @default(0)
