@@ -2,6 +2,7 @@ import { prisma } from '@/lib/prisma';
 import { getCurrentUser } from '@/lib/session';
 import { redirect } from 'next/navigation';
 import UserApprovalList from './UserApprovalList';
+import UserActions from './UserActions';
 
 export const dynamic = 'force-dynamic';
 
@@ -41,11 +42,17 @@ export default async function SuperadminUsersPage() {
         <h2>Semua User</h2>
         <div style={{ display: 'grid', gap: 10, marginTop: 12 }}>
           {allUsers.map((u) => (
-            <div key={u.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px solid #f1f5f9' }}>
-              <span>{u.nama} — {u.username} ({u.role})</span>
-              <span className={`status-pill ${u.status === 'APPROVED' ? 'status-disetujui' : u.status === 'REJECTED' ? 'status-kembali' : 'status-pending'}`}>
-                {u.status}
-              </span>
+            <div key={u.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, padding: '10px 0', borderBottom: '1px solid #f1f5f9' }}>
+              <div>
+                <div>{u.nama} — {u.username} ({u.role})</div>
+                <div style={{ fontSize: '0.9rem', color: '#64748b' }}>{u.status}</div>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span className={`status-pill ${u.status === 'APPROVED' ? 'status-disetujui' : u.status === 'REJECTED' ? 'status-kembali' : 'status-pending'}`}>
+                  {u.status}
+                </span>
+                <UserActions userId={u.id} userName={u.nama} username={u.username} role={u.role} />
+              </div>
             </div>
           ))}
         </div>

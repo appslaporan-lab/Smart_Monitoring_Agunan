@@ -17,3 +17,14 @@ export const findUserByUsername = async (username: string) => {
 export const createUser = async (data: { nama: string; username: string; passwordHash: string; role: UserRole; }) => {
   return prisma.user.create({ data });
 };
+
+export const updateUserPassword = async (userId: number, passwordHash: string) => {
+  return prisma.user.update({
+    where: { id: userId },
+    data: {
+      passwordHash,
+      failedLoginAttempts: 0,
+      lockedUntil: null,
+    },
+  });
+};
