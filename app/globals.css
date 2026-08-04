@@ -1078,3 +1078,38 @@ input[type="password"],
 input[type="email"] {
   text-transform: none !important;
 }
+
+/* ==========================================================================
+   MODULE SWITCHER
+   ========================================================================== */
+.module-switcher {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 0 16px 16px;
+  margin-bottom: 8px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.module-switcher-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  border-radius: 10px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #94a3b8;
+  background: #f8fafc;
+  transition: all 0.15s ease;
+}
+
+.module-switcher-item:hover {
+  background: #eef2ff;
+  color: #4338ca;
+}
+
+.module-switcher-item.active {
+  background: #3b82f6;
+  color: white;
+}
