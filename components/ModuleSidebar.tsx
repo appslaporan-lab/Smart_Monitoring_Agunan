@@ -2,28 +2,58 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LogOut, Shield } from 'lucide-react';
+import {
+  LogOut, Shield, LayoutDashboard, PlusCircle, Users, ClipboardCheck,
+  FileText, ShieldCheck, Archive, FileSignature, PackageOpen, CheckCircle2,
+  UserCog, Wallet, TrendingUp, BarChart3,
+} from 'lucide-react';
 
 type MenuItem = { href: string; label: string; roles: string[] | 'all'; icon: any; module: string };
 type ModuleDef = { key: string; label: string; icon: any; pathPrefix: string };
 
+const MODULES: ModuleDef[] = [
+  { key: 'agunan', label: 'Agunan Monitoring', icon: Shield, pathPrefix: '/' },
+  { key: 'collecting', label: 'Collecting Kredit', icon: Wallet, pathPrefix: '/collecting' },
+  { key: 'kpi', label: 'KPI', icon: TrendingUp, pathPrefix: '/kpi' },
+  { key: 'performa', label: 'Performa Kantor', icon: BarChart3, pathPrefix: '/performa' },
+];
+
+const MENU_CONFIG: MenuItem[] = [
+  { href: '/superadmin/users', label: 'Approval User', roles: ['SUPERADMIN'], icon: UserCog, module: 'agunan' },
+  { href: '/', label: 'Dashboard', roles: 'all', icon: LayoutDashboard, module: 'agunan' },
+  { href: '/auth/change-password', label: 'Ganti Password', roles: 'all', icon: Shield, module: 'agunan' },
+  { href: '/pengambilan', label: 'Pengambilan Agunan', roles: ['ADM_KREDIT_PUSAT', 'ADM_KREDIT_CABANG', 'KEPALA_KAS'], icon: PackageOpen, module: 'agunan' },
+  { href: '/approval', label: 'Approval', roles: ['KABAG_OPERASIONAL', 'PIMPINAN_CABANG', 'DIREKTUR', 'ADM_KREDIT_PUSAT', 'ADM_KREDIT_CABANG'], icon: CheckCircle2, module: 'agunan' },
+  { href: '/create', label: 'Tambah Agunan', roles: ['ADM_KREDIT_PUSAT', 'ADM_KREDIT_CABANG', 'KEPALA_KAS'], icon: PlusCircle, module: 'agunan' },
+  { href: '/nasabah', label: 'Data Nasabah', roles: ['ADM_KREDIT_PUSAT', 'ADM_KREDIT_CABANG', 'KEPALA_KAS', 'KASUBAG_PUSAT', 'KASUBAG_CABANG'], icon: Users, module: 'agunan' },
+  { href: '/agunan', label: 'Data Agunan', roles: ['ADM_KREDIT_PUSAT', 'ADM_KREDIT_CABANG', 'KEPALA_KAS', 'KASUBAG_PUSAT', 'KASUBAG_CABANG'], icon: Archive, module: 'agunan' },
+  { href: '/berita-acara', label: 'Penyerahan Agunan', roles: ['ADM_KREDIT_PUSAT', 'ADM_KREDIT_CABANG', 'KEPALA_KAS', 'KASUBAG_PUSAT', 'KASUBAG_CABANG'], icon: FileSignature, module: 'agunan' },
+  { href: '/stock-opname', label: 'Stock Opname', roles: ['KASUBAG_PUSAT', 'KASUBAG_CABANG', 'KABAG_OPERASIONAL', 'PIMPINAN_CABANG', 'DIREKTUR'], icon: ClipboardCheck, module: 'agunan' },
+  { href: '/reports', label: 'Laporan', roles: ['KASUBAG_PUSAT', 'KASUBAG_CABANG', 'KABAG_OPERASIONAL', 'PIMPINAN_CABANG', 'DIREKTUR'], icon: FileText, module: 'agunan' },
+  { href: '/audit', label: 'Audit', roles: ['KABAG_OPERASIONAL', 'PIMPINAN_CABANG', 'DIREKTUR'], icon: ShieldCheck, module: 'agunan' },
+
+  { href: '/collecting', label: 'Dashboard Collecting', roles: 'all', icon: LayoutDashboard, module: 'collecting' },
+
+  { href: '/kpi', label: 'Dashboard KPI', roles: 'all', icon: LayoutDashboard, module: 'kpi' },
+
+  { href: '/performa', label: 'Dashboard Performa', roles: 'all', icon: LayoutDashboard, module: 'performa' },
+];
+
 export default function ModuleSidebar({
-  menuItems,
-  modules,
   userNama,
   userRole,
 }: {
-  menuItems: MenuItem[];
-  modules: ModuleDef[];
   userNama: string;
   userRole: string;
 }) {
   const pathname = usePathname();
 
-  const activeModuleKey =
-    modules.find((m) => m.pathPrefix !== '/' && pathname.startsWith(m.pathPrefix))?.key || 'agunan';
+  const visibleMenuAll = MENU_CONFIG.filter((item) => item.roles === 'all' || item.roles.includes(userRole));
 
-  const visibleMenu = menuItems.filter((item) => item.module === activeModuleKey);
+  const activeModuleKey =
+    MODULES.find((m) => m.pathPrefix !== '/' && pathname.startsWith(m.pathPrefix))?.key || 'agunan';
+
+  const visibleMenu = visibleMenuAll.filter((item) => item.module === activeModuleKey);
 
   return (
     <aside className="app-sidebar">
@@ -37,10 +67,10 @@ export default function ModuleSidebar({
       </div>
 
       <div className="module-switcher">
-        {modules.map((m) => {
+        {MODULES.map((m) => {
           const ModIcon = m.icon;
           const isActive = m.key === activeModuleKey;
-          const firstItem = menuItems.find((item) => item.module === m.key);
+          const firstItem = visibleMenuAll.find((item) => item.module === m.key);
           return (
             <Link
               key={m.key}
