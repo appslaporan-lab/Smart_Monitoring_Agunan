@@ -18,7 +18,72 @@ model Nasabah {
   namaPasangan      String?
   agunans           Agunan[]
   registrasis       Registrasi[]
+  pinjamanPeriodes  PinjamanPeriode[]
   createdAt         DateTime         @default(now())
+}
+
+model PeriodeNominatif {
+  id             Int      @id @default(autoincrement())
+  bulan          Int
+  tahun          Int
+  namaFile       String
+  diuploadOlehId Int
+  totalBaris     Int      @default(0)
+  createdAt      DateTime @default(now())
+  pinjamans      PinjamanPeriode[]
+
+  @@unique([bulan, tahun])
+}
+
+model PinjamanPeriode {
+  id                  Int              @id @default(autoincrement())
+  periode             PeriodeNominatif @relation(fields: [periodeId], references: [id])
+  periodeId           Int
+  nasabah             Nasabah?         @relation(fields: [nasabahId], references: [id])
+  nasabahId           Int?
+  norek               String
+  namaNasabahExcel    String
+  alamatExcel         String?
+  noIdentitas         String?
+  noTelepon           String?
+  subKantor           String?
+  namaAO              String?
+  kategoriDebitur     String?
+  namaKategoriDebitur String?
+  plafon              Float?
+  outstanding         Float?
+  tunggakanPokok      Float?
+  tunggakanBunga      Float?
+  angsuranPerBulan    Float?
+  tglRealisasi        DateTime?
+  tglJatuhTempo       DateTime?
+  jangkaBulan         Int?
+  kdKolektibilitas    String?
+  hariTunggakan       Int              @default(0)
+  rawDataJson         String?
+  kunjunganPenagihan  KunjunganPenagihan[]
+  createdAt           DateTime         @default(now())
+
+  @@index([periodeId])
+  @@index([nasabahId])
+  @@index([norek])
+}
+
+model KunjunganPenagihan {
+  id                Int             @id @default(autoincrement())
+  pinjamanPeriode   PinjamanPeriode @relation(fields: [pinjamanPeriodeId], references: [id])
+  pinjamanPeriodeId Int
+  petugasId         Int
+  tanggalKunjungan  DateTime
+  jenisKontak       String
+  hasil             String
+  nominalDibayar    Float?
+  tanggalJanjiBayar DateTime?
+  catatan           String?
+  fotoDataUrl       String?
+  createdAt         DateTime        @default(now())
+
+  @@index([pinjamanPeriodeId])
 }
 
 enum StatusPernikahan {
@@ -338,4 +403,12 @@ enum UserRole {
   KABAG_OPERASIONAL
   PIMPINAN_CABANG
   DIREKTUR
+  PETUGAS_COLLECTING
+  TELLER
+  MO
+  KASUBAG_KREDIT_PUSAT_1
+  KASUBAG_KREDIT_PUSAT_2
+  KASUBAG_KREDIT_CABANG
+  KABAG_MARKETING_PUSAT_1
+  KABAG_MARKETING_PUSAT_2
 }

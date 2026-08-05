@@ -34,6 +34,8 @@ const MENU_CONFIG: MenuItem[] = [
 
   { href: '/collecting', label: 'Dashboard Collecting', roles: 'all', icon: LayoutDashboard, module: 'collecting' },
 
+  { href: '/collecting/upload', label: 'Upload Nominatif', roles: ['SUPERADMIN'], icon: PlusCircle, module: 'collecting' },
+
   { href: '/kpi', label: 'Dashboard KPI', roles: 'all', icon: LayoutDashboard, module: 'kpi' },
 
   { href: '/performa', label: 'Dashboard Performa', roles: 'all', icon: LayoutDashboard, module: 'performa' },
