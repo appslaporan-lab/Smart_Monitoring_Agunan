@@ -29,10 +29,11 @@ model PeriodeNominatif {
   namaFile       String
   diuploadOlehId Int
   totalBaris     Int      @default(0)
+  jenisUpload    String   @default("COLLECTING")
   createdAt      DateTime @default(now())
   pinjamans      PinjamanPeriode[]
 
-  @@unique([bulan, tahun])
+  @@unique([bulan, tahun, jenisUpload])
 }
 
 model PinjamanPeriode {
@@ -59,7 +60,9 @@ model PinjamanPeriode {
   tglJatuhTempo       DateTime?
   jangkaBulan         Int?
   kdKolektibilitas    String?
+  produkKredit        String?
   hariTunggakan       Int              @default(0)
+  jenisUpload         String?          @default("COLLECTING")
   rawDataJson         String?
   kunjunganPenagihan  KunjunganPenagihan[]
   createdAt           DateTime         @default(now())

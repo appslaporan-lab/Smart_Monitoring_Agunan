@@ -2,6 +2,19 @@ import * as XLSX from 'xlsx';
 
 const KATEGORI_DIIZINKAN = ['UK', 'UM', 'UT'];
 
+export type UploadJenis = 'COLLECTING' | 'PERFORM_KOLEKTIBILITAS';
+
+const normalizeUploadType = (value: string | null | undefined): UploadJenis => {
+  return value === 'PERFORM_KOLEKTIBILITAS' ? 'PERFORM_KOLEKTIBILITAS' : 'COLLECTING';
+};
+
+const getCellValue = (row: any, candidates: string[]): any => {
+  for (const key of candidates) {
+    if (row[key] !== undefined && row[key] !== null && row[key] !== '') return row[key];
+  }
+  return null;
+};
+
 const toNumber = (val: any): number | null => {
   if (val === null || val === undefined || val === '') return null;
   const num = typeof val === 'number' ? val : parseFloat(String(val).replace(/,/g, ''));
@@ -39,11 +52,13 @@ export type ParsedRow = {
   tglJatuhTempo: Date | null;
   jangkaBulan: number | null;
   kdKolektibilitas: string | null;
+  produkKredit: string | null;
   hariTunggakan: number;
   rawDataJson: string;
 };
 
-export function parseNominatifExcel(buffer: Buffer): { rows: ParsedRow[]; totalBarisAsli: number; totalDilewati: number } {
+export function parseNominatifExcel(buffer: Buffer, uploadType: string = 'COLLECTING'): { rows: ParsedRow[]; totalBarisAsli: number; totalDilewati: number } {
+  const normalizedType = normalizeUploadType(uploadType);
   const workbook = XLSX.read(buffer, { type: 'buffer', cellDates: false });
   const sheetName = workbook.SheetNames[0];
   const sheet = workbook.Sheets[sheetName];
@@ -53,13 +68,15 @@ export function parseNominatifExcel(buffer: Buffer): { rows: ParsedRow[]; totalB
   let totalDilewati = 0;
 
   for (const row of allRows) {
-    const kategori = (row['KATEGORI DEBITUR'] || '').toString().trim().toUpperCase();
+    const kategori = String(getCellValue(row, ['KATEGORI DEBITUR', 'KATEGORI', 'CATEGORY']) || '')
+      .trim()
+      .toUpperCase();
     if (!KATEGORI_DIIZINKAN.includes(kategori)) {
       totalDilewati++;
       continue;
     }
 
-    const norek = (row['NOREK'] || '').toString().trim();
+    const norek = String(getCellValue(row, ['NOREK', 'NO REKENING', 'NO REK']) || '').trim();
     if (!norek) {
       totalDilewati++;
       continue;
@@ -67,24 +84,25 @@ export function parseNominatifExcel(buffer: Buffer): { rows: ParsedRow[]; totalB
 
     rows.push({
       norek,
-      namaNasabahExcel: (row['NAMA'] || '').toString().trim(),
-      alamatExcel: row['ALAMAT'] ? String(row['ALAMAT']).trim() : null,
-      noIdentitas: row['NO IDENTITAS'] ? String(row['NO IDENTITAS']).trim() : null,
-      noTelepon: row['NO TELEPON'] ? String(row['NO TELEPON']).trim() : null,
-      subKantor: row['SUB KANTOR'] ? String(row['SUB KANTOR']).trim() : null,
-      namaAO: row['NAMA AO'] ? String(row['NAMA AO']).trim() : null,
+      namaNasabahExcel: String(getCellValue(row, ['NAMA', 'NAMA NASABAH', 'CUSTOMER NAME']) || '').trim(),
+      alamatExcel: getCellValue(row, ['ALAMAT', 'ADDRESS']) ? String(getCellValue(row, ['ALAMAT', 'ADDRESS'])).trim() : null,
+      noIdentitas: getCellValue(row, ['NO IDENTITAS', 'NO KTP', 'NIK']) ? String(getCellValue(row, ['NO IDENTITAS', 'NO KTP', 'NIK'])).trim() : null,
+      noTelepon: getCellValue(row, ['NO TELEPON', 'TELEPON', 'PHONE']) ? String(getCellValue(row, ['NO TELEPON', 'TELEPON', 'PHONE'])).trim() : null,
+      subKantor: getCellValue(row, ['SUB KANTOR', 'KANTOR', 'CABANG']) ? String(getCellValue(row, ['SUB KANTOR', 'KANTOR', 'CABANG'])).trim() : null,
+      namaAO: getCellValue(row, ['NAMA AO', 'AO', 'NAMA MO']) ? String(getCellValue(row, ['NAMA AO', 'AO', 'NAMA MO'])).trim() : null,
       kategoriDebitur: kategori,
-      namaKategoriDebitur: row['NAMA KATEGORI DEBITUR'] ? String(row['NAMA KATEGORI DEBITUR']).trim() : null,
-      plafon: toNumber(row['NILAI FAS ASAL']),
-      outstanding: toNumber(row['SLD PINJAMAN PKK']),
-      tunggakanPokok: toNumber(row['SLD TUNGGAK PKK']),
-      tunggakanBunga: toNumber(row['SLD TUNGGAK BGA']),
-      angsuranPerBulan: toNumber(row['NILAI TGH ANGSURAN']),
-      tglRealisasi: toDate(row['TGL REALISASI']),
-      tglJatuhTempo: toDate(row['TGL JTH TMP']),
-      jangkaBulan: toNumber(row['JANGKA BLN']),
-      kdKolektibilitas: row['KD KOL EFF'] ? String(row['KD KOL EFF']).trim() : null,
-      hariTunggakan: toNumber(row['JML HR TUNGGAKAN EFF']) || 0,
+      namaKategoriDebitur: getCellValue(row, ['NAMA KATEGORI DEBITUR', 'KATEGORI DEBITUR NAME']) ? String(getCellValue(row, ['NAMA KATEGORI DEBITUR', 'KATEGORI DEBITUR NAME'])).trim() : null,
+      plafon: toNumber(getCellValue(row, ['NILAI FAS ASAL', 'PLAFON', 'PLAFOND'])),
+      outstanding: toNumber(getCellValue(row, ['SLD PINJAMAN PKK', 'OUTSTANDING', 'SISA PINJAMAN'])),
+      tunggakanPokok: toNumber(getCellValue(row, ['SLD TUNGGAK PKK', 'TUNGGAKAN POKOK'])),
+      tunggakanBunga: toNumber(getCellValue(row, ['SLD TUNGGAK BGA', 'TUNGGAKAN BUNGA'])),
+      angsuranPerBulan: toNumber(getCellValue(row, ['NILAI TGH ANGSURAN', 'ANGSURAN', 'ANGSURAN PER BULAN'])),
+      tglRealisasi: toDate(getCellValue(row, ['TGL REALISASI', 'TGL REALISASI PINJAMAN'])),
+      tglJatuhTempo: toDate(getCellValue(row, ['TGL JTH TMP', 'TGL JATUH TEMPO'])),
+      jangkaBulan: toNumber(getCellValue(row, ['JANGKA BLN', 'TENOR', 'JANGKA'])),
+      kdKolektibilitas: getCellValue(row, normalizedType === 'PERFORM_KOLEKTIBILITAS' ? ['KD KOL EFF', 'KOLEKTIBILITAS', 'KODE KOLEKTIBILITAS', 'KODE KOLEKTIBILITAS EFF'] : ['KD KOL EFF', 'KOLEKTIBILITAS', 'KODE KOLEKTIBILITAS']) ? String(getCellValue(row, normalizedType === 'PERFORM_KOLEKTIBILITAS' ? ['KD KOL EFF', 'KOLEKTIBILITAS', 'KODE KOLEKTIBILITAS', 'KODE KOLEKTIBILITAS EFF'] : ['KD KOL EFF', 'KOLEKTIBILITAS', 'KODE KOLEKTIBILITAS'])).trim() : null,
+      produkKredit: getCellValue(row, ['PRODUK KREDIT', 'PRODUK', 'JENIS PRODUK', 'PRODUCT', 'PRODUCT TYPE']) ? String(getCellValue(row, ['PRODUK KREDIT', 'PRODUK', 'JENIS PRODUK', 'PRODUCT', 'PRODUCT TYPE'])).trim() : null,
+      hariTunggakan: toNumber(getCellValue(row, ['JML HR TUNGGAKAN EFF', 'HARI TUNGGAKAN', 'HARI'])) || 0,
       rawDataJson: JSON.stringify(row),
     });
   }

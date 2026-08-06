@@ -15,6 +15,7 @@ export default function UploadNominatifForm() {
   const now = new Date();
   const [bulan, setBulan] = useState(now.getMonth() + 1);
   const [tahun, setTahun] = useState(now.getFullYear());
+  const [jenisUpload, setJenisUpload] = useState<'COLLECTING' | 'PERFORM_KOLEKTIBILITAS'>('COLLECTING');
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
@@ -34,6 +35,7 @@ export default function UploadNominatifForm() {
     formData.append('file', file);
     formData.append('bulan', String(bulan));
     formData.append('tahun', String(tahun));
+    formData.append('jenisUpload', jenisUpload);
 
     try {
       const res = await fetch('/api/collecting/upload-nominatif', { method: 'POST', body: formData });
@@ -71,6 +73,14 @@ export default function UploadNominatifForm() {
           <label className="label">Tahun</label>
           <input className="inputField" type="number" value={tahun} onChange={(e) => setTahun(Number(e.target.value))} />
         </div>
+      </div>
+
+      <div style={{ marginBottom: 16 }}>
+        <label className="label">Jenis Upload</label>
+        <select className="inputField" value={jenisUpload} onChange={(e) => setJenisUpload(e.target.value as 'COLLECTING' | 'PERFORM_KOLEKTIBILITAS')}>
+          <option value="COLLECTING">Collecting</option>
+          <option value="PERFORM_KOLEKTIBILITAS">Perform Kolektibilitas</option>
+        </select>
       </div>
 
       <div style={{ marginBottom: 16 }}>

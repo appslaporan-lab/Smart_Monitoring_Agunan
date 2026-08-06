@@ -19,7 +19,7 @@ export default async function UploadNominatifPage() {
     <main className="container">
       <section style={{ marginBottom: 32 }}>
         <h1>Upload Data Nominatif</h1>
-        <p>Upload file nominatif.xlsx setiap awal bulan. Hanya kategori debitur UK, UM, dan UT yang akan diimport.</p>
+        <p>Pisahkan upload untuk Collecting dan Perform Kolektibilitas. Hanya kategori debitur UK, UM, dan UT yang akan diimport.</p>
       </section>
 
       <div className="card" style={{ padding: 24, marginBottom: 24 }}>
@@ -34,7 +34,12 @@ export default async function UploadNominatifPage() {
           <div style={{ display: 'grid', gap: 10, marginTop: 12 }}>
             {periodes.map((p) => (
               <div key={p.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px solid #f1f5f9' }}>
-                <span>Periode {p.bulan}/{p.tahun} — {p.namaFile}</span>
+                <span>
+                  Periode {p.bulan}/{p.tahun} — {p.namaFile}
+                  <span style={{ display: 'block', fontSize: '0.85rem', color: '#64748b' }}>
+                    {p.jenisUpload === 'PERFORM_KOLEKTIBILITAS' ? 'Perform Kolektibilitas' : 'Collecting'}
+                  </span>
+                </span>
                 <span className="status-pill status-pending">{p.totalBaris} baris</span>
               </div>
             ))}

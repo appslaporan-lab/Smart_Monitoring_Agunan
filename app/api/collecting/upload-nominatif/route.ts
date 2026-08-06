@@ -15,19 +15,21 @@ export async function POST(request: Request) {
   const file = formData.get('file') as File | null;
   const bulan = Number(formData.get('bulan'));
   const tahun = Number(formData.get('tahun'));
+  const jenisUpload = String(formData.get('jenisUpload') || 'COLLECTING').toUpperCase();
+  const uploadType = jenisUpload === 'PERFORM_KOLEKTIBILITAS' ? 'PERFORM_KOLEKTIBILITAS' : 'COLLECTING';
 
   if (!file || !bulan || !tahun) {
     return NextResponse.json({ error: 'Data tidak lengkap (file, bulan, tahun wajib diisi).' }, { status: 400 });
   }
 
-  const existing = await prisma.periodeNominatif.findUnique({ where: { bulan_tahun: { bulan, tahun } } });
+  const existing = await prisma.periodeNominatif.findUnique({ where: { bulan_tahun_jenisUpload: { bulan, tahun, jenisUpload: uploadType } } });
   if (existing) {
     return NextResponse.json({ error: `Periode ${bulan}/${tahun} sudah pernah diupload sebelumnya.` }, { status: 400 });
   }
 
   try {
     const buffer = Buffer.from(await file.arrayBuffer());
-    const { rows, totalBarisAsli, totalDilewati } = parseNominatifExcel(buffer);
+    const { rows, totalBarisAsli, totalDilewati } = parseNominatifExcel(buffer, uploadType);
 
     if (rows.length === 0) {
       return NextResponse.json({ error: 'Tidak ada baris data yang valid untuk diimport (cek kategori debitur UK/UM/UT).' }, { status: 400 });
@@ -40,6 +42,7 @@ export async function POST(request: Request) {
         namaFile: file.name,
         diuploadOlehId: user.id,
         totalBaris: rows.length,
+        jenisUpload: uploadType,
       },
     });
 
@@ -69,7 +72,9 @@ export async function POST(request: Request) {
               tglJatuhTempo: row.tglJatuhTempo,
               jangkaBulan: row.jangkaBulan,
               kdKolektibilitas: row.kdKolektibilitas,
+              produkKredit: row.produkKredit,
               hariTunggakan: row.hariTunggakan,
+              jenisUpload: uploadType,
               rawDataJson: row.rawDataJson,
             },
           }),
@@ -80,7 +85,7 @@ export async function POST(request: Request) {
     await appendAuditLog({
       action: 'upload_nominatif',
       actor: `${user.nama} (${user.role})`,
-      details: `Periode ${bulan}/${tahun}, ${rows.length} baris diimport, ${totalDilewati} dilewati dari total ${totalBarisAsli} baris.`,
+      details: `${uploadType === 'PERFORM_KOLEKTIBILITAS' ? 'Perform Kolektibilitas' : 'Collecting'} — Periode ${bulan}/${tahun}, ${rows.length} baris diimport, ${totalDilewati} dilewati dari total ${totalBarisAsli} baris.`,
     });
 
     return NextResponse.json({

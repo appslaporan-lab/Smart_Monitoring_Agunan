@@ -12,6 +12,7 @@ export default async function CollectingDashboardPage() {
   if (!user) redirect('/auth/login');
 
   const periodeAktif = await prisma.periodeNominatif.findFirst({
+    where: { jenisUpload: 'COLLECTING' },
     orderBy: [{ tahun: 'desc' }, { bulan: 'desc' }],
   });
 
@@ -58,9 +59,12 @@ export default async function CollectingDashboardPage() {
           <h1>Dashboard Collecting Kredit</h1>
           <p>Periode: {periodeAktif.bulan}/{periodeAktif.tahun} — Total {pinjamans.length} debitur</p>
         </div>
-        {user.role === 'SUPERADMIN' && (
-          <Link href="/collecting/upload" className="button secondary">Kelola Upload Nominatif</Link>
-        )}
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          <Link href="/collecting/report" className="button secondary">Laporan Kolektibilitas</Link>
+          {user.role === 'SUPERADMIN' && (
+            <Link href="/collecting/upload" className="button secondary">Kelola Upload Nominatif</Link>
+          )}
+        </div>
       </section>
 
       <section className="grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', marginBottom: 24 }}>
