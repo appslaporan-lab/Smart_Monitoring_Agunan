@@ -29,6 +29,23 @@ const kantorOptions = [
   { value: 'CABANG', label: 'Cabang' },
 ];
 
+const subKantorOptions = [
+  { value: '01', label: '01' },
+  { value: '02', label: '02' },
+  { value: '03', label: '03' },
+  { value: '04', label: '04' },
+  { value: '05', label: '05' },
+  { value: '06', label: '06' },
+  { value: '07', label: '07' },
+  { value: '08', label: '08' },
+  { value: '09', label: '09' },
+  { value: '10', label: '10' },
+  { value: '12', label: '12' },
+  { value: '13', label: '13' },
+  { value: '14', label: '14' },
+  { value: '15', label: '15' },
+];
+
 export default function RegisterPage({ searchParams }: RegisterPageProps) {
   return (
     <main className="container">
@@ -68,6 +85,15 @@ export default function RegisterPage({ searchParams }: RegisterPageProps) {
                 <option value="">Pilih kantor</option>
                 {kantorOptions.map((kantor) => (
                   <option key={kantor.value} value={kantor.value}>{kantor.label}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="label">Sub Kantor</label>
+              <select name="subKantor" className="inputField" required>
+                <option value="">Pilih sub kantor</option>
+                {subKantorOptions.map((subKantor) => (
+                  <option key={subKantor.value} value={subKantor.value}>{subKantor.label}</option>
                 ))}
               </select>
             </div>
