@@ -13,6 +13,14 @@ const roles = [
   { value: 'KABAG_OPERASIONAL', label: 'Kabag Operasional' },
   { value: 'PIMPINAN_CABANG', label: 'Pimpinan Cabang' },
   { value: 'DIREKTUR', label: 'Direktur' },
+  { value: 'TELLER', label: 'Teller' },
+  { value: 'MO', label: 'MO (Marketing Officer)' },
+  { value: 'PETUGAS_COLLECTING', label: 'Petugas Collecting' },
+  { value: 'KASUBAG_KREDIT_PUSAT_1', label: 'Kasubag Kredit Pusat 1' },
+  { value: 'KASUBAG_KREDIT_PUSAT_2', label: 'Kasubag Kredit Pusat 2' },
+  { value: 'KASUBAG_KREDIT_CABANG', label: 'Kasubag Kredit Cabang' },
+  { value: 'KABAG_MARKETING_PUSAT_1', label: 'Kabag Marketing Pusat 1' },
+  { value: 'KABAG_MARKETING_PUSAT_2', label: 'Kabag Marketing Pusat 2' },
 ];
 
 export default function RegisterPage({ searchParams }: RegisterPageProps) {
