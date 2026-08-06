@@ -118,6 +118,7 @@ model User {
   passwordHash       String
   passwordChangedAt  DateTime @default(now())
   kantor             String?
+  subKantor          String?
   role               UserRole
   status             UserStatus @default(PENDING)
   failedLoginAttempts Int       @default(0)

@@ -16,7 +16,7 @@ export const findUserByUsername = async (username: string) => {
   return prisma.user.findUnique({ where: { username } });
 };
 
-export const createUser = async (data: { nama: string; username: string; passwordHash: string; passwordChangedAt?: Date; kantor?: string | null; role: UserRole; }) => {
+export const createUser = async (data: { nama: string; username: string; passwordHash: string; passwordChangedAt?: Date; kantor?: string | null; subKantor?: string | null; role: UserRole; }) => {
   return prisma.user.create({ data });
 };
 
