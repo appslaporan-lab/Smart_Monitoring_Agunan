@@ -23,6 +23,12 @@ const roles = [
   { value: 'KABAG_MARKETING_PUSAT_2', label: 'Kabag Marketing Pusat 2' },
 ];
 
+const kantorOptions = [
+  { value: 'PUSAT_1', label: 'Pusat 1' },
+  { value: 'PUSAT_2', label: 'Pusat 2' },
+  { value: 'CABANG', label: 'Cabang' },
+];
+
 export default function RegisterPage({ searchParams }: RegisterPageProps) {
   return (
     <main className="container">
@@ -55,6 +61,15 @@ export default function RegisterPage({ searchParams }: RegisterPageProps) {
   		title="Minimal 8 karakter, kombinasi huruf dan angka"
 	      />
 	      <p style={{ fontSize: '0.8rem', color: '#64748b', marginTop: 4 }}>Minimal 8 karakter, harus ada huruf dan angka.</p>
+            </div>
+            <div>
+              <label className="label">Kantor</label>
+              <select name="kantor" className="inputField" required>
+                <option value="">Pilih kantor</option>
+                {kantorOptions.map((kantor) => (
+                  <option key={kantor.value} value={kantor.value}>{kantor.label}</option>
+                ))}
+              </select>
             </div>
             <div>
               <label className="label">Role</label>

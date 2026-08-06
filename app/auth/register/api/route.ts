@@ -6,9 +6,10 @@ export async function POST(request: Request) {
   const nama = form.get('nama');
   const username = form.get('username');
   const password = form.get('password');
+  const kantor = form.get('kantor');
   const role = form.get('role');
 
-  if (!nama || !username || !password || !role) {
+  if (!nama || !username || !password || !kantor || !role) {
     return NextResponse.redirect(new URL('/auth/register?error=Data+tidak+lengkap', request.url));
   }
 
@@ -29,6 +30,7 @@ export async function POST(request: Request) {
     username: username.toString(),
     passwordHash,
     passwordChangedAt: new Date(),
+    kantor: kantor.toString(),
     role: role.toString() as any,
   });
 

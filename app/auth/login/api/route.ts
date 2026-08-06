@@ -67,6 +67,8 @@ export async function POST(request: Request) {
       nama: user.nama,
       username: user.username,
       role: user.role,
+      kantor: user.kantor,
+      subKantor: user.subKantor,
     });
   }
 
@@ -81,5 +83,7 @@ export async function POST(request: Request) {
     nama: user.nama,
     username: user.username,
     role: user.role,
+    kantor: user.kantor,
+    subKantor: user.subKantor,
   });
 }

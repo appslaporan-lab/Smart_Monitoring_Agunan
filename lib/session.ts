@@ -12,6 +12,8 @@ type SessionPayload = {
   nama: string;
   username: string;
   role: string;
+  kantor?: string | null;
+  subKantor?: string | null;
   exp: number;
 };
 

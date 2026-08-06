@@ -2,7 +2,7 @@ import { getCurrentUser } from '@/lib/session';
 import { redirect } from 'next/navigation';
 import { prisma } from '@/lib/prisma';
 import { determineEWS } from '@/lib/ews';
-import { getKantorLabel, canAccessKantorGroup } from '@/lib/kantor';
+import { getKantorLabel, canAccessKantorData } from '@/lib/kantor';
 import Link from 'next/link';
 
 export const dynamic = 'force-dynamic';
@@ -36,11 +36,7 @@ export default async function CollectingDashboardPage() {
   });
 
   const visiblePinjamans = pinjamans.filter((p) => {
-    if (user.role === 'DIREKTUR' || user.role === 'SUPERADMIN') return true;
-    const kantorLabel = getKantorLabel(p.subKantor);
-    const group = kantorLabel === 'Pusat 1' ? 'PUSAT_1' : kantorLabel === 'Pusat 2' ? 'PUSAT_2' : kantorLabel === 'Cabang' ? 'CABANG' : null;
-    if (user.role === 'PETUGAS_COLLECTING' || user.role === 'MO') return true;
-    return canAccessKantorGroup(user.role, group);
+    return canAccessKantorData(user.role, user.kantor, user.subKantor, p.subKantor);
   });
 
   const ewsData = visiblePinjamans.map((p) => ({
