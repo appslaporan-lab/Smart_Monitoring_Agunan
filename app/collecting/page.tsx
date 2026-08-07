@@ -60,7 +60,6 @@ export default async function CollectingDashboardPage() {
           <p>Periode: {periodeAktif.bulan}/{periodeAktif.tahun} — Total {pinjamans.length} debitur</p>
         </div>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-          <Link href="/collecting/report" className="button secondary">Laporan Kolektibilitas</Link>
           {user.role === 'SUPERADMIN' && (
             <Link href="/collecting/upload" className="button secondary">Kelola Upload Nominatif</Link>
           )}
