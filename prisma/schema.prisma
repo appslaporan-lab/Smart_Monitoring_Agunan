@@ -51,6 +51,7 @@ model PinjamanPeriode {
   namaAO              String?
   kategoriDebitur     String?
   namaKategoriDebitur String?
+  jenisJaminan        String?
   plafon              Float?
   outstanding         Float?
   tunggakanPokok      Float?

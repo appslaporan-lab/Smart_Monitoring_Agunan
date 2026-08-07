@@ -69,12 +69,12 @@ export default async function PerformaKolektibilitasPage() {
     isNpl: !!row.kdKolektibilitas && COLLECTING_REPORT_CONFIG.nplCodes.includes(String(row.kdKolektibilitas).trim().toUpperCase()),
     outstanding: row.outstanding ?? 0,
     moName: normalizeMoName(row.namaAO),
-    productBucket: classifyByKeywords(row.produkKredit || row.namaKategoriDebitur, COLLECTING_REPORT_CONFIG.creditProductCategories),
+    productBucket: classifyByKeywords(row.produkKredit, COLLECTING_REPORT_CONFIG.creditProductCategories),
     interestRateBucket: classifyByRange(row.plafon ? 0 : null, COLLECTING_REPORT_CONFIG.interestRateRanges),
     tenorBucket: classifyByRange(row.jangkaBulan, COLLECTING_REPORT_CONFIG.tenorRanges),
     arrearsBucket: classifyByRange(row.hariTunggakan, COLLECTING_REPORT_CONFIG.arrearsRanges),
     plafondBucket: classifyByRange(row.plafon, COLLECTING_REPORT_CONFIG.plafondRanges),
-    collateralBucket: classifyByKeywords(row.namaKategoriDebitur, COLLECTING_REPORT_CONFIG.collateralCategories),
+    collateralBucket: classifyByKeywords(row.jenisJaminan, COLLECTING_REPORT_CONFIG.collateralCategories),
   }));
 
   const subKantorSummary = new Map<string, { nplCount: number; nonNplCount: number; nplNominal: number; nonNplNominal: number; total: number; totalNominal: number }>();

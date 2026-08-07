@@ -63,6 +63,7 @@ export async function POST(request: Request) {
               namaAO: row.namaAO,
               kategoriDebitur: row.kategoriDebitur,
               namaKategoriDebitur: row.namaKategoriDebitur,
+              jenisJaminan: row.jenisJaminan,
               plafon: row.plafon,
               outstanding: row.outstanding,
               tunggakanPokok: row.tunggakanPokok,

@@ -43,9 +43,9 @@ export type ParsedRow = {
   namaAO: string | null;
   kategoriDebitur: string | null;
   namaKategoriDebitur: string | null;
+  jenisJaminan: string | null;
   plafon: number | null;
   outstanding: number | null;
-  tunggakanPokok: number | null;
   tunggakanBunga: number | null;
   angsuranPerBulan: number | null;
   tglRealisasi: Date | null;
@@ -101,6 +101,7 @@ export function parseNominatifExcel(buffer: Buffer, uploadType: string = 'COLLEC
       tglJatuhTempo: toDate(getCellValue(row, ['TGL JTH TMP', 'TGL JATUH TEMPO'])),
       jangkaBulan: toNumber(getCellValue(row, ['JANGKA BLN', 'TENOR', 'JANGKA'])),
       kdKolektibilitas: getCellValue(row, normalizedType === 'PERFORM_KOLEKTIBILITAS' ? ['KD KOL EFF', 'KOLEKTIBILITAS', 'KODE KOLEKTIBILITAS', 'KODE KOLEKTIBILITAS EFF'] : ['KD KOL EFF', 'KOLEKTIBILITAS', 'KODE KOLEKTIBILITAS']) ? String(getCellValue(row, normalizedType === 'PERFORM_KOLEKTIBILITAS' ? ['KD KOL EFF', 'KOLEKTIBILITAS', 'KODE KOLEKTIBILITAS', 'KODE KOLEKTIBILITAS EFF'] : ['KD KOL EFF', 'KOLEKTIBILITAS', 'KODE KOLEKTIBILITAS'])).trim() : null,
+      jenisJaminan: getCellValue(row, ['JENIS JAMINAN', 'JENIS_JAMINAN', 'JENIS JAMINAN ASLI', 'JENIS_JAMINAN_ASLI']) ? String(getCellValue(row, ['JENIS JAMINAN', 'JENIS_JAMINAN', 'JENIS JAMINAN ASLI', 'JENIS_JAMINAN_ASLI'])).trim() : null,
       produkKredit: getCellValue(row, ['PRODUK KREDIT', 'PRODUK', 'JENIS PRODUK', 'PRODUCT', 'PRODUCT TYPE']) ? String(getCellValue(row, ['PRODUK KREDIT', 'PRODUK', 'JENIS PRODUK', 'PRODUCT', 'PRODUCT TYPE'])).trim() : null,
       hariTunggakan: toNumber(getCellValue(row, ['JML HR TUNGGAKAN EFF', 'HARI TUNGGAKAN', 'HARI'])) || 0,
       rawDataJson: JSON.stringify(row),
