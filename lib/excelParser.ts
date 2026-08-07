@@ -46,6 +46,7 @@ export type ParsedRow = {
   jenisJaminan: string | null;
   plafon: number | null;
   outstanding: number | null;
+  tunggakanPokok: number | null;
   tunggakanBunga: number | null;
   angsuranPerBulan: number | null;
   tglRealisasi: Date | null;
