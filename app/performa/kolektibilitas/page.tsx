@@ -77,11 +77,12 @@ export default async function PerformaKolektibilitasPage() {
     collateralBucket: classifyByKeywords(row.namaKategoriDebitur, COLLECTING_REPORT_CONFIG.collateralCategories),
   }));
 
-  const subKantorSummary = new Map<string, { nplCount: number; nonNplCount: number; nplNominal: number; nonNplNominal: number; total: number }>();
+  const subKantorSummary = new Map<string, { nplCount: number; nonNplCount: number; nplNominal: number; nonNplNominal: number; total: number; totalNominal: number }>();
   for (const row of reportRows) {
     const key = row.subKantor || 'Tidak Diketahui';
-    const current = subKantorSummary.get(key) || { nplCount: 0, nonNplCount: 0, nplNominal: 0, nonNplNominal: 0, total: 0 };
+    const current = subKantorSummary.get(key) || { nplCount: 0, nonNplCount: 0, nplNominal: 0, nonNplNominal: 0, total: 0, totalNominal: 0 };
     current.total += 1;
+    current.totalNominal += row.outstanding;
     if (row.isNpl) {
       current.nplCount += 1;
       current.nplNominal += row.outstanding;
@@ -92,61 +93,126 @@ export default async function PerformaKolektibilitasPage() {
     subKantorSummary.set(key, current);
   }
 
-  const groupSummary = new Map<string, { total: number; npl: number; nonNpl: number }>();
+  const groupSummary = new Map<string, { total: number; nplCount: number; nonNplCount: number; nplNominal: number; nonNplNominal: number; totalNominal: number }>();
   for (const row of reportRows) {
     const key = row.kantorLabel;
-    const current = groupSummary.get(key) || { total: 0, npl: 0, nonNpl: 0 };
+    const current = groupSummary.get(key) || { total: 0, nplCount: 0, nonNplCount: 0, nplNominal: 0, nonNplNominal: 0, totalNominal: 0 };
     current.total += 1;
-    if (row.isNpl) current.npl += 1; else current.nonNpl += 1;
+    current.totalNominal += row.outstanding;
+    if (row.isNpl) {
+      current.nplCount += 1;
+      current.nplNominal += row.outstanding;
+    } else {
+      current.nonNplCount += 1;
+      current.nonNplNominal += row.outstanding;
+    }
     groupSummary.set(key, current);
   }
 
   const kantorGroups = ['Pusat 1', 'Pusat 2', 'Cabang'];
   const rowsByGroup = kantorGroups.map((group) => {
     const entries = reportRows.filter((row) => row.kantorLabel === group);
-    return { group, total: entries.length, npl: entries.filter((row) => row.isNpl).length, nonNpl: entries.filter((row) => !row.isNpl).length };
+    return {
+      group,
+      total: entries.length,
+      nplCount: entries.filter((row) => row.isNpl).length,
+      nonNplCount: entries.filter((row) => !row.isNpl).length,
+      nplNominal: entries.filter((row) => row.isNpl).reduce((sum, row) => sum + row.outstanding, 0),
+      nonNplNominal: entries.filter((row) => !row.isNpl).reduce((sum, row) => sum + row.outstanding, 0),
+      totalNominal: entries.reduce((sum, row) => sum + row.outstanding, 0),
+    };
   });
 
   const moSummary = Array.from(new Map(reportRows.map((row) => [row.moName, 0])).keys()).map((mo) => {
     const entries = reportRows.filter((row) => row.moName === mo);
-    return { mo, total: entries.length, npl: entries.filter((row) => row.isNpl).length, nonNpl: entries.filter((row) => !row.isNpl).length };
+    return {
+      mo,
+      total: entries.length,
+      nplCount: entries.filter((row) => row.isNpl).length,
+      nonNplCount: entries.filter((row) => !row.isNpl).length,
+      nplNominal: entries.filter((row) => row.isNpl).reduce((sum, row) => sum + row.outstanding, 0),
+      nonNplNominal: entries.filter((row) => !row.isNpl).reduce((sum, row) => sum + row.outstanding, 0),
+      totalNominal: entries.reduce((sum, row) => sum + row.outstanding, 0),
+    };
   });
 
-  const productSummary = COLLECTING_REPORT_CONFIG.creditProductCategories.map((range) => ({
-    label: range.label,
-    total: reportRows.filter((row) => row.productBucket === range.label).length,
-    npl: reportRows.filter((row) => row.productBucket === range.label && row.isNpl).length,
-  }));
+  const productSummary = COLLECTING_REPORT_CONFIG.creditProductCategories.map((range) => {
+    const entries = reportRows.filter((row) => row.productBucket === range.label);
+    return {
+      label: range.label,
+      total: entries.length,
+      nplCount: entries.filter((row) => row.isNpl).length,
+      nonNplCount: entries.filter((row) => !row.isNpl).length,
+      nplNominal: entries.filter((row) => row.isNpl).reduce((sum, row) => sum + row.outstanding, 0),
+      nonNplNominal: entries.filter((row) => !row.isNpl).reduce((sum, row) => sum + row.outstanding, 0),
+      totalNominal: entries.reduce((sum, row) => sum + row.outstanding, 0),
+    };
+  });
 
-  const interestSummary = COLLECTING_REPORT_CONFIG.interestRateRanges.map((range) => ({
-    label: range.label,
-    total: reportRows.filter((row) => row.interestRateBucket === range.label).length,
-    npl: reportRows.filter((row) => row.interestRateBucket === range.label && row.isNpl).length,
-  }));
+  const interestSummary = COLLECTING_REPORT_CONFIG.interestRateRanges.map((range) => {
+    const entries = reportRows.filter((row) => row.interestRateBucket === range.label);
+    return {
+      label: range.label,
+      total: entries.length,
+      nplCount: entries.filter((row) => row.isNpl).length,
+      nonNplCount: entries.filter((row) => !row.isNpl).length,
+      nplNominal: entries.filter((row) => row.isNpl).reduce((sum, row) => sum + row.outstanding, 0),
+      nonNplNominal: entries.filter((row) => !row.isNpl).reduce((sum, row) => sum + row.outstanding, 0),
+      totalNominal: entries.reduce((sum, row) => sum + row.outstanding, 0),
+    };
+  });
 
-  const tenorSummary = COLLECTING_REPORT_CONFIG.tenorRanges.map((range) => ({
-    label: range.label,
-    total: reportRows.filter((row) => row.tenorBucket === range.label).length,
-    npl: reportRows.filter((row) => row.tenorBucket === range.label && row.isNpl).length,
-  }));
+  const tenorSummary = COLLECTING_REPORT_CONFIG.tenorRanges.map((range) => {
+    const entries = reportRows.filter((row) => row.tenorBucket === range.label);
+    return {
+      label: range.label,
+      total: entries.length,
+      nplCount: entries.filter((row) => row.isNpl).length,
+      nonNplCount: entries.filter((row) => !row.isNpl).length,
+      nplNominal: entries.filter((row) => row.isNpl).reduce((sum, row) => sum + row.outstanding, 0),
+      nonNplNominal: entries.filter((row) => !row.isNpl).reduce((sum, row) => sum + row.outstanding, 0),
+      totalNominal: entries.reduce((sum, row) => sum + row.outstanding, 0),
+    };
+  });
 
-  const arrearsSummary = COLLECTING_REPORT_CONFIG.arrearsRanges.map((range) => ({
-    label: range.label,
-    total: reportRows.filter((row) => row.arrearsBucket === range.label).length,
-    npl: reportRows.filter((row) => row.arrearsBucket === range.label && row.isNpl).length,
-  }));
+  const arrearsSummary = COLLECTING_REPORT_CONFIG.arrearsRanges.map((range) => {
+    const entries = reportRows.filter((row) => row.arrearsBucket === range.label);
+    return {
+      label: range.label,
+      total: entries.length,
+      nplCount: entries.filter((row) => row.isNpl).length,
+      nonNplCount: entries.filter((row) => !row.isNpl).length,
+      nplNominal: entries.filter((row) => row.isNpl).reduce((sum, row) => sum + row.outstanding, 0),
+      nonNplNominal: entries.filter((row) => !row.isNpl).reduce((sum, row) => sum + row.outstanding, 0),
+      totalNominal: entries.reduce((sum, row) => sum + row.outstanding, 0),
+    };
+  });
 
-  const plafondSummary = COLLECTING_REPORT_CONFIG.plafondRanges.map((range) => ({
-    label: range.label,
-    total: reportRows.filter((row) => row.plafondBucket === range.label).length,
-    npl: reportRows.filter((row) => row.plafondBucket === range.label && row.isNpl).length,
-  }));
+  const plafondSummary = COLLECTING_REPORT_CONFIG.plafondRanges.map((range) => {
+    const entries = reportRows.filter((row) => row.plafondBucket === range.label);
+    return {
+      label: range.label,
+      total: entries.length,
+      nplCount: entries.filter((row) => row.isNpl).length,
+      nonNplCount: entries.filter((row) => !row.isNpl).length,
+      nplNominal: entries.filter((row) => row.isNpl).reduce((sum, row) => sum + row.outstanding, 0),
+      nonNplNominal: entries.filter((row) => !row.isNpl).reduce((sum, row) => sum + row.outstanding, 0),
+      totalNominal: entries.reduce((sum, row) => sum + row.outstanding, 0),
+    };
+  });
 
-  const collateralSummary = COLLECTING_REPORT_CONFIG.collateralCategories.map((range) => ({
-    label: range.label,
-    total: reportRows.filter((row) => row.collateralBucket === range.label).length,
-    npl: reportRows.filter((row) => row.collateralBucket === range.label && row.isNpl).length,
-  }));
+  const collateralSummary = COLLECTING_REPORT_CONFIG.collateralCategories.map((range) => {
+    const entries = reportRows.filter((row) => row.collateralBucket === range.label);
+    return {
+      label: range.label,
+      total: entries.length,
+      nplCount: entries.filter((row) => row.isNpl).length,
+      nonNplCount: entries.filter((row) => !row.isNpl).length,
+      nplNominal: entries.filter((row) => row.isNpl).reduce((sum, row) => sum + row.outstanding, 0),
+      nonNplNominal: entries.filter((row) => !row.isNpl).reduce((sum, row) => sum + row.outstanding, 0),
+      totalNominal: entries.reduce((sum, row) => sum + row.outstanding, 0),
+    };
+  });
 
   return (
     <main className="container">
@@ -176,9 +242,11 @@ export default async function PerformaKolektibilitasPage() {
                 <tr key={kantor}>
                   <td style={{ padding: 8 }}>{kantor}</td>
                   <td style={{ padding: 8, textAlign: 'right' }}>{value.total}</td>
-                  <td style={{ padding: 8, textAlign: 'right' }}>{value.npl}</td>
-                  <td style={{ padding: 8, textAlign: 'right' }}>{value.nonNpl}</td>
-                  <td style={{ padding: 8, textAlign: 'right' }}>{value.total ? ((value.npl / value.total) * 100).toFixed(2) : '0.00'}%</td>
+                  <td style={{ padding: 8, textAlign: 'right' }}>{value.nonNplCount}</td>
+                  <td style={{ padding: 8, textAlign: 'right' }}>{value.nplCount}</td>
+                  <td style={{ padding: 8, textAlign: 'right' }}>{formatRupiah(value.nonNplNominal)}</td>
+                  <td style={{ padding: 8, textAlign: 'right' }}>{formatRupiah(value.nplNominal)}</td>
+                  <td style={{ padding: 8, textAlign: 'right' }}>{value.total ? ((value.nplCount / value.total) * 100).toFixed(2) : '0.00'}%</td>
                 </tr>
               ))}
             </tbody>
@@ -194,10 +262,10 @@ export default async function PerformaKolektibilitasPage() {
               <tr>
                 <th style={{ textAlign: 'left', padding: 8, borderBottom: '1px solid #e2e8f0' }}>Sub Kantor</th>
                 <th style={{ textAlign: 'right', padding: 8, borderBottom: '1px solid #e2e8f0' }}>Total Rekening</th>
-                <th style={{ textAlign: 'right', padding: 8, borderBottom: '1px solid #e2e8f0' }}>Non NPL</th>
-                <th style={{ textAlign: 'right', padding: 8, borderBottom: '1px solid #e2e8f0' }}>NPL</th>
-                <th style={{ textAlign: 'right', padding: 8, borderBottom: '1px solid #e2e8f0' }}>Nominal Non NPL</th>
-                <th style={{ textAlign: 'right', padding: 8, borderBottom: '1px solid #e2e8f0' }}>Nominal NPL</th>
+                <th style={{ textAlign: 'right', padding: 8, borderBottom: '1px solid #e2e8f0' }}>Non NPL Rek</th>
+                <th style={{ textAlign: 'right', padding: 8, borderBottom: '1px solid #e2e8f0' }}>NPL Rek</th>
+                <th style={{ textAlign: 'right', padding: 8, borderBottom: '1px solid #e2e8f0' }}>Non NPL Nominal</th>
+                <th style={{ textAlign: 'right', padding: 8, borderBottom: '1px solid #e2e8f0' }}>NPL Nominal</th>
                 <th style={{ textAlign: 'right', padding: 8, borderBottom: '1px solid #e2e8f0' }}>% NPL</th>
               </tr>
             </thead>
@@ -222,7 +290,7 @@ export default async function PerformaKolektibilitasPage() {
         <h2>Grafik NPL per Kelompok Kantor</h2>
         <div style={{ display: 'grid', gap: 10 }}>
           {rowsByGroup.map((item) => {
-            const bars = createChartBars(['NPL', 'Non NPL'], [item.npl, item.nonNpl]);
+            const bars = createChartBars(['NPL', 'Non NPL'], [item.nplCount, item.nonNplCount]);
             return (
               <div key={item.group}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 600, marginBottom: 6 }}>{item.group}</div>
@@ -244,10 +312,15 @@ export default async function PerformaKolektibilitasPage() {
         <h2>Non NPL vs NPL per MO</h2>
         <div style={{ display: 'grid', gap: 10 }}>
           {moSummary.map((item) => {
-            const bars = createChartBars(['NPL', 'Non NPL'], [item.npl, item.nonNpl]);
+            const bars = createChartBars(['NPL', 'Non NPL'], [item.nplCount, item.nonNplCount]);
             return (
               <div key={item.mo}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 600, marginBottom: 6 }}>{item.mo}</div>
+                <div style={{ display: 'grid', gap: 4, marginBottom: 10 }}>
+                  <div style={{ fontSize: '0.85rem', color: '#64748b' }}>Total Rekening: {item.total}</div>
+                  <div style={{ fontSize: '0.85rem', color: '#64748b' }}>Non NPL Rek: {item.nonNplCount} | NPL Rek: {item.nplCount}</div>
+                  <div style={{ fontSize: '0.85rem', color: '#64748b' }}>Non NPL Nominal: {formatRupiah(item.nonNplNominal)} | NPL Nominal: {formatRupiah(item.nplNominal)}</div>
+                </div>
                 {bars.map((bar) => (
                   <div key={bar.label} style={{ marginBottom: 6 }}>
                     <div style={{ fontSize: '0.8rem', marginBottom: 2 }}>{bar.label}: {bar.value}</div>
@@ -267,7 +340,8 @@ export default async function PerformaKolektibilitasPage() {
         {productSummary.map((item) => (
           <div key={item.label} style={{ marginBottom: 10 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 600 }}>{item.label} <span>{item.total}</span></div>
-            <div style={{ fontSize: '0.85rem', color: '#64748b' }}>NPL: {item.npl} | Non NPL: {item.total - item.npl}</div>
+            <div style={{ fontSize: '0.85rem', color: '#64748b' }}>Non NPL Rek: {item.nonNplCount} | NPL Rek: {item.nplCount}</div>
+            <div style={{ fontSize: '0.85rem', color: '#64748b' }}>Non NPL Nominal: {formatRupiah(item.nonNplNominal)} | NPL Nominal: {formatRupiah(item.nplNominal)}</div>
           </div>
         ))}
       </section>
@@ -277,7 +351,8 @@ export default async function PerformaKolektibilitasPage() {
         {interestSummary.map((item) => (
           <div key={item.label} style={{ marginBottom: 10 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 600 }}>{item.label} <span>{item.total}</span></div>
-            <div style={{ fontSize: '0.85rem', color: '#64748b' }}>NPL: {item.npl} | Non NPL: {item.total - item.npl}</div>
+            <div style={{ fontSize: '0.85rem', color: '#64748b' }}>Non NPL Rek: {item.nonNplCount} | NPL Rek: {item.nplCount}</div>
+            <div style={{ fontSize: '0.85rem', color: '#64748b' }}>Non NPL Nominal: {formatRupiah(item.nonNplNominal)} | NPL Nominal: {formatRupiah(item.nplNominal)}</div>
           </div>
         ))}
       </section>
