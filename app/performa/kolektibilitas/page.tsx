@@ -13,6 +13,7 @@ type ReportRow = {
   kantorLabel: string;
   kol: string | null;
   isNpl: boolean;
+  outstanding: number;
   moName: string;
   productBucket: string;
   interestRateBucket: string;
@@ -29,6 +30,10 @@ function createChartBars(labels: string[], values: number[]) {
     value: values[index],
     width: `${(values[index] / max) * 100}%`,
   }));
+}
+
+function formatRupiah(value: number) {
+  return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(value);
 }
 
 export default async function PerformaKolektibilitasPage() {
@@ -62,6 +67,7 @@ export default async function PerformaKolektibilitasPage() {
     kantorLabel: getKantorLabel(row.subKantor),
     kol: row.kdKolektibilitas,
     isNpl: !!row.kdKolektibilitas && COLLECTING_REPORT_CONFIG.nplCodes.includes(String(row.kdKolektibilitas).trim().toUpperCase()),
+    outstanding: row.outstanding ?? 0,
     moName: normalizeMoName(row.namaAO),
     productBucket: classifyByKeywords(row.produkKredit || row.namaKategoriDebitur, COLLECTING_REPORT_CONFIG.creditProductCategories),
     interestRateBucket: classifyByRange(row.plafon ? 0 : null, COLLECTING_REPORT_CONFIG.interestRateRanges),
@@ -70,6 +76,21 @@ export default async function PerformaKolektibilitasPage() {
     plafondBucket: classifyByRange(row.plafon, COLLECTING_REPORT_CONFIG.plafondRanges),
     collateralBucket: classifyByKeywords(row.namaKategoriDebitur, COLLECTING_REPORT_CONFIG.collateralCategories),
   }));
+
+  const subKantorSummary = new Map<string, { nplCount: number; nonNplCount: number; nplNominal: number; nonNplNominal: number; total: number }>();
+  for (const row of reportRows) {
+    const key = row.subKantor || 'Tidak Diketahui';
+    const current = subKantorSummary.get(key) || { nplCount: 0, nonNplCount: 0, nplNominal: 0, nonNplNominal: 0, total: 0 };
+    current.total += 1;
+    if (row.isNpl) {
+      current.nplCount += 1;
+      current.nplNominal += row.outstanding;
+    } else {
+      current.nonNplCount += 1;
+      current.nonNplNominal += row.outstanding;
+    }
+    subKantorSummary.set(key, current);
+  }
 
   const groupSummary = new Map<string, { total: number; npl: number; nonNpl: number }>();
   for (const row of reportRows) {
@@ -158,6 +179,38 @@ export default async function PerformaKolektibilitasPage() {
                   <td style={{ padding: 8, textAlign: 'right' }}>{value.npl}</td>
                   <td style={{ padding: 8, textAlign: 'right' }}>{value.nonNpl}</td>
                   <td style={{ padding: 8, textAlign: 'right' }}>{value.total ? ((value.npl / value.total) * 100).toFixed(2) : '0.00'}%</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section className="card" style={{ padding: 24, marginBottom: 24 }}>
+        <h2>Ringkasan NPL per Sub Kantor</h2>
+        <div style={{ overflowX: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <thead>
+              <tr>
+                <th style={{ textAlign: 'left', padding: 8, borderBottom: '1px solid #e2e8f0' }}>Sub Kantor</th>
+                <th style={{ textAlign: 'right', padding: 8, borderBottom: '1px solid #e2e8f0' }}>Total Rekening</th>
+                <th style={{ textAlign: 'right', padding: 8, borderBottom: '1px solid #e2e8f0' }}>Non NPL</th>
+                <th style={{ textAlign: 'right', padding: 8, borderBottom: '1px solid #e2e8f0' }}>NPL</th>
+                <th style={{ textAlign: 'right', padding: 8, borderBottom: '1px solid #e2e8f0' }}>Nominal Non NPL</th>
+                <th style={{ textAlign: 'right', padding: 8, borderBottom: '1px solid #e2e8f0' }}>Nominal NPL</th>
+                <th style={{ textAlign: 'right', padding: 8, borderBottom: '1px solid #e2e8f0' }}>% NPL</th>
+              </tr>
+            </thead>
+            <tbody>
+              {Array.from(subKantorSummary.entries()).map(([subKantor, value]) => (
+                <tr key={subKantor}>
+                  <td style={{ padding: 8 }}>{subKantor}</td>
+                  <td style={{ padding: 8, textAlign: 'right' }}>{value.total}</td>
+                  <td style={{ padding: 8, textAlign: 'right' }}>{value.nonNplCount}</td>
+                  <td style={{ padding: 8, textAlign: 'right' }}>{value.nplCount}</td>
+                  <td style={{ padding: 8, textAlign: 'right' }}>{formatRupiah(value.nonNplNominal)}</td>
+                  <td style={{ padding: 8, textAlign: 'right' }}>{formatRupiah(value.nplNominal)}</td>
+                  <td style={{ padding: 8, textAlign: 'right' }}>{value.total ? ((value.nplCount / value.total) * 100).toFixed(2) : '0.00'}%</td>
                 </tr>
               ))}
             </tbody>
