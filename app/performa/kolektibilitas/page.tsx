@@ -362,7 +362,8 @@ export default async function PerformaKolektibilitasPage() {
         {tenorSummary.map((item) => (
           <div key={item.label} style={{ marginBottom: 10 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 600 }}>{item.label} <span>{item.total}</span></div>
-            <div style={{ fontSize: '0.85rem', color: '#64748b' }}>NPL: {item.npl} | Non NPL: {item.total - item.npl}</div>
+            <div style={{ fontSize: '0.85rem', color: '#64748b' }}>Non NPL Rek: {item.nonNplCount} | NPL Rek: {item.nplCount}</div>
+            <div style={{ fontSize: '0.85rem', color: '#64748b' }}>Non NPL Nominal: {formatRupiah(item.nonNplNominal)} | NPL Nominal: {formatRupiah(item.nplNominal)}</div>
           </div>
         ))}
       </section>
@@ -372,7 +373,8 @@ export default async function PerformaKolektibilitasPage() {
         {arrearsSummary.map((item) => (
           <div key={item.label} style={{ marginBottom: 10 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 600 }}>{item.label} <span>{item.total}</span></div>
-            <div style={{ fontSize: '0.85rem', color: '#64748b' }}>NPL: {item.npl} | Non NPL: {item.total - item.npl}</div>
+            <div style={{ fontSize: '0.85rem', color: '#64748b' }}>Non NPL Rek: {item.nonNplCount} | NPL Rek: {item.nplCount}</div>
+            <div style={{ fontSize: '0.85rem', color: '#64748b' }}>Non NPL Nominal: {formatRupiah(item.nonNplNominal)} | NPL Nominal: {formatRupiah(item.nplNominal)}</div>
           </div>
         ))}
       </section>
@@ -382,7 +384,8 @@ export default async function PerformaKolektibilitasPage() {
         {plafondSummary.map((item) => (
           <div key={item.label} style={{ marginBottom: 10 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 600 }}>{item.label} <span>{item.total}</span></div>
-            <div style={{ fontSize: '0.85rem', color: '#64748b' }}>NPL: {item.npl} | Non NPL: {item.total - item.npl}</div>
+            <div style={{ fontSize: '0.85rem', color: '#64748b' }}>Non NPL Rek: {item.nonNplCount} | NPL Rek: {item.nplCount}</div>
+            <div style={{ fontSize: '0.85rem', color: '#64748b' }}>Non NPL Nominal: {formatRupiah(item.nonNplNominal)} | NPL Nominal: {formatRupiah(item.nplNominal)}</div>
           </div>
         ))}
       </section>
@@ -392,7 +395,8 @@ export default async function PerformaKolektibilitasPage() {
         {collateralSummary.map((item) => (
           <div key={item.label} style={{ marginBottom: 10 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 600 }}>{item.label} <span>{item.total}</span></div>
-            <div style={{ fontSize: '0.85rem', color: '#64748b' }}>NPL: {item.npl} | Non NPL: {item.total - item.npl}</div>
+            <div style={{ fontSize: '0.85rem', color: '#64748b' }}>Non NPL Rek: {item.nonNplCount} | NPL Rek: {item.nplCount}</div>
+            <div style={{ fontSize: '0.85rem', color: '#64748b' }}>Non NPL Nominal: {formatRupiah(item.nonNplNominal)} | NPL Nominal: {formatRupiah(item.nplNominal)}</div>
           </div>
         ))}
       </section>
