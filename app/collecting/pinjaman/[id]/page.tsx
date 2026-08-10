@@ -5,6 +5,7 @@ import { determineEWS } from '@/lib/ews';
 import { getKantorLabel } from '@/lib/kantor';
 import { format } from 'date-fns';
 import KunjunganForm from './KunjunganForm';
+import ExportHistoriButtons from './ExportHistoriButtons';
 
 export const dynamic = 'force-dynamic';
 

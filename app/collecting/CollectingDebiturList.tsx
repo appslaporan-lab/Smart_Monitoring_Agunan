@@ -1,0 +1,142 @@
+'use client';
+
+import { useMemo, useState } from 'react';
+import Link from 'next/link';
+
+type EwsItem = {
+  id: number;
+  norek: string;
+  namaNasabahExcel: string;
+  subKantor: string | null;
+  namaAO: string | null;
+  hariTunggakan: number;
+  kantorLabel: string;
+  kunjunganCount: number;
+  ews: { status: string; label: string; colorClass: string; wajibKunjungan: boolean };
+};
+
+const FILTER_OPTIONS: { key: string; label: string; match: (item: EwsItem) => boolean }[] = [
+  { key: 'ALL', label: 'Semua', match: () => true },
+  { key: 'H7_DESK_CALL', label: 'H-7 Desk Call', match: (i) => i.ews.status === 'H7_DESK_CALL' },
+  { key: 'KUNJUNGAN_MO', label: 'Kunjungan MO', match: (i) => i.ews.status === 'KUNJUNGAN_MO' },
+  { key: 'SURAT_TAGIHAN', label: 'Surat Tagihan', match: (i) => i.ews.status.startsWith('SURAT_TAGIHAN') },
+  { key: 'SP', label: 'Surat Peringatan', match: (i) => i.ews.status.startsWith('SP_') },
+  { key: 'BELUM_DIKUNJUNGI', label: 'Belum Dikunjungi', match: (i) => i.ews.wajibKunjungan && i.kunjunganCount === 0 },
+];
+
+export default function CollectingDebiturList({ items }: { items: EwsItem[] }) {
+  const [query, setQuery] = useState('');
+  const [activeFilter, setActiveFilter] = useState('ALL');
+
+  const summaryCounts = useMemo(() => {
+    return FILTER_OPTIONS.reduce((acc, f) => {
+      acc[f.key] = items.filter(f.match).length;
+      return acc;
+    }, {} as Record<string, number>);
+  }, [items]);
+
+  const filtered = useMemo(() => {
+    const filterFn = FILTER_OPTIONS.find((f) => f.key === activeFilter)?.match || (() => true);
+    const q = query.trim().toLowerCase();
+    return items.filter((item) => {
+      if (!filterFn(item)) return false;
+      if (!q) return true;
+      return item.namaNasabahExcel.toLowerCase().includes(q) || item.norek.toLowerCase().includes(q);
+    });
+  }, [items, activeFilter, query]);
+
+  const cardColors: Record<string, string> = {
+    H7_DESK_CALL: '#fbbf24',
+    KUNJUNGAN_MO: '#fb923c',
+    SURAT_TAGIHAN: '#f87171',
+    SP: '#dc2626',
+    BELUM_DIKUNJUNGI: '#94a3b8',
+  };
+
+  const cardLabels: Record<string, string> = {
+    H7_DESK_CALL: 'H-7 Desk Call',
+    KUNJUNGAN_MO: 'Kunjungan MO',
+    SURAT_TAGIHAN: 'Surat Tagihan',
+    SP: 'Surat Peringatan',
+    BELUM_DIKUNJUNGI: 'Belum Dikunjungi',
+  };
+
+  return (
+    <>
+      <section className="grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', marginBottom: 24 }}>
+        {Object.keys(cardLabels).map((key) => (
+          <button
+            key={key}
+            type="button"
+            onClick={() => setActiveFilter(activeFilter === key ? 'ALL' : key)}
+            className="metric-card"
+            style={{
+              border: activeFilter === key ? `2px solid ${cardColors[key]}` : '1px solid #e2e8f0',
+              cursor: 'pointer',
+              textAlign: 'left',
+              background: activeFilter === key ? '#f8fafc' : 'white',
+            }}
+          >
+            <div className="metric-accent" style={{ background: cardColors[key] }} />
+            <div>
+              <div className="metric-value">{summaryCounts[key] || 0}</div>
+              <div className="metric-label">{cardLabels[key]}</div>
+            </div>
+          </button>
+        ))}
+      </section>
+
+      <section className="card" style={{ padding: 24 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12, marginBottom: 16 }}>
+          <h2 style={{ margin: 0 }}>
+            Daftar Debitur {activeFilter !== 'ALL' && `— ${cardLabels[activeFilter] || activeFilter}`}
+          </h2>
+          <input
+            className="inputField"
+            type="search"
+            placeholder="Cari nama nasabah atau nomor rekening..."
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            style={{ maxWidth: 320 }}
+          />
+        </div>
+
+        {activeFilter !== 'ALL' && (
+          <button type="button" className="button secondary" style={{ marginBottom: 16 }} onClick={() => setActiveFilter('ALL')}>
+            Tampilkan Semua
+          </button>
+        )}
+
+        <p style={{ color: '#64748b', marginBottom: 12 }}>{filtered.length} debitur ditemukan</p>
+
+        <div style={{ display: 'grid', gap: 14 }}>
+          {filtered.length === 0 ? (
+            <p>Tidak ada data yang cocok.</p>
+          ) : (
+            filtered.map((item) => (
+              <article key={item.id} className="card" style={{ padding: 16 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
+                  <div>
+                    <strong>{item.namaNasabahExcel}</strong> — {item.norek}
+                    <p style={{ margin: '4px 0', fontSize: '0.85rem', color: '#64748b' }}>
+                      Kantor: {item.kantorLabel} | Tunggakan: {item.hariTunggakan} hari | AO: {item.namaAO || '-'}
+                    </p>
+                    {item.ews.wajibKunjungan && item.kunjunganCount === 0 && (
+                      <p style={{ margin: 0, fontSize: '0.8rem', color: '#dc2626', fontWeight: 600 }}>Belum ada kunjungan tercatat bulan ini</p>
+                    )}
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 8 }}>
+                    <span className={`status-pill ${item.ews.colorClass}`}>{item.ews.label}</span>
+                    <Link href={`/collecting/pinjaman/${item.id}`} className="button secondary" style={{ fontSize: '0.85rem', padding: '6px 14px' }}>
+                      Detail / Catat Kunjungan
+                    </Link>
+                  </div>
+                </div>
+              </article>
+            ))
+          )}
+        </div>
+      </section>
+    </>
+  );
+}

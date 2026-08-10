@@ -36,6 +36,94 @@ function formatRupiah(value: number) {
   return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(value);
 }
 
+type SummaryRow = {
+  label: string;
+  total: number;
+  nonNplCount: number;
+  nplCount: number;
+  nonNplNominal: number;
+  nplNominal: number;
+  totalNominal: number;
+};
+
+function renderSummaryTable(title: string, rows: SummaryRow[]) {
+  // Hitung Grand Total dari semua baris yang ada
+  const grandTotal = rows.reduce(
+    (acc, row) => {
+      acc.total += row.total;
+      acc.nonNplCount += row.nonNplCount;
+      acc.nplCount += row.nplCount;
+      acc.nonNplNominal += row.nonNplNominal;
+      acc.nplNominal += row.nplNominal;
+      acc.totalNominal += row.totalNominal;
+      return acc;
+    },
+    {
+      total: 0,
+      nonNplCount: 0,
+      nplCount: 0,
+      nonNplNominal: 0,
+      nplNominal: 0,
+      totalNominal: 0,
+    }
+  );
+
+  const grandTotalPercentage = grandTotal.total 
+    ? ((grandTotal.nplCount / grandTotal.total) * 100).toFixed(2) 
+    : '0.00';
+
+  return (
+    <section className="card" style={{ padding: 24, marginBottom: 24 }}>
+      <h2>{title}</h2>
+      <div style={{ overflowX: 'auto' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+          <thead>
+            <tr>
+              <th style={{ textAlign: 'left', padding: 8, borderBottom: '2px solid #e2e8f0' }}>Label</th>
+              <th style={{ textAlign: 'right', padding: 8, borderBottom: '2px solid #e2e8f0' }}>Total Rekening</th>
+              <th style={{ textAlign: 'right', padding: 8, borderBottom: '2px solid #e2e8f0' }}>Non NPL Rek</th>
+              <th style={{ textAlign: 'right', padding: 8, borderBottom: '2px solid #e2e8f0' }}>NPL Rek</th>
+              <th style={{ textAlign: 'right', padding: 8, borderBottom: '2px solid #e2e8f0' }}>Non NPL Nominal</th>
+              <th style={{ textAlign: 'right', padding: 8, borderBottom: '2px solid #e2e8f0' }}>NPL Nominal</th>
+              <th style={{ textAlign: 'right', padding: 8, borderBottom: '2px solid #e2e8f0' }}>Total Nominal</th>
+              <th style={{ textAlign: 'right', padding: 8, borderBottom: '2px solid #e2e8f0' }}>% NPL</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((item) => (
+              <tr key={item.label} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                <td style={{ padding: 8 }}>{item.label}</td>
+                <td style={{ padding: 8, textAlign: 'right' }}>{item.total}</td>
+                <td style={{ padding: 8, textAlign: 'right' }}>{item.nonNplCount}</td>
+                <td style={{ padding: 8, textAlign: 'right' }}>{item.nplCount}</td>
+                <td style={{ padding: 8, textAlign: 'right' }}>{formatRupiah(item.nonNplNominal)}</td>
+                <td style={{ padding: 8, textAlign: 'right' }}>{formatRupiah(item.nplNominal)}</td>
+                <td style={{ padding: 8, textAlign: 'right' }}>{formatRupiah(item.totalNominal)}</td>
+                <td style={{ padding: 8, textAlign: 'right' }}>
+                  {item.total ? ((item.nplCount / item.total) * 100).toFixed(2) : '0.00'}%
+                </td>
+              </tr>
+            ))}
+          </tbody>
+          {/* Tambahan TFOOT untuk Grand Total */}
+          <tfoot>
+            <tr style={{ fontWeight: 'bold', backgroundColor: '#f8fafc', borderTop: '2px solid #e2e8f0' }}>
+              <td style={{ padding: 8 }}>Grand Total</td>
+              <td style={{ padding: 8, textAlign: 'right' }}>{grandTotal.total}</td>
+              <td style={{ padding: 8, textAlign: 'right' }}>{grandTotal.nonNplCount}</td>
+              <td style={{ padding: 8, textAlign: 'right' }}>{grandTotal.nplCount}</td>
+              <td style={{ padding: 8, textAlign: 'right' }}>{formatRupiah(grandTotal.nonNplNominal)}</td>
+              <td style={{ padding: 8, textAlign: 'right' }}>{formatRupiah(grandTotal.nplNominal)}</td>
+              <td style={{ padding: 8, textAlign: 'right' }}>{formatRupiah(grandTotal.totalNominal)}</td>
+              <td style={{ padding: 8, textAlign: 'right' }}>{grandTotalPercentage}%</td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </section>
+  );
+}
+
 export default async function PerformaKolektibilitasPage() {
   const user = getCurrentUser();
   if (!user) redirect('/auth/login');
@@ -70,7 +158,7 @@ export default async function PerformaKolektibilitasPage() {
     outstanding: row.outstanding ?? 0,
     moName: normalizeMoName(row.namaAO),
     productBucket: classifyByKeywords(row.produkKredit, COLLECTING_REPORT_CONFIG.creditProductCategories),
-    interestRateBucket: classifyByRange(row.plafon ? 0 : null, COLLECTING_REPORT_CONFIG.interestRateRanges),
+    interestRateBucket: classifyByRange(row.plafon, COLLECTING_REPORT_CONFIG.interestRateRanges),
     tenorBucket: classifyByRange(row.jangkaBulan, COLLECTING_REPORT_CONFIG.tenorRanges),
     arrearsBucket: classifyByRange(row.hariTunggakan, COLLECTING_REPORT_CONFIG.arrearsRanges),
     plafondBucket: classifyByRange(row.plafon, COLLECTING_REPORT_CONFIG.plafondRanges),
@@ -92,6 +180,17 @@ export default async function PerformaKolektibilitasPage() {
     }
     subKantorSummary.set(key, current);
   }
+  
+  // Format Map menjadi Array agar bisa dipakai di renderSummaryTable
+  const formattedSubKantorSummary = Array.from(subKantorSummary.entries()).map(([label, value]) => ({
+    label,
+    total: value.total,
+    nonNplCount: value.nonNplCount,
+    nplCount: value.nplCount,
+    nonNplNominal: value.nonNplNominal,
+    nplNominal: value.nplNominal,
+    totalNominal: value.totalNominal,
+  }));
 
   const groupSummary = new Map<string, { total: number; nplCount: number; nonNplCount: number; nplNominal: number; nonNplNominal: number; totalNominal: number }>();
   for (const row of reportRows) {
@@ -108,6 +207,17 @@ export default async function PerformaKolektibilitasPage() {
     }
     groupSummary.set(key, current);
   }
+
+  // Format Map menjadi Array agar bisa dipakai di renderSummaryTable
+  const formattedGroupSummary = Array.from(groupSummary.entries()).map(([label, value]) => ({
+    label,
+    total: value.total,
+    nonNplCount: value.nonNplCount,
+    nplCount: value.nplCount,
+    nonNplNominal: value.nonNplNominal,
+    nplNominal: value.nplNominal,
+    totalNominal: value.totalNominal,
+  }));
 
   const kantorGroups = ['Pusat 1', 'Pusat 2', 'Cabang'];
   const rowsByGroup = kantorGroups.map((group) => {
@@ -126,7 +236,7 @@ export default async function PerformaKolektibilitasPage() {
   const moSummary = Array.from(new Map(reportRows.map((row) => [row.moName, 0])).keys()).map((mo) => {
     const entries = reportRows.filter((row) => row.moName === mo);
     return {
-      mo,
+      label: mo,
       total: entries.length,
       nplCount: entries.filter((row) => row.isNpl).length,
       nonNplCount: entries.filter((row) => !row.isNpl).length,
@@ -224,67 +334,9 @@ export default async function PerformaKolektibilitasPage() {
         <Link href="/performa" className="button secondary">Kembali ke Performa</Link>
       </section>
 
-      <section className="card" style={{ padding: 24, marginBottom: 24 }}>
-        <h2>Ringkasan NPL per Kantor</h2>
-        <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-            <thead>
-              <tr>
-                <th style={{ textAlign: 'left', padding: 8, borderBottom: '1px solid #e2e8f0' }}>Kantor</th>
-                <th style={{ textAlign: 'right', padding: 8, borderBottom: '1px solid #e2e8f0' }}>Total</th>
-                <th style={{ textAlign: 'right', padding: 8, borderBottom: '1px solid #e2e8f0' }}>NPL</th>
-                <th style={{ textAlign: 'right', padding: 8, borderBottom: '1px solid #e2e8f0' }}>Non NPL</th>
-                <th style={{ textAlign: 'right', padding: 8, borderBottom: '1px solid #e2e8f0' }}>% NPL</th>
-              </tr>
-            </thead>
-            <tbody>
-              {Array.from(groupSummary.entries()).map(([kantor, value]) => (
-                <tr key={kantor}>
-                  <td style={{ padding: 8 }}>{kantor}</td>
-                  <td style={{ padding: 8, textAlign: 'right' }}>{value.total}</td>
-                  <td style={{ padding: 8, textAlign: 'right' }}>{value.nonNplCount}</td>
-                  <td style={{ padding: 8, textAlign: 'right' }}>{value.nplCount}</td>
-                  <td style={{ padding: 8, textAlign: 'right' }}>{formatRupiah(value.nonNplNominal)}</td>
-                  <td style={{ padding: 8, textAlign: 'right' }}>{formatRupiah(value.nplNominal)}</td>
-                  <td style={{ padding: 8, textAlign: 'right' }}>{value.total ? ((value.nplCount / value.total) * 100).toFixed(2) : '0.00'}%</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </section>
-
-      <section className="card" style={{ padding: 24, marginBottom: 24 }}>
-        <h2>Ringkasan NPL per Sub Kantor</h2>
-        <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-            <thead>
-              <tr>
-                <th style={{ textAlign: 'left', padding: 8, borderBottom: '1px solid #e2e8f0' }}>Sub Kantor</th>
-                <th style={{ textAlign: 'right', padding: 8, borderBottom: '1px solid #e2e8f0' }}>Total Rekening</th>
-                <th style={{ textAlign: 'right', padding: 8, borderBottom: '1px solid #e2e8f0' }}>Non NPL Rek</th>
-                <th style={{ textAlign: 'right', padding: 8, borderBottom: '1px solid #e2e8f0' }}>NPL Rek</th>
-                <th style={{ textAlign: 'right', padding: 8, borderBottom: '1px solid #e2e8f0' }}>Non NPL Nominal</th>
-                <th style={{ textAlign: 'right', padding: 8, borderBottom: '1px solid #e2e8f0' }}>NPL Nominal</th>
-                <th style={{ textAlign: 'right', padding: 8, borderBottom: '1px solid #e2e8f0' }}>% NPL</th>
-              </tr>
-            </thead>
-            <tbody>
-              {Array.from(subKantorSummary.entries()).map(([subKantor, value]) => (
-                <tr key={subKantor}>
-                  <td style={{ padding: 8 }}>{subKantor}</td>
-                  <td style={{ padding: 8, textAlign: 'right' }}>{value.total}</td>
-                  <td style={{ padding: 8, textAlign: 'right' }}>{value.nonNplCount}</td>
-                  <td style={{ padding: 8, textAlign: 'right' }}>{value.nplCount}</td>
-                  <td style={{ padding: 8, textAlign: 'right' }}>{formatRupiah(value.nonNplNominal)}</td>
-                  <td style={{ padding: 8, textAlign: 'right' }}>{formatRupiah(value.nplNominal)}</td>
-                  <td style={{ padding: 8, textAlign: 'right' }}>{value.total ? ((value.nplCount / value.total) * 100).toFixed(2) : '0.00'}%</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </section>
+      {/* Gunakan renderSummaryTable juga agar konsisten & ada Grand Total */}
+      {renderSummaryTable('Ringkasan NPL per Kelompok Kantor', formattedGroupSummary)}
+      {renderSummaryTable('Ringkasan NPL per Sub Kantor', formattedSubKantorSummary)}
 
       <section className="card" style={{ padding: 24, marginBottom: 24 }}>
         <h2>Grafik NPL per Kelompok Kantor</h2>
@@ -308,98 +360,13 @@ export default async function PerformaKolektibilitasPage() {
         </div>
       </section>
 
-      <section className="card" style={{ padding: 24, marginBottom: 24 }}>
-        <h2>Non NPL vs NPL per MO</h2>
-        <div style={{ display: 'grid', gap: 10 }}>
-          {moSummary.map((item) => {
-            const bars = createChartBars(['NPL', 'Non NPL'], [item.nplCount, item.nonNplCount]);
-            return (
-              <div key={item.mo}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 600, marginBottom: 6 }}>{item.mo}</div>
-                <div style={{ display: 'grid', gap: 4, marginBottom: 10 }}>
-                  <div style={{ fontSize: '0.85rem', color: '#64748b' }}>Total Rekening: {item.total}</div>
-                  <div style={{ fontSize: '0.85rem', color: '#64748b' }}>Non NPL Rek: {item.nonNplCount} | NPL Rek: {item.nplCount}</div>
-                  <div style={{ fontSize: '0.85rem', color: '#64748b' }}>Non NPL Nominal: {formatRupiah(item.nonNplNominal)} | NPL Nominal: {formatRupiah(item.nplNominal)}</div>
-                </div>
-                {bars.map((bar) => (
-                  <div key={bar.label} style={{ marginBottom: 6 }}>
-                    <div style={{ fontSize: '0.8rem', marginBottom: 2 }}>{bar.label}: {bar.value}</div>
-                    <div style={{ height: 10, background: '#e2e8f0', borderRadius: 999 }}>
-                      <div style={{ width: bar.width, height: 10, background: bar.label === 'NPL' ? '#ef4444' : '#10b981', borderRadius: 999 }} />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            );
-          })}
-        </div>
-      </section>
-
-      <section className="card" style={{ padding: 24, marginBottom: 24 }}>
-        <h2>Non NPL vs NPL per Produk Kredit</h2>
-        {productSummary.map((item) => (
-          <div key={item.label} style={{ marginBottom: 10 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 600 }}>{item.label} <span>{item.total}</span></div>
-            <div style={{ fontSize: '0.85rem', color: '#64748b' }}>Non NPL Rek: {item.nonNplCount} | NPL Rek: {item.nplCount}</div>
-            <div style={{ fontSize: '0.85rem', color: '#64748b' }}>Non NPL Nominal: {formatRupiah(item.nonNplNominal)} | NPL Nominal: {formatRupiah(item.nplNominal)}</div>
-          </div>
-        ))}
-      </section>
-
-      <section className="card" style={{ padding: 24, marginBottom: 24 }}>
-        <h2>Non NPL vs NPL per Range Suku Bunga</h2>
-        {interestSummary.map((item) => (
-          <div key={item.label} style={{ marginBottom: 10 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 600 }}>{item.label} <span>{item.total}</span></div>
-            <div style={{ fontSize: '0.85rem', color: '#64748b' }}>Non NPL Rek: {item.nonNplCount} | NPL Rek: {item.nplCount}</div>
-            <div style={{ fontSize: '0.85rem', color: '#64748b' }}>Non NPL Nominal: {formatRupiah(item.nonNplNominal)} | NPL Nominal: {formatRupiah(item.nplNominal)}</div>
-          </div>
-        ))}
-      </section>
-
-      <section className="card" style={{ padding: 24, marginBottom: 24 }}>
-        <h2>Non NPL vs NPL per Range Tenor</h2>
-        {tenorSummary.map((item) => (
-          <div key={item.label} style={{ marginBottom: 10 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 600 }}>{item.label} <span>{item.total}</span></div>
-            <div style={{ fontSize: '0.85rem', color: '#64748b' }}>Non NPL Rek: {item.nonNplCount} | NPL Rek: {item.nplCount}</div>
-            <div style={{ fontSize: '0.85rem', color: '#64748b' }}>Non NPL Nominal: {formatRupiah(item.nonNplNominal)} | NPL Nominal: {formatRupiah(item.nplNominal)}</div>
-          </div>
-        ))}
-      </section>
-
-      <section className="card" style={{ padding: 24, marginBottom: 24 }}>
-        <h2>Non NPL vs NPL per Range Hari Tunggakan</h2>
-        {arrearsSummary.map((item) => (
-          <div key={item.label} style={{ marginBottom: 10 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 600 }}>{item.label} <span>{item.total}</span></div>
-            <div style={{ fontSize: '0.85rem', color: '#64748b' }}>Non NPL Rek: {item.nonNplCount} | NPL Rek: {item.nplCount}</div>
-            <div style={{ fontSize: '0.85rem', color: '#64748b' }}>Non NPL Nominal: {formatRupiah(item.nonNplNominal)} | NPL Nominal: {formatRupiah(item.nplNominal)}</div>
-          </div>
-        ))}
-      </section>
-
-      <section className="card" style={{ padding: 24, marginBottom: 24 }}>
-        <h2>Non NPL vs NPL per Range Plafond</h2>
-        {plafondSummary.map((item) => (
-          <div key={item.label} style={{ marginBottom: 10 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 600 }}>{item.label} <span>{item.total}</span></div>
-            <div style={{ fontSize: '0.85rem', color: '#64748b' }}>Non NPL Rek: {item.nonNplCount} | NPL Rek: {item.nplCount}</div>
-            <div style={{ fontSize: '0.85rem', color: '#64748b' }}>Non NPL Nominal: {formatRupiah(item.nonNplNominal)} | NPL Nominal: {formatRupiah(item.nplNominal)}</div>
-          </div>
-        ))}
-      </section>
-
-      <section className="card" style={{ padding: 24, marginBottom: 24 }}>
-        <h2>Non NPL vs NPL per Range Plafond</h2>
-        {collateralSummary.map((item) => (
-          <div key={item.label} style={{ marginBottom: 10 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 600 }}>{item.label} <span>{item.total}</span></div>
-            <div style={{ fontSize: '0.85rem', color: '#64748b' }}>Non NPL Rek: {item.nonNplCount} | NPL Rek: {item.nplCount}</div>
-            <div style={{ fontSize: '0.85rem', color: '#64748b' }}>Non NPL Nominal: {formatRupiah(item.nonNplNominal)} | NPL Nominal: {formatRupiah(item.nplNominal)}</div>
-          </div>
-        ))}
-      </section>
+      {renderSummaryTable('Non NPL vs NPL per MO', moSummary)}
+      {renderSummaryTable('Non NPL vs NPL per Produk Kredit', productSummary)}
+      {renderSummaryTable('Non NPL vs NPL per Range Suku Bunga', interestSummary)}
+      {renderSummaryTable('Non NPL vs NPL per Range Tenor', tenorSummary)}
+      {renderSummaryTable('Non NPL vs NPL per Range Hari Tunggakan', arrearsSummary)}
+      {renderSummaryTable('Non NPL vs NPL per Range Plafond', plafondSummary)}
+      {renderSummaryTable('Non NPL vs NPL per Kategori Jaminan', collateralSummary)}
     </main>
   );
 }
