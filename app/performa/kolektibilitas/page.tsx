@@ -21,6 +21,7 @@ type ReportRow = {
   arrearsBucket: string;
   plafondBucket: string;
   collateralBucket: string;
+  radiusBucket: string;
 };
 
 function createChartBars(labels: string[], values: number[]) {
@@ -40,8 +41,8 @@ type SummaryRow = {
   label: string;
   total: number;
   nonNplCount: number;
-  nplCount: number;
   nonNplNominal: number;
+  nplCount: number;
   nplNominal: number;
   totalNominal: number;
 };
@@ -52,8 +53,8 @@ function renderSummaryTable(title: string, rows: SummaryRow[]) {
     (acc, row) => {
       acc.total += row.total;
       acc.nonNplCount += row.nonNplCount;
-      acc.nplCount += row.nplCount;
-      acc.nonNplNominal += row.nonNplNominal;
+	  acc.nonNplNominal += row.nonNplNominal;
+      acc.nplCount += row.nplCount;     
       acc.nplNominal += row.nplNominal;
       acc.totalNominal += row.totalNominal;
       return acc;
@@ -61,8 +62,8 @@ function renderSummaryTable(title: string, rows: SummaryRow[]) {
     {
       total: 0,
       nonNplCount: 0,
-      nplCount: 0,
-      nonNplNominal: 0,
+	  nonNplNominal: 0,
+      nplCount: 0,      
       nplNominal: 0,
       totalNominal: 0,
     }
@@ -82,8 +83,8 @@ function renderSummaryTable(title: string, rows: SummaryRow[]) {
               <th style={{ textAlign: 'left', padding: 8, borderBottom: '2px solid #e2e8f0' }}>Label</th>
               <th style={{ textAlign: 'right', padding: 8, borderBottom: '2px solid #e2e8f0' }}>Total Rekening</th>
               <th style={{ textAlign: 'right', padding: 8, borderBottom: '2px solid #e2e8f0' }}>Non NPL Rek</th>
-              <th style={{ textAlign: 'right', padding: 8, borderBottom: '2px solid #e2e8f0' }}>NPL Rek</th>
-              <th style={{ textAlign: 'right', padding: 8, borderBottom: '2px solid #e2e8f0' }}>Non NPL Nominal</th>
+			  <th style={{ textAlign: 'right', padding: 8, borderBottom: '2px solid #e2e8f0' }}>Non NPL Nominal</th>
+              <th style={{ textAlign: 'right', padding: 8, borderBottom: '2px solid #e2e8f0' }}>NPL Rek</th>              
               <th style={{ textAlign: 'right', padding: 8, borderBottom: '2px solid #e2e8f0' }}>NPL Nominal</th>
               <th style={{ textAlign: 'right', padding: 8, borderBottom: '2px solid #e2e8f0' }}>Total Nominal</th>
               <th style={{ textAlign: 'right', padding: 8, borderBottom: '2px solid #e2e8f0' }}>% NPL</th>
@@ -95,8 +96,8 @@ function renderSummaryTable(title: string, rows: SummaryRow[]) {
                 <td style={{ padding: 8 }}>{item.label}</td>
                 <td style={{ padding: 8, textAlign: 'right' }}>{item.total}</td>
                 <td style={{ padding: 8, textAlign: 'right' }}>{item.nonNplCount}</td>
-                <td style={{ padding: 8, textAlign: 'right' }}>{item.nplCount}</td>
-                <td style={{ padding: 8, textAlign: 'right' }}>{formatRupiah(item.nonNplNominal)}</td>
+				<td style={{ padding: 8, textAlign: 'right' }}>{formatRupiah(item.nonNplNominal)}</td>
+                <td style={{ padding: 8, textAlign: 'right' }}>{item.nplCount}</td>                
                 <td style={{ padding: 8, textAlign: 'right' }}>{formatRupiah(item.nplNominal)}</td>
                 <td style={{ padding: 8, textAlign: 'right' }}>{formatRupiah(item.totalNominal)}</td>
                 <td style={{ padding: 8, textAlign: 'right' }}>
@@ -111,8 +112,8 @@ function renderSummaryTable(title: string, rows: SummaryRow[]) {
               <td style={{ padding: 8 }}>Grand Total</td>
               <td style={{ padding: 8, textAlign: 'right' }}>{grandTotal.total}</td>
               <td style={{ padding: 8, textAlign: 'right' }}>{grandTotal.nonNplCount}</td>
-              <td style={{ padding: 8, textAlign: 'right' }}>{grandTotal.nplCount}</td>
-              <td style={{ padding: 8, textAlign: 'right' }}>{formatRupiah(grandTotal.nonNplNominal)}</td>
+			  <td style={{ padding: 8, textAlign: 'right' }}>{formatRupiah(grandTotal.nonNplNominal)}</td>
+              <td style={{ padding: 8, textAlign: 'right' }}>{grandTotal.nplCount}</td>              
               <td style={{ padding: 8, textAlign: 'right' }}>{formatRupiah(grandTotal.nplNominal)}</td>
               <td style={{ padding: 8, textAlign: 'right' }}>{formatRupiah(grandTotal.totalNominal)}</td>
               <td style={{ padding: 8, textAlign: 'right' }}>{grandTotalPercentage}%</td>
@@ -163,6 +164,7 @@ export default async function PerformaKolektibilitasPage() {
     arrearsBucket: classifyByRange(row.hariTunggakan, COLLECTING_REPORT_CONFIG.arrearsRanges),
     plafondBucket: classifyByRange(row.plafon, COLLECTING_REPORT_CONFIG.plafondRanges),
     collateralBucket: classifyByKeywords(row.jenisJaminan, COLLECTING_REPORT_CONFIG.collateralCategories),
+	radiusBucket:classifyByKeywords(row.jenisJaminan, COLLECTING_REPORT_CONFIG.collateralCategories),
   }));
 
   const subKantorSummary = new Map<string, { nplCount: number; nonNplCount: number; nplNominal: number; nonNplNominal: number; total: number; totalNominal: number }>();
@@ -186,8 +188,8 @@ export default async function PerformaKolektibilitasPage() {
     label,
     total: value.total,
     nonNplCount: value.nonNplCount,
-    nplCount: value.nplCount,
-    nonNplNominal: value.nonNplNominal,
+	nonNplNominal: value.nonNplNominal,
+    nplCount: value.nplCount,    
     nplNominal: value.nplNominal,
     totalNominal: value.totalNominal,
   }));
@@ -213,8 +215,8 @@ export default async function PerformaKolektibilitasPage() {
     label,
     total: value.total,
     nonNplCount: value.nonNplCount,
-    nplCount: value.nplCount,
-    nonNplNominal: value.nonNplNominal,
+	nonNplNominal: value.nonNplNominal,
+    nplCount: value.nplCount,    
     nplNominal: value.nplNominal,
     totalNominal: value.totalNominal,
   }));
@@ -226,8 +228,8 @@ export default async function PerformaKolektibilitasPage() {
       group,
       total: entries.length,
       nplCount: entries.filter((row) => row.isNpl).length,
-      nonNplCount: entries.filter((row) => !row.isNpl).length,
-      nplNominal: entries.filter((row) => row.isNpl).reduce((sum, row) => sum + row.outstanding, 0),
+	  nplNominal: entries.filter((row) => row.isNpl).reduce((sum, row) => sum + row.outstanding, 0),
+      nonNplCount: entries.filter((row) => !row.isNpl).length,      
       nonNplNominal: entries.filter((row) => !row.isNpl).reduce((sum, row) => sum + row.outstanding, 0),
       totalNominal: entries.reduce((sum, row) => sum + row.outstanding, 0),
     };
@@ -239,8 +241,8 @@ export default async function PerformaKolektibilitasPage() {
       label: mo,
       total: entries.length,
       nplCount: entries.filter((row) => row.isNpl).length,
-      nonNplCount: entries.filter((row) => !row.isNpl).length,
-      nplNominal: entries.filter((row) => row.isNpl).reduce((sum, row) => sum + row.outstanding, 0),
+	  nplNominal: entries.filter((row) => row.isNpl).reduce((sum, row) => sum + row.outstanding, 0),
+      nonNplCount: entries.filter((row) => !row.isNpl).length,      
       nonNplNominal: entries.filter((row) => !row.isNpl).reduce((sum, row) => sum + row.outstanding, 0),
       totalNominal: entries.reduce((sum, row) => sum + row.outstanding, 0),
     };
@@ -252,8 +254,8 @@ export default async function PerformaKolektibilitasPage() {
       label: range.label,
       total: entries.length,
       nplCount: entries.filter((row) => row.isNpl).length,
-      nonNplCount: entries.filter((row) => !row.isNpl).length,
-      nplNominal: entries.filter((row) => row.isNpl).reduce((sum, row) => sum + row.outstanding, 0),
+	  nplNominal: entries.filter((row) => row.isNpl).reduce((sum, row) => sum + row.outstanding, 0),
+      nonNplCount: entries.filter((row) => !row.isNpl).length,      
       nonNplNominal: entries.filter((row) => !row.isNpl).reduce((sum, row) => sum + row.outstanding, 0),
       totalNominal: entries.reduce((sum, row) => sum + row.outstanding, 0),
     };
@@ -265,8 +267,8 @@ export default async function PerformaKolektibilitasPage() {
       label: range.label,
       total: entries.length,
       nplCount: entries.filter((row) => row.isNpl).length,
-      nonNplCount: entries.filter((row) => !row.isNpl).length,
-      nplNominal: entries.filter((row) => row.isNpl).reduce((sum, row) => sum + row.outstanding, 0),
+	  nplNominal: entries.filter((row) => row.isNpl).reduce((sum, row) => sum + row.outstanding, 0),
+      nonNplCount: entries.filter((row) => !row.isNpl).length,      
       nonNplNominal: entries.filter((row) => !row.isNpl).reduce((sum, row) => sum + row.outstanding, 0),
       totalNominal: entries.reduce((sum, row) => sum + row.outstanding, 0),
     };
@@ -278,8 +280,8 @@ export default async function PerformaKolektibilitasPage() {
       label: range.label,
       total: entries.length,
       nplCount: entries.filter((row) => row.isNpl).length,
-      nonNplCount: entries.filter((row) => !row.isNpl).length,
-      nplNominal: entries.filter((row) => row.isNpl).reduce((sum, row) => sum + row.outstanding, 0),
+	  nplNominal: entries.filter((row) => row.isNpl).reduce((sum, row) => sum + row.outstanding, 0),
+      nonNplCount: entries.filter((row) => !row.isNpl).length,      
       nonNplNominal: entries.filter((row) => !row.isNpl).reduce((sum, row) => sum + row.outstanding, 0),
       totalNominal: entries.reduce((sum, row) => sum + row.outstanding, 0),
     };
@@ -291,8 +293,8 @@ export default async function PerformaKolektibilitasPage() {
       label: range.label,
       total: entries.length,
       nplCount: entries.filter((row) => row.isNpl).length,
-      nonNplCount: entries.filter((row) => !row.isNpl).length,
-      nplNominal: entries.filter((row) => row.isNpl).reduce((sum, row) => sum + row.outstanding, 0),
+	  nplNominal: entries.filter((row) => row.isNpl).reduce((sum, row) => sum + row.outstanding, 0),
+      nonNplCount: entries.filter((row) => !row.isNpl).length,      
       nonNplNominal: entries.filter((row) => !row.isNpl).reduce((sum, row) => sum + row.outstanding, 0),
       totalNominal: entries.reduce((sum, row) => sum + row.outstanding, 0),
     };
@@ -304,8 +306,8 @@ export default async function PerformaKolektibilitasPage() {
       label: range.label,
       total: entries.length,
       nplCount: entries.filter((row) => row.isNpl).length,
-      nonNplCount: entries.filter((row) => !row.isNpl).length,
-      nplNominal: entries.filter((row) => row.isNpl).reduce((sum, row) => sum + row.outstanding, 0),
+	  nplNominal: entries.filter((row) => row.isNpl).reduce((sum, row) => sum + row.outstanding, 0),
+      nonNplCount: entries.filter((row) => !row.isNpl).length,      
       nonNplNominal: entries.filter((row) => !row.isNpl).reduce((sum, row) => sum + row.outstanding, 0),
       totalNominal: entries.reduce((sum, row) => sum + row.outstanding, 0),
     };
@@ -317,8 +319,21 @@ export default async function PerformaKolektibilitasPage() {
       label: range.label,
       total: entries.length,
       nplCount: entries.filter((row) => row.isNpl).length,
-      nonNplCount: entries.filter((row) => !row.isNpl).length,
-      nplNominal: entries.filter((row) => row.isNpl).reduce((sum, row) => sum + row.outstanding, 0),
+	  nplNominal: entries.filter((row) => row.isNpl).reduce((sum, row) => sum + row.outstanding, 0),
+      nonNplCount: entries.filter((row) => !row.isNpl).length,      
+      nonNplNominal: entries.filter((row) => !row.isNpl).reduce((sum, row) => sum + row.outstanding, 0),
+      totalNominal: entries.reduce((sum, row) => sum + row.outstanding, 0),
+    };
+  });
+  
+  const radiusSummary = COLLECTING_REPORT_CONFIG.collateralCategories.map((range) => {
+    const entries = reportRows.filter((row) => row.collateralBucket === range.label);
+    return {
+      label: range.label,
+      total: entries.length,
+      nplCount: entries.filter((row) => row.isNpl).length,
+	  nplNominal: entries.filter((row) => row.isNpl).reduce((sum, row) => sum + row.outstanding, 0),
+      nonNplCount: entries.filter((row) => !row.isNpl).length,      
       nonNplNominal: entries.filter((row) => !row.isNpl).reduce((sum, row) => sum + row.outstanding, 0),
       totalNominal: entries.reduce((sum, row) => sum + row.outstanding, 0),
     };
@@ -367,6 +382,7 @@ export default async function PerformaKolektibilitasPage() {
       {renderSummaryTable('Non NPL vs NPL per Range Hari Tunggakan', arrearsSummary)}
       {renderSummaryTable('Non NPL vs NPL per Range Plafond', plafondSummary)}
       {renderSummaryTable('Non NPL vs NPL per Kategori Jaminan', collateralSummary)}
+	  {renderSummaryTable('Non NPL vs NPL per Kategori Radius', radiusSummary)}
     </main>
   );
 }

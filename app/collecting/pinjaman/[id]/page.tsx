@@ -83,6 +83,11 @@ export default async function PinjamanDetailPage({ params }: { params: { id: str
 
       <div className="card" style={{ padding: 24 }}>
         <h2>Riwayat Kunjungan/Kontak</h2>
+        <ExportHistoriButtons
+          namaNasabah={pinjaman.namaNasabahExcel}
+          norek={pinjaman.norek}
+          riwayat={pinjaman.kunjunganPenagihan}
+        />
         {pinjaman.kunjunganPenagihan.length === 0 ? (
           <p>Belum ada kunjungan tercatat.</p>
         ) : (

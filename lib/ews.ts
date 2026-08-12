@@ -16,30 +16,35 @@ export function determineEWS(hariTunggakan: number, tglJatuhTempo: Date | null):
     }
   }
 
-  if (hariTunggakan <= 0) {
+  // Aman: belum atau baru 0–3 hari tunggakan
+  if (hariTunggakan <= 3) {
     return { status: 'AMAN', label: 'Aman', colorClass: 'status-pending', hariTunggakan, wajibKunjungan: false };
   }
-  if (hariTunggakan > 0 && hariTunggakan <= 3) {
-    return { status: 'AMAN', label: 'Aman', colorClass: 'status-pending', hariTunggakan, wajibKunjungan: false };
-  }
-  if (hariTunggakan > 3 && hariTunggakan < 30) {
+  // Hari ke 4–29: Kunjungan MO
+  if (hariTunggakan < 30) {
     return { status: 'KUNJUNGAN_MO', label: 'Kunjungan MO', colorClass: 'status-warning', hariTunggakan, wajibKunjungan: true };
   }
-  if (hariTunggakan >= 30 && hariTunggakan < 60) {
+  // Hari ke 30–59: Surat Tagihan 1
+  if (hariTunggakan < 60) {
     return { status: 'SURAT_TAGIHAN_1', label: 'Terbitkan Surat Tagihan 1', colorClass: 'status-dikeluarkan', hariTunggakan, wajibKunjungan: true };
   }
-  if (hariTunggakan >= 60 && hariTunggakan < 90) {
+  // Hari ke 60–89: Surat Tagihan 2
+  if (hariTunggakan < 90) {
     return { status: 'SURAT_TAGIHAN_2', label: 'Terbitkan Surat Tagihan 2', colorClass: 'status-dikeluarkan', hariTunggakan, wajibKunjungan: true };
   }
-  if (hariTunggakan >= 90 && hariTunggakan <= 91) {
+  // Hari ke 90–119: Surat Tagihan 3
+  if (hariTunggakan < 120) {
     return { status: 'SURAT_TAGIHAN_3', label: 'Terbitkan Surat Tagihan 3', colorClass: 'status-dikeluarkan', hariTunggakan, wajibKunjungan: true };
   }
-  if (hariTunggakan > 91 && hariTunggakan <= 120) {
+  // Hari ke 120–149: SP 1
+  if (hariTunggakan < 150) {
     return { status: 'SP_1', label: 'Terbitkan SP 1', colorClass: 'status-kembali', hariTunggakan, wajibKunjungan: true };
   }
-  if (hariTunggakan > 120 && hariTunggakan <= 180) {
+  // Hari ke 150–180: SP 2
+  if (hariTunggakan <= 180) {
     return { status: 'SP_2', label: 'Terbitkan SP 2', colorClass: 'status-kembali', hariTunggakan, wajibKunjungan: true };
   }
+  // Hari ke 181+: SP 3
   return { status: 'SP_3', label: 'Terbitkan SP 3', colorClass: 'status-kembali', hariTunggakan, wajibKunjungan: true };
 }
 
