@@ -13,9 +13,10 @@ const roles = [
   { value: 'KABAG_OPERASIONAL', label: 'Kabag Operasional' },
   { value: 'PIMPINAN_CABANG', label: 'Pimpinan Cabang' },
   { value: 'DIREKTUR', label: 'Direktur' },
+  { value: 'SPI', label: 'SPI' },
   { value: 'TELLER', label: 'Teller' },
   { value: 'MO', label: 'MO (Marketing Officer)' },
-  { value: 'PETUGAS_COLLECTING', label: 'Petugas Collecting' },
+  { value: 'KASUBAG_REMEDIAL', label: 'Kasubag Remedial' },
   { value: 'KASUBAG_KREDIT_PUSAT_1', label: 'Kasubag Kredit Pusat 1' },
   { value: 'KASUBAG_KREDIT_PUSAT_2', label: 'Kasubag Kredit Pusat 2' },
   { value: 'KASUBAG_KREDIT_CABANG', label: 'Kasubag Kredit Cabang' },
@@ -69,15 +70,15 @@ export default function RegisterPage({ searchParams }: RegisterPageProps) {
             <div>
               <label className="label">Password</label>
               <input
-  		type="password"
-  		name="password"
-  		className="inputField"
-  		required
- 		minLength={8}
-  		pattern="(?=.*[A-Za-z])(?=.*\d).{8,}"
-  		title="Minimal 8 karakter, kombinasi huruf dan angka"
-	      />
-	      <p style={{ fontSize: '0.8rem', color: '#64748b', marginTop: 4 }}>Minimal 8 karakter, harus ada huruf dan angka.</p>
+                type="password"
+                name="password"
+                className="inputField"
+                required
+                minLength={8}
+                pattern="(?=.*[A-Za-z])(?=.*\d).{8,}"
+                title="Minimal 8 karakter, kombinasi huruf dan angka"
+              />
+              <p style={{ fontSize: '0.8rem', color: '#64748b', marginTop: 4 }}>Minimal 8 karakter, harus ada huruf dan angka.</p>
             </div>
             <div>
               <label className="label">Kantor</label>

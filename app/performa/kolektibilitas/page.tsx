@@ -69,8 +69,8 @@ function renderSummaryTable(title: string, rows: SummaryRow[]) {
     }
   );
 
-  const grandTotalPercentage = grandTotal.total 
-    ? ((grandTotal.nplCount / grandTotal.total) * 100).toFixed(2) 
+    const grandTotalPercentage = grandTotal.totalNominal
+    ? ((grandTotal.nplNominal / grandTotal.totalNominal) * 100).toFixed(2)
     : '0.00';
 
   return (
@@ -83,7 +83,7 @@ function renderSummaryTable(title: string, rows: SummaryRow[]) {
               <th style={{ textAlign: 'left', padding: 8, borderBottom: '2px solid #e2e8f0' }}>Label</th>
               <th style={{ textAlign: 'right', padding: 8, borderBottom: '2px solid #e2e8f0' }}>Total Rekening</th>
               <th style={{ textAlign: 'right', padding: 8, borderBottom: '2px solid #e2e8f0' }}>Non NPL Rek</th>
-			  <th style={{ textAlign: 'right', padding: 8, borderBottom: '2px solid #e2e8f0' }}>Non NPL Nominal</th>
+	      <th style={{ textAlign: 'right', padding: 8, borderBottom: '2px solid #e2e8f0' }}>Non NPL Nominal</th>
               <th style={{ textAlign: 'right', padding: 8, borderBottom: '2px solid #e2e8f0' }}>NPL Rek</th>              
               <th style={{ textAlign: 'right', padding: 8, borderBottom: '2px solid #e2e8f0' }}>NPL Nominal</th>
               <th style={{ textAlign: 'right', padding: 8, borderBottom: '2px solid #e2e8f0' }}>Total Nominal</th>
@@ -96,12 +96,12 @@ function renderSummaryTable(title: string, rows: SummaryRow[]) {
                 <td style={{ padding: 8 }}>{item.label}</td>
                 <td style={{ padding: 8, textAlign: 'right' }}>{item.total}</td>
                 <td style={{ padding: 8, textAlign: 'right' }}>{item.nonNplCount}</td>
-				<td style={{ padding: 8, textAlign: 'right' }}>{formatRupiah(item.nonNplNominal)}</td>
+		<td style={{ padding: 8, textAlign: 'right' }}>{formatRupiah(item.nonNplNominal)}</td>
                 <td style={{ padding: 8, textAlign: 'right' }}>{item.nplCount}</td>                
                 <td style={{ padding: 8, textAlign: 'right' }}>{formatRupiah(item.nplNominal)}</td>
                 <td style={{ padding: 8, textAlign: 'right' }}>{formatRupiah(item.totalNominal)}</td>
                 <td style={{ padding: 8, textAlign: 'right' }}>
-                  {item.total ? ((item.nplCount / item.total) * 100).toFixed(2) : '0.00'}%
+                  {item.totalNominal ? ((item.nplNominal / item.totalNominal) * 100).toFixed(2) : '0.00'}%
                 </td>
               </tr>
             ))}
@@ -112,7 +112,7 @@ function renderSummaryTable(title: string, rows: SummaryRow[]) {
               <td style={{ padding: 8 }}>Grand Total</td>
               <td style={{ padding: 8, textAlign: 'right' }}>{grandTotal.total}</td>
               <td style={{ padding: 8, textAlign: 'right' }}>{grandTotal.nonNplCount}</td>
-			  <td style={{ padding: 8, textAlign: 'right' }}>{formatRupiah(grandTotal.nonNplNominal)}</td>
+	      <td style={{ padding: 8, textAlign: 'right' }}>{formatRupiah(grandTotal.nonNplNominal)}</td>
               <td style={{ padding: 8, textAlign: 'right' }}>{grandTotal.nplCount}</td>              
               <td style={{ padding: 8, textAlign: 'right' }}>{formatRupiah(grandTotal.nplNominal)}</td>
               <td style={{ padding: 8, textAlign: 'right' }}>{formatRupiah(grandTotal.totalNominal)}</td>
@@ -129,8 +129,7 @@ export default async function PerformaKolektibilitasPage() {
   const user = getCurrentUser();
   if (!user) redirect('/auth/login');
 
-  const periodeAktif = await prisma.periodeNominatif.findFirst({
-    where: { jenisUpload: 'PERFORM_KOLEKTIBILITAS' },
+    const periodeAktif = await prisma.periodeNominatif.findFirst({
     orderBy: [{ tahun: 'desc' }, { bulan: 'desc' }],
   });
 

@@ -18,7 +18,6 @@ const normalizeSubKantor = (subKantor: string | null | undefined) => {
 export function getKantorGroup(subKantor: string | null | undefined): string | null {
   const kode = normalizeSubKantor(subKantor);
   if (!kode) return null;
-
   for (const [group, codes] of Object.entries(KANTOR_GROUPS)) {
     if (codes.includes(kode)) return group;
   }
@@ -32,7 +31,6 @@ export function getKantorLabel(subKantor: string | null | undefined): string {
 
 export function getKantorGroupFromName(kantor: string | null | undefined): string | null {
   if (!kantor) return null;
-
   const normalized = kantor.toUpperCase();
   if (normalized === 'PUSAT_1' || normalized === 'PUSAT1') return 'PUSAT_1';
   if (normalized === 'PUSAT_2' || normalized === 'PUSAT2') return 'PUSAT_2';
@@ -46,9 +44,12 @@ export const ROLE_KANTOR_ACCESS: Record<string, string[]> = {
   CABANG: ['KASUBAG_KREDIT_CABANG', 'PIMPINAN_CABANG', 'DIREKTUR', 'SUPERADMIN'],
 };
 
+// Role yang boleh melihat data dari SEMUA kelompok kantor tanpa dibatasi
+const FULL_ACCESS_ROLES = ['DIREKTUR', 'SUPERADMIN', 'KABAG_OPERASIONAL', 'KASUBAG_REMEDIAL'];
+
 export function canAccessKantorGroup(role: string, group: string | null): boolean {
   const normalizedRole = role?.toUpperCase();
-  if (normalizedRole === 'DIREKTUR' || normalizedRole === 'SUPERADMIN' || normalizedRole === 'KABAG_OPERASIONAL' || normalizedRole === 'PETUGAS_COLLECTING') return true;
+  if (FULL_ACCESS_ROLES.includes(normalizedRole)) return true;
   if (normalizedRole === 'KEPALA_CABANG' || normalizedRole === 'PIMPINAN_CABANG') return group === 'CABANG';
   if (!group) return false;
   return ROLE_KANTOR_ACCESS[group]?.includes(normalizedRole) ?? false;
@@ -61,31 +62,24 @@ export function canAccessKantorData(
   itemSubKantor: string | null | undefined,
 ): boolean {
   const normalizedRole = role?.toUpperCase();
-
-  if (normalizedRole === 'DIREKTUR' || normalizedRole === 'SUPERADMIN' || normalizedRole === 'KABAG_OPERASIONAL' || normalizedRole === 'PETUGAS_COLLECTING') return true;
+  if (FULL_ACCESS_ROLES.includes(normalizedRole)) return true;
   if (normalizedRole === 'KEPALA_CABANG' || normalizedRole === 'PIMPINAN_CABANG') {
     return getKantorGroup(itemSubKantor) === 'CABANG';
   }
-
   if (normalizedRole === 'TELLER' || normalizedRole === 'MO') {
     const normalizedUserSub = normalizeSubKantor(userSubKantor);
     const normalizedItemSub = normalizeSubKantor(itemSubKantor);
-
     if (!normalizedUserSub || !normalizedItemSub) return false;
     return normalizedUserSub === normalizedItemSub;
   }
-
   if (normalizedRole === 'KASUBAG_KREDIT_PUSAT_1' || normalizedRole === 'KABAG_MARKETING_PUSAT_1') {
     return getKantorGroup(itemSubKantor) === 'PUSAT_1';
   }
-
   if (normalizedRole === 'KASUBAG_KREDIT_PUSAT_2' || normalizedRole === 'KABAG_MARKETING_PUSAT_2') {
     return getKantorGroup(itemSubKantor) === 'PUSAT_2';
   }
-
   if (normalizedRole === 'KASUBAG_KREDIT_CABANG' || normalizedRole === 'KABAG_MARKETING_CABANG') {
     return getKantorGroup(itemSubKantor) === 'CABANG';
   }
-
   return canAccessKantorGroup(role, getKantorGroupFromName(userKantor));
 }

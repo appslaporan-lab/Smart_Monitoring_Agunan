@@ -11,6 +11,14 @@ import {
 type MenuItem = { href: string; label: string; roles: string[] | 'all'; icon: any; module: string };
 type ModuleDef = { key: string; label: string; icon: any; pathPrefix: string };
 
+const AGUNAN_ROLES = [
+  'ADM_KREDIT_PUSAT', 'ADM_KREDIT_CABANG',
+  'KASUBAG_PUSAT', 'KASUBAG_CABANG',
+  'KASUBAG_KREDIT_PUSAT_1', 'KASUBAG_KREDIT_PUSAT_2', 'KASUBAG_KREDIT_CABANG',
+  'KEPALA_KAS', 'KABAG_OPERASIONAL', 'PIMPINAN_CABANG', 'SPI', 'DIREKTUR',
+  'SUPERADMIN',
+];
+
 const MODULES: ModuleDef[] = [
   { key: 'agunan', label: 'Agunan Monitoring', icon: Shield, pathPrefix: '/' },
   { key: 'collecting', label: 'Collecting Kredit', icon: Wallet, pathPrefix: '/collecting' },
@@ -20,7 +28,7 @@ const MODULES: ModuleDef[] = [
 
 const MENU_CONFIG: MenuItem[] = [
   { href: '/superadmin/users', label: 'Approval User', roles: ['SUPERADMIN'], icon: UserCog, module: 'agunan' },
-  { href: '/', label: 'Dashboard', roles: 'all', icon: LayoutDashboard, module: 'agunan' },
+  { href: '/', label: 'Dashboard', roles: AGUNAN_ROLES, icon: LayoutDashboard, module: 'agunan' },
   { href: '/auth/change-password', label: 'Ganti Password', roles: 'all', icon: Shield, module: 'agunan' },
   { href: '/pengambilan', label: 'Pengambilan Agunan', roles: ['ADM_KREDIT_PUSAT', 'ADM_KREDIT_CABANG', 'KEPALA_KAS'], icon: PackageOpen, module: 'agunan' },
   { href: '/approval', label: 'Approval', roles: ['KABAG_OPERASIONAL', 'PIMPINAN_CABANG', 'DIREKTUR', 'ADM_KREDIT_PUSAT', 'ADM_KREDIT_CABANG'], icon: CheckCircle2, module: 'agunan' },
@@ -28,18 +36,16 @@ const MENU_CONFIG: MenuItem[] = [
   { href: '/nasabah', label: 'Data Nasabah', roles: ['ADM_KREDIT_PUSAT', 'ADM_KREDIT_CABANG', 'KEPALA_KAS', 'KASUBAG_PUSAT', 'KASUBAG_CABANG'], icon: Users, module: 'agunan' },
   { href: '/agunan', label: 'Data Agunan', roles: ['ADM_KREDIT_PUSAT', 'ADM_KREDIT_CABANG', 'KEPALA_KAS', 'KASUBAG_PUSAT', 'KASUBAG_CABANG'], icon: Archive, module: 'agunan' },
   { href: '/berita-acara', label: 'Penyerahan Agunan', roles: ['ADM_KREDIT_PUSAT', 'ADM_KREDIT_CABANG', 'KEPALA_KAS', 'KASUBAG_PUSAT', 'KASUBAG_CABANG'], icon: FileSignature, module: 'agunan' },
-  { href: '/stock-opname', label: 'Stock Opname', roles: ['KASUBAG_PUSAT', 'KASUBAG_CABANG', 'KABAG_OPERASIONAL', 'PIMPINAN_CABANG', 'DIREKTUR'], icon: ClipboardCheck, module: 'agunan' },
-  { href: '/reports', label: 'Laporan', roles: ['KASUBAG_PUSAT', 'KASUBAG_CABANG', 'KABAG_OPERASIONAL', 'PIMPINAN_CABANG', 'DIREKTUR'], icon: FileText, module: 'agunan' },
-  { href: '/audit', label: 'Audit', roles: ['KABAG_OPERASIONAL', 'PIMPINAN_CABANG', 'DIREKTUR'], icon: ShieldCheck, module: 'agunan' },
+  { href: '/stock-opname', label: 'Stock Opname', roles: ['KASUBAG_PUSAT', 'KASUBAG_CABANG', 'KABAG_OPERASIONAL', 'PIMPINAN_CABANG', 'DIREKTUR', 'SPI'], icon: ClipboardCheck, module: 'agunan' },
+  { href: '/reports', label: 'Laporan', roles: ['KASUBAG_PUSAT', 'KASUBAG_CABANG', 'KABAG_OPERASIONAL', 'PIMPINAN_CABANG', 'DIREKTUR', 'SPI'], icon: FileText, module: 'agunan' },
+  { href: '/audit', label: 'Audit', roles: ['KABAG_OPERASIONAL', 'PIMPINAN_CABANG', 'DIREKTUR', 'SPI'], icon: ShieldCheck, module: 'agunan' },
 
   { href: '/collecting', label: 'Dashboard Collecting', roles: 'all', icon: LayoutDashboard, module: 'collecting' },
-
   { href: '/collecting/upload', label: 'Upload Nominatif', roles: ['SUPERADMIN'], icon: PlusCircle, module: 'collecting' },
 
   { href: '/kpi', label: 'Dashboard KPI', roles: 'all', icon: LayoutDashboard, module: 'kpi' },
 
   { href: '/performa/kolektibilitas', label: 'Laporan Kolektibilitas', roles: ['SUPERADMIN', 'KASUBAG_KREDIT_PUSAT_1', 'KASUBAG_KREDIT_PUSAT_2', 'KASUBAG_KREDIT_CABANG', 'KABAG_MARKETING_PUSAT_1', 'KABAG_MARKETING_PUSAT_2', 'PIMPINAN_CABANG', 'DIREKTUR', 'KABAG_OPERASIONAL'], icon: FileText, module: 'performa' },
-
   { href: '/performa', label: 'Dashboard Performa', roles: 'all', icon: LayoutDashboard, module: 'performa' },
 ];
 
@@ -54,8 +60,11 @@ export default function ModuleSidebar({
 
   const visibleMenuAll = MENU_CONFIG.filter((item) => item.roles === 'all' || item.roles.includes(userRole));
 
+  const visibleModules = MODULES.filter((m) => visibleMenuAll.some((item) => item.module === m.key));
+
   const activeModuleKey =
-    MODULES.find((m) => m.pathPrefix !== '/' && pathname.startsWith(m.pathPrefix))?.key || 'agunan';
+    visibleModules.find((m) => m.pathPrefix !== '/' && pathname.startsWith(m.pathPrefix))?.key
+    || (visibleModules.some((m) => m.key === 'agunan') ? 'agunan' : visibleModules[0]?.key);
 
   const visibleMenu = visibleMenuAll.filter((item) => item.module === activeModuleKey);
 
@@ -71,7 +80,7 @@ export default function ModuleSidebar({
       </div>
 
       <div className="module-switcher">
-        {MODULES.map((m) => {
+        {visibleModules.map((m) => {
           const ModIcon = m.icon;
           const isActive = m.key === activeModuleKey;
           const firstItem = visibleMenuAll.find((item) => item.module === m.key);

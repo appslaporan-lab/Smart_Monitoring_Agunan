@@ -37,6 +37,7 @@ export default function ManualBeritaAcaraForm() {
   const [photoDataUrl, setPhotoDataUrl] = useState<string | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
 
   const updateField = (field: string, value: string) => {
     setForm((current) => ({ ...current, [field]: value }));
@@ -82,7 +83,7 @@ export default function ManualBeritaAcaraForm() {
     const reader = new FileReader();
     reader.onload = async () => {
       const original = reader.result as string;
-      const resized = await resizeImage(original, 900, 0.7);
+      const resized = await resizeImage(original, 1200, 0.82);
       setPhotoPreview(resized);
       setPhotoDataUrl(resized);
     };
@@ -90,34 +91,39 @@ export default function ManualBeritaAcaraForm() {
   };
 
   const generatePdfDataUrl = async (): Promise<string | null> => {
-    const element = document.querySelector('.formal-a4-sheet');
+    const element = document.querySelector('.ba-manual-a4') as HTMLElement;
     if (!element) return null;
-    const canvas = await html2canvas(element as HTMLElement, { scale: 1.5, useCORS: true, logging: false });
-    const imgData = canvas.toDataURL('image/jpeg', 0.85);
+
+    const canvas = await html2canvas(element, {
+      scale: 2.5,
+      useCORS: true,
+      logging: false,
+      width: element.offsetWidth,
+      height: element.offsetHeight,
+      windowWidth: element.offsetWidth,
+    });
+
+    const imgData = canvas.toDataURL('image/jpeg', 0.92);
     const pdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
 
     const pageWidth = 210;
     const pageHeight = 297;
-    const imgWidth = pageWidth;
-    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+    const imgAspect = canvas.height / canvas.width;
+    const imgHeight = pageWidth * imgAspect;
 
-    let heightLeft = imgHeight;
-    let position = 0;
-
-    pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
-    heightLeft -= pageHeight;
-
-    while (heightLeft > 0) {
-      position = heightLeft - imgHeight;
-      pdf.addPage();
-      pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
-      heightLeft -= pageHeight;
+    if (imgHeight <= pageHeight) {
+      // Muat 1 halaman — skala agar pas
+      pdf.addImage(imgData, 'JPEG', 0, 0, pageWidth, imgHeight);
+    } else {
+      // Jika melebihi 1 halaman, skala paksa ke 1 halaman
+      pdf.addImage(imgData, 'JPEG', 0, 0, pageWidth, pageHeight);
     }
 
     return pdf.output('datauristring');
   };
 
   const saveDocument = async () => {
+    setIsSaving(true);
     setStatusMessage('Menyiapkan PDF...');
 
     let pdfDataUrl: string | null = null;
@@ -125,7 +131,7 @@ export default function ManualBeritaAcaraForm() {
       pdfDataUrl = await generatePdfDataUrl();
     } catch (err: any) {
       console.error('Gagal generate PDF:', err);
-      setStatusMessage(`Gagal menyiapkan PDF: ${err?.message || 'error tidak diketahui'}. Menyimpan tanpa PDF...`);
+      setStatusMessage(`Gagal PDF: ${err?.message || 'error'}. Menyimpan tanpa PDF...`);
     }
 
     try {
@@ -159,12 +165,13 @@ export default function ManualBeritaAcaraForm() {
       const result = await response.json();
       if (!response.ok) {
         setStatusMessage(result.error || 'Gagal menyimpan berita acara.');
-        return;
+      } else {
+        setStatusMessage(pdfDataUrl ? '✅ Berita acara & PDF berhasil disimpan.' : '✅ Berita acara disimpan (tanpa PDF).');
       }
-      setStatusMessage(pdfDataUrl ? 'Berita acara & PDF berhasil disimpan ke database.' : 'Berita acara berhasil disimpan (tanpa PDF).');
     } catch (err: any) {
-      console.error('Gagal simpan ke server:', err);
-      setStatusMessage(`Gagal menghubungi server: ${err?.message || 'error tidak diketahui'}`);
+      setStatusMessage(`Gagal menghubungi server: ${err?.message || 'error'}`);
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -173,7 +180,7 @@ export default function ManualBeritaAcaraForm() {
       setStatusMessage('Menyiapkan PDF...');
       const dataUrl = await generatePdfDataUrl();
       if (!dataUrl) {
-        setStatusMessage('Gagal membuat PDF: elemen dokumen tidak ditemukan.');
+        setStatusMessage('Gagal: elemen dokumen tidak ditemukan.');
         return;
       }
       const link = document.createElement('a');
@@ -182,41 +189,44 @@ export default function ManualBeritaAcaraForm() {
       link.click();
       setStatusMessage(null);
     } catch (err: any) {
-      console.error('Gagal unduh PDF:', err);
-      setStatusMessage(`Gagal membuat PDF: ${err?.message || 'error tidak diketahui'}`);
+      setStatusMessage(`Gagal membuat PDF: ${err?.message || 'error'}`);
     }
   };
 
   const formatTanggalIndo = (dateStr: string) => {
-    if (!dateStr) return '____________';
+    if (!dateStr) return '___________________';
     const bulan = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
     const d = new Date(dateStr);
     return `${d.getDate()} ${bulan[d.getMonth()]} ${d.getFullYear()}`;
   };
 
   const signatureRows = [
-    { label: 'Adm Kredit', name: form.ttdAdmKredit, img: sigAdmKredit },
-    { label: 'Yang Menyerahkan', name: form.ttdYangMenyerahkan, img: sigMenyerahkan },
-    { label: 'Yang Menerima', name: form.ttdYangMenerima, img: sigMenerima },
-    { label: 'Mengetahui', name: form.ttdMengetahui, img: sigMengetahui },
+    { key: 'adm', label: 'Adm Kredit', name: form.ttdAdmKredit, img: sigAdmKredit, setImg: setSigAdmKredit, field: 'ttdAdmKredit', placeholder: 'Nama Adm Kredit' },
+    { key: 'serah', label: 'Yang Menyerahkan', name: form.ttdYangMenyerahkan, img: sigMenyerahkan, setImg: setSigMenyerahkan, field: 'ttdYangMenyerahkan', placeholder: 'Nama Yang Menyerahkan' },
+    { key: 'terima', label: 'Yang Menerima', name: form.ttdYangMenerima, img: sigMenerima, setImg: setSigMenerima, field: 'ttdYangMenerima', placeholder: 'Nama Yang Menerima' },
+    { key: 'tahu', label: 'Mengetahui', name: form.ttdMengetahui, img: sigMengetahui, setImg: setSigMengetahui, field: 'ttdMengetahui', placeholder: 'Nama Mengetahui' },
   ];
 
   return (
-    <div className="formal-print-shell">
-      <div className="no-print" style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginBottom: 8 }}>
-        <button className="button" type="button" onClick={() => window.print()}>Cetak</button>
-        <button className="button secondary" type="button" onClick={downloadPDF}>Unduh PDF</button>
-        <button className="button" type="button" onClick={saveDocument}>Simpan ke Database</button>
+    <div className="ba-manual-shell">
+      {/* ── Toolbar (tidak ikut cetak) ── */}
+      <div className="no-print ba-toolbar">
+        <button className="button" type="button" onClick={() => window.print()}>🖨 Cetak</button>
+        <button className="button secondary" type="button" onClick={downloadPDF}>⬇ Unduh PDF</button>
+        <button className="button" type="button" onClick={saveDocument} disabled={isSaving}>
+          {isSaving ? 'Menyimpan...' : '💾 Simpan ke Database'}
+        </button>
       </div>
 
       {statusMessage && (
-        <div className="no-print alert alert-info" style={{ marginBottom: 12 }}>{statusMessage}</div>
+        <div className="no-print ba-status-msg">{statusMessage}</div>
       )}
 
+      {/* ── Form Input (tidak ikut cetak) ── */}
       <div className="no-print card" style={{ padding: 24, marginBottom: 24 }}>
-        <h3 style={{ margin: '0 0 16px', fontSize: '1rem', color: '#334155' }}>Data untuk Berita Acara</h3>
+        <h3 className="ba-section-title">Data Berita Acara</h3>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
+        <div className="ba-form-grid">
           <div>
             <label className="label">Nomor Rekening</label>
             <input className="inputField" value={form.nomorRekening} onChange={(e) => updateField('nomorRekening', e.target.value)} placeholder="Kosongkan jika belum ada" />
@@ -239,167 +249,162 @@ export default function ManualBeritaAcaraForm() {
           </div>
         </div>
 
-        <div style={{ borderTop: '1px solid #e2e8f0', paddingTop: 16, marginTop: 4 }}>
-          <p style={{ margin: '0 0 12px', fontWeight: 600, color: '#334155', fontSize: '0.95rem' }}>Daftar Agunan (Isi Manual)</p>
+        <div className="ba-subsection">
+          <p className="ba-subsection-label">Daftar Agunan (Isi Manual)</p>
           {daftarAgunan.map((row, idx) => (
-            <div key={idx} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr auto', gap: 10, marginBottom: 8, alignItems: 'center' }}>
+            <div key={idx} className="ba-agunan-row">
               <input className="inputField" placeholder="Jenis Agunan" value={row.jenis} onChange={(e) => updateAgunanRow(idx, 'jenis', e.target.value)} />
-              <input className="inputField" placeholder="No. BPKB/SHM/Plat" value={row.identitas} onChange={(e) => updateAgunanRow(idx, 'identitas', e.target.value)} />
+              <input className="inputField" placeholder="No. BPKB / SHM / Plat" value={row.identitas} onChange={(e) => updateAgunanRow(idx, 'identitas', e.target.value)} />
               <input className="inputField" placeholder="Nama Pemilik" value={row.namaPemilik} onChange={(e) => updateAgunanRow(idx, 'namaPemilik', e.target.value)} />
               {daftarAgunan.length > 1 && (
-                <button type="button" className="button danger" style={{ padding: '8px 12px' }} onClick={() => removeRow(idx)}>Hapus</button>
+                <button type="button" className="button danger" style={{ padding: '8px 12px', whiteSpace: 'nowrap' }} onClick={() => removeRow(idx)}>Hapus</button>
               )}
             </div>
           ))}
-          <button type="button" className="button secondary" onClick={addRow} style={{ marginTop: 8 }}>+ Tambah Baris Agunan</button>
+          <button type="button" className="button secondary" onClick={addRow} style={{ marginTop: 8 }}>+ Tambah Baris</button>
         </div>
 
-        <div style={{ borderTop: '1px solid #e2e8f0', paddingTop: 16, marginTop: 16 }}>
-          <p style={{ margin: '0 0 12px', fontWeight: 600, color: '#334155', fontSize: '0.95rem' }}>Tanda Tangan Digital</p>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
-            <div>
-              <input className="inputField" style={{ marginBottom: 8 }} placeholder="Nama Adm Kredit" value={form.ttdAdmKredit} onChange={(e) => updateField('ttdAdmKredit', e.target.value)} />
-              <SignaturePad label="Tanda Tangan Adm Kredit" onChange={setSigAdmKredit} />
-            </div>
-            <div>
-              <input className="inputField" style={{ marginBottom: 8 }} placeholder="Nama Yang Menyerahkan" value={form.ttdYangMenyerahkan} onChange={(e) => updateField('ttdYangMenyerahkan', e.target.value)} />
-              <SignaturePad label="Tanda Tangan Yang Menyerahkan" onChange={setSigMenyerahkan} />
-            </div>
-            <div>
-              <input className="inputField" style={{ marginBottom: 8 }} placeholder="Nama Yang Menerima" value={form.ttdYangMenerima} onChange={(e) => updateField('ttdYangMenerima', e.target.value)} />
-              <SignaturePad label="Tanda Tangan Yang Menerima" onChange={setSigMenerima} />
-            </div>
-            <div>
-              <input className="inputField" style={{ marginBottom: 8 }} placeholder="Nama Mengetahui" value={form.ttdMengetahui} onChange={(e) => updateField('ttdMengetahui', e.target.value)} />
-              <SignaturePad label="Tanda Tangan Mengetahui" onChange={setSigMengetahui} />
-            </div>
+        <div className="ba-subsection">
+          <p className="ba-subsection-label">Tanda Tangan Digital</p>
+          <div className="ba-sig-input-grid">
+            {signatureRows.map((ttd) => (
+              <div key={ttd.key}>
+                <input className="inputField" style={{ marginBottom: 8 }} placeholder={ttd.placeholder} value={ttd.name} onChange={(e) => updateField(ttd.field, e.target.value)} />
+                <SignaturePad label={`TTD ${ttd.label}`} onChange={ttd.setImg} />
+              </div>
+            ))}
           </div>
         </div>
 
-        <div style={{ borderTop: '1px solid #e2e8f0', paddingTop: 16, marginTop: 16 }}>
-          <label className="label">Foto Penyerahan</label>
+        <div className="ba-subsection">
+          <label className="label">Foto Dokumentasi Penyerahan</label>
           <input className="inputField" type="file" accept="image/*" capture="environment" onChange={handlePhotoChange} style={{ marginBottom: 8 }} />
           {photoPreview && (
             <div style={{ marginTop: 8 }}>
-              <img src={photoPreview} alt="Foto penyerahan" style={{ maxHeight: 160, objectFit: 'contain', border: '1px dashed #cbd5e1' }} />
+              <img src={photoPreview} alt="Preview foto" style={{ maxHeight: 200, maxWidth: '100%', objectFit: 'contain', border: '1px dashed #cbd5e1', borderRadius: 8 }} />
             </div>
           )}
         </div>
       </div>
 
-      <div className="formal-a4-sheet" style={{ padding: '10mm 15mm' }}>
-        <div className="formal-header" style={{ borderBottom: '3px solid #1e3a8a', paddingBottom: 8, marginBottom: 10 }}>
-          <img
-            src="/logo-bpr-resmi.png"
-            alt="Logo PT BPR Bank Tulungagung"
-            crossOrigin="anonymous"
-            style={{ height: 55, width: 'auto', objectFit: 'contain' }}
-          />
-          <div style={{ marginLeft: 'auto', textAlign: 'right' }}>
-            <p style={{ margin: 0, fontSize: '0.7rem', color: '#475569' }}>No. Dokumen:</p>
-            <p style={{ margin: 0, fontWeight: 700, fontSize: '0.8rem', color: '#0f172a' }}>{form.nomorDokumen}</p>
+      {/* ══════════════════════════════════════════════
+          DOKUMEN A4 — Hanya bagian ini yang dicetak
+          ══════════════════════════════════════════════ */}
+      <div className="ba-manual-a4">
+
+        {/* Header */}
+        <div className="ba-doc-header">
+          <img src="/logo-bpr-resmi.png" alt="Logo PT BPR Bank Tulungagung" crossOrigin="anonymous" className="ba-doc-logo" />
+          <div className="ba-doc-instansi">
+            <p className="ba-inst-nama">PT BPR BANK TULUNGAGUNG PERSERODA</p>
+            <p className="ba-inst-sub">Jl. Pahlawan No. 1 Tulungagung — Telp. (0355) XXXXXXX</p>
+          </div>
+          <div className="ba-doc-nomor">
+            <span className="ba-label-kecil">No. Dokumen</span>
+            <strong>{form.nomorDokumen}</strong>
           </div>
         </div>
 
-        <div style={{ textAlign: 'center', marginBottom: 10 }}>
-          <h1 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800, letterSpacing: '0.05em', textTransform: 'uppercase', color: '#0f172a' }}>
-            BERITA ACARA SERAH TERIMA AGUNAN
-          </h1>
-          <div style={{ width: 60, height: 3, background: '#1e3a8a', margin: '6px auto 0' }} />
+        <div className="ba-doc-divider" />
+
+        {/* Judul */}
+        <div className="ba-doc-judul">
+          <h1>BERITA ACARA SERAH TERIMA AGUNAN</h1>
+          <div className="ba-judul-underline" />
         </div>
 
-        <p style={{ margin: '0 0 10px', lineHeight: 1.5, fontSize: '0.85rem', color: '#334155', textAlign: 'justify' }}>
-          Pada hari ini, <strong>{formatTanggalIndo(form.tanggalSerahTerima)}</strong>, kami yang bertanda tangan di bawah ini
-          telah melakukan serah terima agunan kepada nasabah yang bersangkutan, dengan rincian sebagai berikut:
+        {/* Pembuka */}
+        <p className="ba-doc-pembuka">
+          Pada hari ini, <strong>{formatTanggalIndo(form.tanggalSerahTerima)}</strong>, kami yang bertanda tangan
+          di bawah ini telah melakukan serah terima agunan kepada nasabah yang bersangkutan dengan rincian sebagai berikut:
         </p>
 
-        <div style={{ border: '1px solid #cbd5e1', borderRadius: 8, padding: 10, marginBottom: 10, background: '#f8fafc' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
-            <tbody>
-              <tr>
-                <td style={{ width: '35%', padding: '3px 0', color: '#475569', fontWeight: 600 }}>Nomor Rekening</td>
-                <td style={{ width: '5%' }}>:</td>
-                <td style={{ fontWeight: 700 }}>{form.nomorRekening || '__________________________'}</td>
-              </tr>
-              <tr>
-                <td style={{ padding: '3px 0', color: '#475569', fontWeight: 600 }}>Nama Peminjam</td>
-                <td>:</td>
-                <td style={{ fontWeight: 700 }}>{form.namaNasabah || '-'}</td>
-              </tr>
-              <tr>
-                <td style={{ padding: '3px 0', color: '#475569', fontWeight: 600 }}>Alamat</td>
-                <td>:</td>
-                <td>{form.alamat || '-'}</td>
-              </tr>
-              <tr>
-                <td style={{ padding: '3px 0', color: '#475569', fontWeight: 600 }}>Tanggal Lunas</td>
-                <td>:</td>
-                <td>{form.tanggalLunas ? formatTanggalIndo(form.tanggalLunas) : '-'}</td>
-              </tr>
-            </tbody>
-          </table>
+        {/* Info Nasabah + Foto berdampingan */}
+        <div className="ba-info-foto-row">
+          {/* Tabel info nasabah */}
+          <div className="ba-info-box">
+            <table className="ba-info-table">
+              <tbody>
+                <tr>
+                  <td className="ba-td-label">Nomor Rekening</td>
+                  <td className="ba-td-sep">:</td>
+                  <td className="ba-td-val"><strong>{form.nomorRekening || '___________________________'}</strong></td>
+                </tr>
+                <tr>
+                  <td className="ba-td-label">Nama Peminjam</td>
+                  <td className="ba-td-sep">:</td>
+                  <td className="ba-td-val"><strong>{form.namaNasabah || '-'}</strong></td>
+                </tr>
+                <tr>
+                  <td className="ba-td-label">Alamat</td>
+                  <td className="ba-td-sep">:</td>
+                  <td className="ba-td-val">{form.alamat || '-'}</td>
+                </tr>
+                <tr>
+                  <td className="ba-td-label">Tanggal Lunas</td>
+                  <td className="ba-td-sep">:</td>
+                  <td className="ba-td-val">{form.tanggalLunas ? formatTanggalIndo(form.tanggalLunas) : '-'}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          {/* Foto dokumentasi — luas */}
+          {photoPreview ? (
+            <div className="ba-foto-box">
+              <p className="ba-foto-caption">Foto Dokumentasi</p>
+              <img src={photoPreview} alt="Foto penyerahan" className="ba-foto-img" />
+            </div>
+          ) : (
+            <div className="ba-foto-box ba-foto-empty">
+              <span>Foto Dokumentasi</span>
+            </div>
+          )}
         </div>
 
-        <div style={{ marginBottom: 10 }}>
-          <h3 style={{ fontSize: '0.8rem', fontWeight: 700, margin: '0 0 6px', borderLeft: '3px solid #1e3a8a', paddingLeft: 10, color: '#0f172a' }}>
-            Daftar Agunan yang Diserahkan
-          </h3>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.8rem' }}>
+        {/* Tabel Daftar Agunan */}
+        <div className="ba-agunan-section">
+          <h3 className="ba-section-heading">Daftar Agunan yang Diserahkan</h3>
+          <table className="ba-agunan-table">
             <thead>
-              <tr style={{ background: '#1e3a8a', color: 'white' }}>
-                <th style={{ padding: '5px 8px', textAlign: 'center', width: '5%' }}>No</th>
-                <th style={{ padding: '5px 8px', textAlign: 'left', width: '25%' }}>Jenis Agunan</th>
-                <th style={{ padding: '5px 8px', textAlign: 'left', width: '35%' }}>Identitas (No. BPKB / SHM / Plat)</th>
-                <th style={{ padding: '5px 8px', textAlign: 'left' }}>Nama Pemilik Agunan</th>
+              <tr>
+                <th style={{ width: '5%' }}>No</th>
+                <th style={{ width: '25%' }}>Jenis Agunan</th>
+                <th style={{ width: '40%' }}>Identitas (No. BPKB / SHM / Plat)</th>
+                <th>Nama Pemilik Agunan</th>
               </tr>
             </thead>
             <tbody>
               {daftarAgunan.map((row, idx) => (
-                <tr key={idx} style={{ background: idx % 2 === 0 ? '#ffffff' : '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
-                  <td style={{ padding: '5px 8px', textAlign: 'center' }}>{idx + 1}</td>
-                  <td style={{ padding: '5px 8px' }}>{row.jenis || '-'}</td>
-                  <td style={{ padding: '5px 8px' }}>{row.identitas || '-'}</td>
-                  <td style={{ padding: '5px 8px' }}>{row.namaPemilik || '-'}</td>
+                <tr key={idx}>
+                  <td style={{ textAlign: 'center' }}>{idx + 1}</td>
+                  <td>{row.jenis || '-'}</td>
+                  <td>{row.identitas || '-'}</td>
+                  <td>{row.namaPemilik || '-'}</td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
 
-        {photoPreview && (
-          <div style={{ marginBottom: 8 }}>
-            <h3 style={{ fontSize: '0.78rem', fontWeight: 700, margin: '0 0 4px', borderLeft: '3px solid #1e3a8a', paddingLeft: 10, color: '#0f172a' }}>
-              Dokumentasi Penyerahan
-            </h3>
-            <div style={{ textAlign: 'center' }}>
-              <img src={photoPreview} alt="Foto penyerahan" style={{ maxHeight: 65, maxWidth: '100%', objectFit: 'contain', border: '1px solid #e2e8f0' }} />
-            </div>
-          </div>
-        )}
-
-        <div style={{ marginTop: 14 }}>
-          <p style={{ textAlign: 'right', marginBottom: 16, color: '#334155', fontSize: '0.8rem' }}>
-            Tulungagung, {formatTanggalIndo(form.tanggalSerahTerima)}
-          </p>
-
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8, textAlign: 'center' }}>
+        {/* Tanda Tangan */}
+        <div className="ba-ttd-section">
+          <p className="ba-ttd-kota">Tulungagung, {formatTanggalIndo(form.tanggalSerahTerima)}</p>
+          <div className="ba-ttd-grid">
             {signatureRows.map((ttd) => (
-              <div key={ttd.label} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                <p style={{ margin: '0 0 2px', fontWeight: 600, fontSize: '0.75rem', color: '#475569' }}>{ttd.label}</p>
-                <div style={{ height: 40, width: '100%', display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}>
-                  {ttd.img ? (
-                    <img src={ttd.img} alt={`Tanda tangan ${ttd.label}`} style={{ maxHeight: 36, maxWidth: '100%', objectFit: 'contain' }} />
-                  ) : null}
+              <div key={ttd.key} className="ba-ttd-block">
+                <p className="ba-ttd-role">{ttd.label}</p>
+                <div className="ba-ttd-canvas">
+                  {ttd.img && <img src={ttd.img} alt={`TTD ${ttd.label}`} className="ba-ttd-img" />}
                 </div>
-                <p style={{ margin: 0, fontWeight: 700, fontSize: '0.8rem', borderTop: '1px solid #0f172a', paddingTop: 3, width: '100%' }}>
-                  {ttd.name || '............................'}
-                </p>
+                <p className="ba-ttd-name">{ttd.name || '............................'}</p>
               </div>
             ))}
           </div>
         </div>
 
-        <p style={{ marginTop: 10, fontSize: '0.7rem', color: '#94a3b8', textAlign: 'center', borderTop: '1px solid #e2e8f0', paddingTop: 8 }}>
+        {/* Footer */}
+        <p className="ba-doc-footer">
           Dokumen ini dicetak secara resmi untuk keperluan administrasi serah terima agunan — PT BPR Bank Tulungagung Perseroda
         </p>
       </div>
