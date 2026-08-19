@@ -1,4 +1,7 @@
+'use client';
+
 import Link from 'next/link';
+import { useState } from 'react';
 
 type RegisterPageProps = {
   searchParams?: { error?: string; success?: string };
@@ -28,6 +31,7 @@ const kantorOptions = [
   { value: 'PUSAT_1', label: 'Pusat 1' },
   { value: 'PUSAT_2', label: 'Pusat 2' },
   { value: 'CABANG', label: 'Cabang' },
+  { value: 'SEMUA_KANTOR', label: 'Semua Kantor' },
 ];
 
 const subKantorOptions = [
@@ -45,9 +49,22 @@ const subKantorOptions = [
   { value: '13', label: '13' },
   { value: '14', label: '14' },
   { value: '15', label: '15' },
+  { value: 'SEMUA_KANTOR', label: 'Semua Sub Kantor' },
+];
+
+const ALL_OFFICE_ROLES = [
+  'KASUBAG_REMEDIAL',
+  'KABAG_OPERASIONAL',
+  'KABAG_MARKETING_PUSAT_1',
+  'KABAG_MARKETING_PUSAT_2',
+  'DIREKTUR'
 ];
 
 export default function RegisterPage({ searchParams }: RegisterPageProps) {
+  const [selectedRole, setSelectedRole] = useState('');
+
+  const isAllOfficeRole = ALL_OFFICE_ROLES.includes(selectedRole);
+
   return (
     <main className="container">
       <section style={{ marginBottom: 32 }}>
@@ -81,31 +98,59 @@ export default function RegisterPage({ searchParams }: RegisterPageProps) {
               <p style={{ fontSize: '0.8rem', color: '#64748b', marginTop: 4 }}>Minimal 8 karakter, harus ada huruf dan angka.</p>
             </div>
             <div>
-              <label className="label">Kantor</label>
-              <select name="kantor" className="inputField" required>
-                <option value="">Pilih kantor</option>
-                {kantorOptions.map((kantor) => (
-                  <option key={kantor.value} value={kantor.value}>{kantor.label}</option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="label">Sub Kantor</label>
-              <select name="subKantor" className="inputField" required>
-                <option value="">Pilih sub kantor</option>
-                {subKantorOptions.map((subKantor) => (
-                  <option key={subKantor.value} value={subKantor.value}>{subKantor.label}</option>
-                ))}
-              </select>
-            </div>
-            <div>
               <label className="label">Role</label>
-              <select name="role" className="inputField" required>
-                <option value="">Pilih role</option>
+              <select 
+                name="role" 
+                className="inputField" 
+                required 
+                value={selectedRole}
+                onChange={(e) => setSelectedRole(e.target.value)}
+              >
+                <option value="">PILIH ROLE</option>
                 {roles.map((role) => (
                   <option key={role.value} value={role.value}>{role.label}</option>
                 ))}
               </select>
+            </div>
+            <div>
+              <label className="label">Kantor</label>
+              {isAllOfficeRole ? (
+                <>
+                  <input type="hidden" name="kantor" value="SEMUA_KANTOR" />
+                  <select className="inputField" disabled value="SEMUA_KANTOR">
+                    {kantorOptions.map((kantor) => (
+                      <option key={kantor.value} value={kantor.value}>{kantor.label}</option>
+                    ))}
+                  </select>
+                </>
+              ) : (
+                <select name="kantor" className="inputField" required>
+                  <option value="">PILIH KANTOR</option>
+                  {kantorOptions.filter(k => k.value !== 'SEMUA_KANTOR').map((kantor) => (
+                    <option key={kantor.value} value={kantor.value}>{kantor.label}</option>
+                  ))}
+                </select>
+              )}
+            </div>
+            <div>
+              <label className="label">Sub Kantor</label>
+              {isAllOfficeRole ? (
+                <>
+                  <input type="hidden" name="subKantor" value="SEMUA_KANTOR" />
+                  <select className="inputField" disabled value="SEMUA_KANTOR">
+                    {subKantorOptions.map((subKantor) => (
+                      <option key={subKantor.value} value={subKantor.value}>{subKantor.label}</option>
+                    ))}
+                  </select>
+                </>
+              ) : (
+                <select name="subKantor" className="inputField" required>
+                  <option value="">PILIH SUB KANTOR</option>
+                  {subKantorOptions.filter(s => s.value !== 'SEMUA_KANTOR').map((subKantor) => (
+                    <option key={subKantor.value} value={subKantor.value}>{subKantor.label}</option>
+                  ))}
+                </select>
+              )}
             </div>
             <button type="submit" className="button">Register</button>
           </div>
