@@ -107,7 +107,8 @@ export function parseNominatifExcel(buffer: Buffer, uploadType: string = 'COLLEC
     const subKantorGabungan = [kantor, sub].filter(Boolean).join(' - ') || null;
 
     let rawAo = String(row['AQ'] || '').trim();
-    if (!rawAo) rawAo = 'KOSONG';
+    if (!rawAo) rawAo = subKantorGabungan || 'KANTOR TIDAK DIKETAHUI';
+    
     const matchedAo = aoList.find(a => a.rawName === rawAo);
     const finalAo = matchedAo ? matchedAo.mappedName : rawAo;
 

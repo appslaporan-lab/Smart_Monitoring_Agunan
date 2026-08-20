@@ -17,7 +17,7 @@ export default async function AOMappingPage() {
     <main className="container">
       <section style={{ marginBottom: 32 }}>
         <h1>Mapping Nama AO</h1>
-        <p>Sesuaikan nama AO (Marketing Officer) yang berasal dari file Excel agar rapi saat ditampilkan di Dashboard. AO yang kosong di Excel akan terbaca sebagai &quot;KOSONG&quot;.</p>
+        <p>Sesuaikan nama AO (Marketing Officer) yang berasal dari file Excel agar rapi saat ditampilkan di Dashboard. AO yang kosong di Excel akan otomatis menggunakan nama <strong>Sub Kantor</strong> nasabah tersebut.</p>
       </section>
 
       <AOMappingForm initialData={aoList} />

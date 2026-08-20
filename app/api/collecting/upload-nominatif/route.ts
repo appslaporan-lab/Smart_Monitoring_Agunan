@@ -42,12 +42,17 @@ export async function POST(request: Request) {
     // Cari AO baru yang belum ada di masterAo
     const newAos = new Set<string>();
     rows.forEach(r => {
-      let raw = 'KOSONG';
+      let raw = '';
       if (r.rawDataJson) {
         const parsedRaw = JSON.parse(r.rawDataJson);
         raw = String(parsedRaw['AQ'] || '').trim();
-        if (!raw) raw = 'KOSONG';
       }
+      
+      // Jika AO kosong, isi dengan sub kantor
+      if (!raw) {
+        raw = r.subKantor || 'KANTOR TIDAK DIKETAHUI';
+      }
+
       if (!aoList.some(a => a.rawName === raw)) {
         newAos.add(raw);
       }
