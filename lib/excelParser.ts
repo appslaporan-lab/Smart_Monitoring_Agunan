@@ -66,51 +66,60 @@ export function parseNominatifExcel(buffer: Buffer, uploadType: string = 'COLLEC
   const workbook = XLSX.read(buffer, { type: 'buffer', cellDates: false });
   const sheetName = workbook.SheetNames[0];
   const sheet = workbook.Sheets[sheetName];
-  const allRows: any[] = XLSX.utils.sheet_to_json(sheet, { defval: null });
+  // Gunakan header: "A" agar key dari JSON adalah huruf kolom (A, B, C, dst)
+  const allRows: any[] = XLSX.utils.sheet_to_json(sheet, { header: "A", defval: null });
 
   const rows: ParsedRow[] = [];
   let totalDilewati = 0;
 
   for (const row of allRows) {
-    const kategori = String(getCellValue(row, ['KATEGORI DEBITUR', 'KATEGORI', 'CATEGORY']) || '')
-      .trim()
-      .toUpperCase();
-    
-    // Validasi dihapus: Semua kategori kini diizinkan masuk
-    
     const isRowEmpty = Object.values(row).every(v => v === null || v === undefined || v === '' || (typeof v === 'string' && v.trim() === ''));
     if (isRowEmpty) {
-      continue; // Silently skip completely empty rows
+      continue;
     }
 
-    const norek = String(getCellValue(row, ['NOREK', 'NO REKENING', 'NO REK', 'NO REK.', 'NOMOR REKENING', 'NO_REKENING', 'NO. REKENING', 'REKENING']) || '').trim();
-    if (!norek) {
+    const norekStr = String(row['A'] || '').trim();
+    
+    // Skip baris header (jika kolom A berisi teks header seperti 'NO REKENING', 'NOREK', dll)
+    const norekUpper = norekStr.toUpperCase();
+    if (norekUpper.includes('REK') || norekUpper === 'NO' || norekUpper.includes('NOMOR') || norekUpper === 'A') {
+      continue;
+    }
+
+    if (!norekStr) {
       totalDilewati++;
       continue;
     }
 
+    const kategori = String(row['C'] || '').trim().toUpperCase();
+
+    // Gabungkan E (Kantor) dan F (Sub Kantor)
+    const kantor = String(row['E'] || '').trim();
+    const sub = String(row['F'] || '').trim();
+    const subKantorGabungan = [kantor, sub].filter(Boolean).join(' - ') || null;
+
     rows.push({
-      norek,
-      namaNasabahExcel: String(getCellValue(row, ['NAMA', 'NAMA NASABAH', 'CUSTOMER NAME']) || '').trim(),
-      alamatExcel: getCellValue(row, ['ALAMAT', 'ADDRESS']) ? String(getCellValue(row, ['ALAMAT', 'ADDRESS'])).trim() : null,
-      noIdentitas: getCellValue(row, ['NO IDENTITAS', 'NO KTP', 'NIK']) ? String(getCellValue(row, ['NO IDENTITAS', 'NO KTP', 'NIK'])).trim() : null,
-      noTelepon: getCellValue(row, ['NO TELEPON', 'TELEPON', 'PHONE']) ? String(getCellValue(row, ['NO TELEPON', 'TELEPON', 'PHONE'])).trim() : null,
-      subKantor: getCellValue(row, ['SUB KANTOR', 'KANTOR', 'CABANG']) ? String(getCellValue(row, ['SUB KANTOR', 'KANTOR', 'CABANG'])).trim() : null,
-      namaAO: getCellValue(row, ['NAMA AO', 'AO', 'NAMA MO']) ? String(getCellValue(row, ['NAMA AO', 'AO', 'NAMA MO'])).trim() : null,
+      norek: norekStr,
+      namaNasabahExcel: String(row['G'] || '').trim(),
+      alamatExcel: row['H'] ? String(row['H']).trim() : null,
+      noIdentitas: null, // Sesuai pemetaan (?)
+      noTelepon: row['AT'] ? String(row['AT']).trim() : null,
+      subKantor: subKantorGabungan,
+      namaAO: row['AQ'] ? String(row['AQ']).trim() : null,
       kategoriDebitur: kategori,
-      namaKategoriDebitur: getCellValue(row, ['NAMA KATEGORI DEBITUR', 'KATEGORI DEBITUR NAME']) ? String(getCellValue(row, ['NAMA KATEGORI DEBITUR', 'KATEGORI DEBITUR NAME'])).trim() : null,
-      plafon: toNumber(getCellValue(row, ['NILAI FAS ASAL', 'PLAFON', 'PLAFOND'])),
-      outstanding: toNumber(getCellValue(row, ['SLD PINJAMAN PKK', 'OUTSTANDING', 'SISA PINJAMAN'])),
-      tunggakanPokok: toNumber(getCellValue(row, ['SLD TUNGGAK PKK', 'TUNGGAKAN POKOK'])),
-      tunggakanBunga: toNumber(getCellValue(row, ['SLD TUNGGAK BGA', 'TUNGGAKAN BUNGA'])),
-      angsuranPerBulan: toNumber(getCellValue(row, ['NILAI TGH ANGSURAN', 'ANGSURAN', 'ANGSURAN PER BULAN'])),
-      tglRealisasi: toDate(getCellValue(row, ['TGL REALISASI', 'TGL REALISASI PINJAMAN'])),
-      tglJatuhTempo: toDate(getCellValue(row, ['TGL JTH TMP', 'TGL JATUH TEMPO'])),
-      jangkaBulan: toNumber(getCellValue(row, ['JANGKA BLN', 'TENOR', 'JANGKA'])),
-      kdKolektibilitas: getCellValue(row, normalizedType === 'PERFORM_KOLEKTIBILITAS' ? ['KD KOL EFF', 'KOLEKTIBILITAS', 'KODE KOLEKTIBILITAS', 'KODE KOLEKTIBILITAS EFF'] : ['KD KOL EFF', 'KOLEKTIBILITAS', 'KODE KOLEKTIBILITAS']) ? String(getCellValue(row, normalizedType === 'PERFORM_KOLEKTIBILITAS' ? ['KD KOL EFF', 'KOLEKTIBILITAS', 'KODE KOLEKTIBILITAS', 'KODE KOLEKTIBILITAS EFF'] : ['KD KOL EFF', 'KOLEKTIBILITAS', 'KODE KOLEKTIBILITAS'])).trim() : null,
-      jenisJaminan: getCellValue(row, ['JENIS JAMINAN', 'JENIS_JAMINAN', 'JENIS JAMINAN ASLI', 'JENIS_JAMINAN_ASLI']) ? String(getCellValue(row, ['JENIS JAMINAN', 'JENIS_JAMINAN', 'JENIS JAMINAN ASLI', 'JENIS_JAMINAN_ASLI'])).trim() : null,
-      produkKredit: getCellValue(row, ['PRODUK KREDIT', 'PRODUK', 'JENIS PRODUK', 'PRODUCT', 'PRODUCT TYPE']) ? String(getCellValue(row, ['PRODUK KREDIT', 'PRODUK', 'JENIS PRODUK', 'PRODUCT', 'PRODUCT TYPE'])).trim() : null,
-      hariTunggakan: toNumber(getCellValue(row, ['JML HR TUNGGAKAN EFF', 'HARI TUNGGAKAN', 'HARI'])) || 0,
+      namaKategoriDebitur: row['D'] ? String(row['D']).trim() : null,
+      plafon: toNumber(row['S']),
+      outstanding: toNumber(row['R']),
+      tunggakanPokok: toNumber(row['Z']),
+      tunggakanBunga: null, // Sesuai pemetaan (?)
+      angsuranPerBulan: toNumber(row['AA']),
+      tglRealisasi: toDate(row['AC']),
+      tglJatuhTempo: toDate(row['AD']),
+      jangkaBulan: toNumber(row['AE']),
+      kdKolektibilitas: row['P'] ? String(row['P']).trim() : null,
+      jenisJaminan: row['BT'] ? String(row['BT']).trim() : null,
+      produkKredit: row['BM'] ? String(row['BM']).trim() : null,
+      hariTunggakan: toNumber(row['BB']) || 0,
       rawDataJson: JSON.stringify(row),
     });
   }
