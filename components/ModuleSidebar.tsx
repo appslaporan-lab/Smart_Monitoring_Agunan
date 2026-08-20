@@ -28,7 +28,6 @@ const MODULES: ModuleDef[] = [
 
 const MENU_CONFIG: MenuItem[] = [
   { href: '/superadmin/users', label: 'Approval User', roles: ['SUPERADMIN'], icon: UserCog, module: 'agunan' },
-  { href: '/admin/settings', label: 'Pengaturan Bucket', roles: ['SUPERADMIN'], icon: Settings, module: 'agunan' },
   { href: '/', label: 'Dashboard', roles: AGUNAN_ROLES, icon: LayoutDashboard, module: 'agunan' },
   { href: '/auth/change-password', label: 'Ganti Password', roles: 'all', icon: Shield, module: 'agunan' },
   { href: '/pengambilan', label: 'Pengambilan Agunan', roles: ['ADM_KREDIT_PUSAT', 'ADM_KREDIT_CABANG', 'KEPALA_KAS'], icon: PackageOpen, module: 'agunan' },
@@ -49,6 +48,7 @@ const MENU_CONFIG: MenuItem[] = [
 
   { href: '/performa/kolektibilitas', label: 'Laporan Kolektibilitas', roles: ['SUPERADMIN', 'KASUBAG_KREDIT_PUSAT_1', 'KASUBAG_KREDIT_PUSAT_2', 'KASUBAG_KREDIT_CABANG', 'KABAG_MARKETING_PUSAT_1', 'KABAG_MARKETING_PUSAT_2', 'PIMPINAN_CABANG', 'DIREKTUR', 'KABAG_OPERASIONAL'], icon: FileText, module: 'performa' },
   { href: '/performa', label: 'Dashboard Performa', roles: 'all', icon: LayoutDashboard, module: 'performa' },
+  { href: '/admin/settings', label: 'Pengaturan Bucket', roles: ['SUPERADMIN'], icon: Settings, module: 'performa' },
 ];
 
 export default function ModuleSidebar({
