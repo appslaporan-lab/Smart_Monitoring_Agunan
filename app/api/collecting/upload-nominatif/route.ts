@@ -29,10 +29,39 @@ export async function POST(request: Request) {
 
   try {
     const buffer = Buffer.from(await file.arrayBuffer());
-    const { rows, totalBarisAsli, totalDilewati } = parseNominatifExcel(buffer, uploadType);
+    
+    // Ambil list mapping AO dari database
+    const aoList = await prisma.masterAO.findMany();
+    
+    const { rows, totalBarisAsli, totalDilewati } = parseNominatifExcel(buffer, uploadType, aoList);
 
     if (rows.length === 0) {
-      return NextResponse.json({ error: 'Tidak ada baris data yang valid untuk diimport (cek kategori debitur UK/UM/UT).' }, { status: 400 });
+      return NextResponse.json({ error: 'Tidak ada baris data yang valid untuk diimport.' }, { status: 400 });
+    }
+
+    // Cari AO baru yang belum ada di MasterAO
+    const newAos = new Set<string>();
+    rows.forEach(r => {
+      let raw = 'KOSONG';
+      if (r.rawDataJson) {
+        const parsedRaw = JSON.parse(r.rawDataJson);
+        raw = String(parsedRaw['AQ'] || '').trim();
+        if (!raw) raw = 'KOSONG';
+      }
+      if (!aoList.some(a => a.rawName === raw)) {
+        newAos.add(raw);
+      }
+    });
+
+    if (newAos.size > 0) {
+      const dataToInsert = Array.from(newAos).map(name => ({
+        rawName: name,
+        mappedName: name // default sama dengan raw
+      }));
+      await prisma.masterAO.createMany({
+        data: dataToInsert,
+        skipDuplicates: true
+      });
     }
 
     const periode = await prisma.periodeNominatif.create({
@@ -69,11 +98,14 @@ export async function POST(request: Request) {
               tunggakanPokok: row.tunggakanPokok,
               tunggakanBunga: row.tunggakanBunga,
               angsuranPerBulan: row.angsuranPerBulan,
+              sukuBunga: row.sukuBunga,
               tglRealisasi: row.tglRealisasi,
               tglJatuhTempo: row.tglJatuhTempo,
               jangkaBulan: row.jangkaBulan,
               kdKolektibilitas: row.kdKolektibilitas,
               produkKredit: row.produkKredit,
+              sektorEkonomi: row.sektorEkonomi,
+              jarakKantorKm: row.jarakKantorKm,
               hariTunggakan: row.hariTunggakan,
               jenisUpload: uploadType,
               rawDataJson: row.rawDataJson,

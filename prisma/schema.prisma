@@ -57,11 +57,14 @@ model PinjamanPeriode {
   tunggakanPokok      Float?
   tunggakanBunga      Float?
   angsuranPerBulan    Float?
+  sukuBunga           Float?
   tglRealisasi        DateTime?
   tglJatuhTempo       DateTime?
   jangkaBulan         Int?
   kdKolektibilitas    String?
   produkKredit        String?
+  sektorEkonomi       String?
+  jarakKantorKm       Float?
   hariTunggakan       Int              @default(0)
   jenisUpload         String?          @default("COLLECTING")
   rawDataJson         String?

@@ -49,6 +49,7 @@ const MENU_CONFIG: MenuItem[] = [
   { href: '/performa/kolektibilitas', label: 'Laporan Kolektibilitas', roles: ['SUPERADMIN', 'KASUBAG_KREDIT_PUSAT_1', 'KASUBAG_KREDIT_PUSAT_2', 'KASUBAG_KREDIT_CABANG', 'KABAG_MARKETING_PUSAT_1', 'KABAG_MARKETING_PUSAT_2', 'PIMPINAN_CABANG', 'DIREKTUR', 'KABAG_OPERASIONAL'], icon: FileText, module: 'performa' },
   { href: '/performa', label: 'Dashboard Performa', roles: 'all', icon: LayoutDashboard, module: 'performa' },
   { href: '/admin/settings', label: 'Pengaturan Bucket', roles: ['SUPERADMIN'], icon: Settings, module: 'performa' },
+  { href: '/admin/ao', label: 'Mapping AO', roles: ['SUPERADMIN'], icon: UserCog, module: 'performa' },
 ];
 
 export default function ModuleSidebar({

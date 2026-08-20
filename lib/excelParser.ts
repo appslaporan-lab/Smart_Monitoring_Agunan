@@ -52,16 +52,21 @@ export type ParsedRow = {
   tunggakanPokok: number | null;
   tunggakanBunga: number | null;
   angsuranPerBulan: number | null;
+  sukuBunga?: number | null;
   tglRealisasi: Date | null;
   tglJatuhTempo: Date | null;
   jangkaBulan: number | null;
   kdKolektibilitas: string | null;
   produkKredit: string | null;
+  sektorEkonomi?: string | null;
+  jarakKantorKm?: number | null;
   hariTunggakan: number;
   rawDataJson: string;
 };
 
-export function parseNominatifExcel(buffer: Buffer, uploadType: string = 'COLLECTING'): { rows: ParsedRow[]; totalBarisAsli: number; totalDilewati: number } {
+import { mapProdukKredit, mapSektorEkonomi, mapJenisJaminan, estimateJarakKantor } from './mappingUtils';
+
+export function parseNominatifExcel(buffer: Buffer, uploadType: string = 'COLLECTING', aoList: { rawName: string; mappedName: string }[] = []): { rows: ParsedRow[]; totalBarisAsli: number; totalDilewati: number } {
   const normalizedType = normalizeUploadType(uploadType);
   const workbook = XLSX.read(buffer, { type: 'buffer', cellDates: false });
   const sheetName = workbook.SheetNames[0];
@@ -92,11 +97,19 @@ export function parseNominatifExcel(buffer: Buffer, uploadType: string = 'COLLEC
     }
 
     const kategori = String(row['C'] || '').trim().toUpperCase();
+    const kdProduct = String(row['C'] || '').trim();
+    const rawJaminan = String(row['BT'] || '').trim();
+    const kecamatanNasabah = String(row['K'] || '').trim();
 
     // Gabungkan E (Kantor) dan F (Sub Kantor)
     const kantor = String(row['E'] || '').trim();
     const sub = String(row['F'] || '').trim();
     const subKantorGabungan = [kantor, sub].filter(Boolean).join(' - ') || null;
+
+    let rawAo = String(row['AQ'] || '').trim();
+    if (!rawAo) rawAo = 'KOSONG';
+    const matchedAo = aoList.find(a => a.rawName === rawAo);
+    const finalAo = matchedAo ? matchedAo.mappedName : rawAo;
 
     rows.push({
       norek: norekStr,
@@ -105,7 +118,7 @@ export function parseNominatifExcel(buffer: Buffer, uploadType: string = 'COLLEC
       noIdentitas: null, // Sesuai pemetaan (?)
       noTelepon: row['AT'] ? String(row['AT']).trim() : null,
       subKantor: subKantorGabungan,
-      namaAO: row['AQ'] ? String(row['AQ']).trim() : null,
+      namaAO: finalAo,
       kategoriDebitur: kategori,
       namaKategoriDebitur: row['D'] ? String(row['D']).trim() : null,
       plafon: toNumber(row['S']),
@@ -113,12 +126,15 @@ export function parseNominatifExcel(buffer: Buffer, uploadType: string = 'COLLEC
       tunggakanPokok: toNumber(row['Z']),
       tunggakanBunga: toNumber(row['X']), // Sesuai pemetaan dari kolom X
       angsuranPerBulan: toNumber(row['AA']),
+      sukuBunga: toNumber(row['T']),
       tglRealisasi: toDate(row['AC']),
       tglJatuhTempo: toDate(row['AD']),
       jangkaBulan: toNumber(row['AE']),
       kdKolektibilitas: row['P'] ? String(row['P']).trim() : null,
-      jenisJaminan: row['BT'] ? String(row['BT']).trim() : null,
-      produkKredit: row['BM'] ? String(row['BM']).trim() : null,
+      jenisJaminan: mapJenisJaminan(rawJaminan),
+      produkKredit: mapProdukKredit(kdProduct),
+      sektorEkonomi: mapSektorEkonomi(kdProduct),
+      jarakKantorKm: estimateJarakKantor(subKantorGabungan || kantor, kecamatanNasabah),
       hariTunggakan: toNumber(row['BB']) || 0,
       rawDataJson: JSON.stringify(row),
     });
