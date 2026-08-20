@@ -111,7 +111,7 @@ export function parseNominatifExcel(buffer: Buffer, uploadType: string = 'COLLEC
       plafon: toNumber(row['S']),
       outstanding: toNumber(row['R']),
       tunggakanPokok: toNumber(row['Z']),
-      tunggakanBunga: null, // Sesuai pemetaan (?)
+      tunggakanBunga: toNumber(row['X']), // Sesuai pemetaan dari kolom X
       angsuranPerBulan: toNumber(row['AA']),
       tglRealisasi: toDate(row['AC']),
       tglJatuhTempo: toDate(row['AD']),

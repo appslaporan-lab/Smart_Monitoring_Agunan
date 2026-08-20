@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma';
 import { determineEWS } from '@/lib/ews';
 import { getKantorLabel } from '@/lib/kantor';
 import { format } from 'date-fns';
+import Link from 'next/link';
 import KunjunganForm from './KunjunganForm';
 import ExportHistoriButtons from './ExportHistoriButtons';
 
@@ -37,6 +38,7 @@ export default async function PinjamanDetailPage({ params }: { params: { id: str
       <main className="container">
         <div className="card" style={{ padding: 24 }}>
           <h1>Data pinjaman tidak ditemukan</h1>
+          <Link href="/collecting" className="button secondary" style={{ marginTop: 16, display: 'inline-block' }}>Kembali ke Dashboard</Link>
         </div>
       </main>
     );
@@ -46,9 +48,17 @@ export default async function PinjamanDetailPage({ params }: { params: { id: str
 
   return (
     <main className="container">
-      <section style={{ marginBottom: 32 }}>
-        <h1>Detail Pinjaman — {pinjaman.namaNasabahExcel}</h1>
-        <p>Periode: {pinjaman.periode.bulan}/{pinjaman.periode.tahun}</p>
+      <section style={{ marginBottom: 32, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div>
+          <h1 style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <Link href="/collecting" className="button secondary" style={{ padding: '6px 12px', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: 4 }}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+              Kembali
+            </Link>
+            Detail Pinjaman — {pinjaman.namaNasabahExcel}
+          </h1>
+          <p style={{ margin: '8px 0 0 0' }}>Periode: {pinjaman.periode.bulan}/{pinjaman.periode.tahun}</p>
+        </div>
       </section>
 
       <div className="card" style={{ padding: 24, marginBottom: 24 }}>
