@@ -1,7 +1,7 @@
 export const KANTOR_GROUPS: Record<string, string[]> = {
   PUSAT_1: ['01', '06', '07', '10', '14'],
   PUSAT_2: ['03', '05', '09', '12'],
-  CABANG: ['02', '04', '08', '13', '15'],
+  CABANG: ['02', '04', '08', '13', '15', '22'],
 };
 
 export const KANTOR_LABEL: Record<string, string> = {
@@ -16,11 +16,32 @@ const normalizeSubKantor = (subKantor: string | null | undefined) => {
 };
 
 export function getKantorGroup(subKantor: string | null | undefined): string | null {
-  const kode = normalizeSubKantor(subKantor);
-  if (!kode) return null;
-  for (const [group, codes] of Object.entries(KANTOR_GROUPS)) {
-    if (codes.includes(kode)) return group;
+  if (!subKantor) return null;
+  const str = subKantor.toUpperCase();
+
+  // Keyword / kode mapping berdasarkan struktur BPR
+  const mapping: Record<string, string[]> = {
+    CABANG: ['02', '04', '08', '13', '15', '22', 'CAMPURDARAT', 'BANNDUNG', 'BANDUNG', 'BOYOLANGU', 'PAKEL', 'NGENTRONG'],
+    PUSAT_2: ['03', '05', '09', '12', 'NGUNUT', 'KALIDAWIR', 'REJOTANGAN', 'PUCANGLABAN'],
+    PUSAT_1: ['06', '07', '10', '14', '01', 'KAUMAN', 'NGANTRU', 'NGEMPLAK', 'KARANGREJO', 'PUSAT'],
+  };
+
+  // 1. Coba ekstrak 2 digit terakhir atau cari match persis
+  const tokens = str.match(/\b\d{2}\b/g);
+  if (tokens) {
+    const lastCode = tokens[tokens.length - 1]; // e.g. "01 - 06" -> "06"
+    for (const [group, keywords] of Object.entries(mapping)) {
+      if (keywords.includes(lastCode)) return group;
+    }
   }
+
+  // 2. Fallback pencocokan teks
+  for (const [group, keywords] of Object.entries(mapping)) {
+    for (const kw of keywords) {
+      if (str.includes(kw)) return group;
+    }
+  }
+
   return null;
 }
 
