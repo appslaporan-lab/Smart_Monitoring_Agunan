@@ -418,4 +418,9 @@ enum UserRole {
   KABAG_MARKETING_PUSAT_1
   KABAG_MARKETING_PUSAT_2
   SPI
+}model AppSetting {
+  id Int @id @default(autoincrement())
+  key String @unique
+  value String @db.Text
+  updatedAt DateTime @updatedAt
 }

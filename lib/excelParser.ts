@@ -7,8 +7,13 @@ const normalizeUploadType = (value: string | null | undefined): UploadJenis => {
 };
 
 const getCellValue = (row: any, candidates: string[]): any => {
-  for (const key of candidates) {
-    if (row[key] !== undefined && row[key] !== null && row[key] !== '') return row[key];
+  const normalizedRow: any = {};
+  for (const k in row) {
+    normalizedRow[k.trim().toUpperCase()] = row[k];
+  }
+  const normalizedCandidates = candidates.map(c => c.trim().toUpperCase());
+  for (const key of normalizedCandidates) {
+    if (normalizedRow[key] !== undefined && normalizedRow[key] !== null && normalizedRow[key] !== '') return normalizedRow[key];
   }
   return null;
 };
