@@ -9,7 +9,7 @@ export default async function AOMappingPage() {
   const user = getCurrentUser();
   if (!user || user.role !== 'SUPERADMIN') redirect('/');
 
-  const aoList = await prisma.masterAO.findMany({
+  const aoList = await prisma.masterAo.findMany({
     orderBy: { rawName: 'asc' }
   });
 

@@ -31,7 +31,7 @@ export async function POST(request: Request) {
     const buffer = Buffer.from(await file.arrayBuffer());
     
     // Ambil list mapping AO dari database
-    const aoList = await prisma.masterAO.findMany();
+    const aoList = await prisma.masterAo.findMany();
     
     const { rows, totalBarisAsli, totalDilewati } = parseNominatifExcel(buffer, uploadType, aoList);
 
@@ -39,7 +39,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Tidak ada baris data yang valid untuk diimport.' }, { status: 400 });
     }
 
-    // Cari AO baru yang belum ada di MasterAO
+    // Cari AO baru yang belum ada di masterAo
     const newAos = new Set<string>();
     rows.forEach(r => {
       let raw = 'KOSONG';
@@ -58,7 +58,7 @@ export async function POST(request: Request) {
         rawName: name,
         mappedName: name // default sama dengan raw
       }));
-      await prisma.masterAO.createMany({
+      await prisma.masterAo.createMany({
         data: dataToInsert,
         skipDuplicates: true
       });

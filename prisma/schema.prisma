@@ -427,3 +427,12 @@ enum UserRole {
   value String @db.Text
   updatedAt DateTime @updatedAt
 }
+
+
+model MasterAo {
+  id          Int      @id @default(autoincrement())
+  rawName     String   @unique 
+  mappedName  String   
+  subKantor   String?  
+  updatedAt   DateTime @updatedAt
+}
