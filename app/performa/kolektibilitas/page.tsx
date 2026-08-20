@@ -158,13 +158,13 @@ export default async function PerformaKolektibilitasPage() {
     isNpl: !!row.kdKolektibilitas && COLLECTING_REPORT_CONFIG.nplCodes.includes(String(row.kdKolektibilitas).trim().toUpperCase()),
     outstanding: row.outstanding ?? 0,
     moName: normalizeMoName(row.namaAO),
-    productBucket: classifyByKeywords(row.produkKredit, COLLECTING_REPORT_CONFIG.creditProductCategories),
-    interestRateBucket: classifyByRange(row.plafon, COLLECTING_REPORT_CONFIG.interestRateRanges),
+    productBucket: row.produkKredit || "Tidak diketahui",
+    interestRateBucket: classifyByRange(row.sukuBunga, COLLECTING_REPORT_CONFIG.interestRateRanges),
     tenorBucket: classifyByRange(row.jangkaBulan, COLLECTING_REPORT_CONFIG.tenorRanges),
     arrearsBucket: classifyByRange(row.hariTunggakan, COLLECTING_REPORT_CONFIG.arrearsRanges),
     plafondBucket: classifyByRange(row.plafon, COLLECTING_REPORT_CONFIG.plafondRanges),
-    collateralBucket: classifyByKeywords(row.jenisJaminan, COLLECTING_REPORT_CONFIG.collateralCategories),
-	radiusBucket:classifyByKeywords(row.jenisJaminan, COLLECTING_REPORT_CONFIG.collateralCategories),
+    collateralBucket: row.jenisJaminan || "Tidak diketahui",
+	radiusBucket: classifyByRange(row.jarakKantorKm, [{label: "< 10 km", min:0, max:9}, {label: "10 - 20 km", min:10, max:20}, {label: "> 20 km", min:21}]),
   }));
 
   const subKantorSummary = new Map<string, { nplCount: number; nonNplCount: number; nplNominal: number; nonNplNominal: number; total: number; totalNominal: number }>();
@@ -248,10 +248,10 @@ export default async function PerformaKolektibilitasPage() {
     };
   });
 
-  const productSummary = COLLECTING_REPORT_CONFIG.creditProductCategories.map((range) => {
-    const entries = reportRows.filter((row) => row.productBucket === range.label);
+  const productSummary = Array.from(new Map(reportRows.map((row) => [row.productBucket, 0])).keys()).map((label) => {
+    const entries = reportRows.filter((row) => row.productBucket === label);
     return {
-      label: range.label,
+      label,
       total: entries.length,
       nplCount: entries.filter((row) => row.isNpl).length,
 	  nplNominal: entries.filter((row) => row.isNpl).reduce((sum, row) => sum + row.outstanding, 0),
@@ -313,10 +313,10 @@ export default async function PerformaKolektibilitasPage() {
     };
   });
 
-  const collateralSummary = COLLECTING_REPORT_CONFIG.collateralCategories.map((range) => {
-    const entries = reportRows.filter((row) => row.collateralBucket === range.label);
+  const collateralSummary = Array.from(new Map(reportRows.map((row) => [row.collateralBucket, 0])).keys()).map((label) => {
+    const entries = reportRows.filter((row) => row.collateralBucket === label);
     return {
-      label: range.label,
+      label,
       total: entries.length,
       nplCount: entries.filter((row) => row.isNpl).length,
 	  nplNominal: entries.filter((row) => row.isNpl).reduce((sum, row) => sum + row.outstanding, 0),
@@ -326,10 +326,10 @@ export default async function PerformaKolektibilitasPage() {
     };
   });
   
-  const radiusSummary = COLLECTING_REPORT_CONFIG.collateralCategories.map((range) => {
-    const entries = reportRows.filter((row) => row.collateralBucket === range.label);
+  const radiusSummary = Array.from(new Map(reportRows.map((row) => [row.radiusBucket, 0])).keys()).map((label) => {
+    const entries = reportRows.filter((row) => row.radiusBucket === label);
     return {
-      label: range.label,
+      label,
       total: entries.length,
       nplCount: entries.filter((row) => row.isNpl).length,
 	  nplNominal: entries.filter((row) => row.isNpl).reduce((sum, row) => sum + row.outstanding, 0),
@@ -386,3 +386,5 @@ export default async function PerformaKolektibilitasPage() {
     </main>
   );
 }
+
+
