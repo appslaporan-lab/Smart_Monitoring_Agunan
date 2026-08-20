@@ -1,7 +1,5 @@
 import * as XLSX from 'xlsx';
 
-const KATEGORI_DIIZINKAN = ['UK', 'UM', 'UT'];
-
 export type UploadJenis = 'COLLECTING' | 'PERFORM_KOLEKTIBILITAS';
 
 const normalizeUploadType = (value: string | null | undefined): UploadJenis => {
@@ -72,12 +70,15 @@ export function parseNominatifExcel(buffer: Buffer, uploadType: string = 'COLLEC
     const kategori = String(getCellValue(row, ['KATEGORI DEBITUR', 'KATEGORI', 'CATEGORY']) || '')
       .trim()
       .toUpperCase();
-    if (!KATEGORI_DIIZINKAN.includes(kategori)) {
-      totalDilewati++;
-      continue;
+    
+    // Validasi dihapus: Semua kategori kini diizinkan masuk
+    
+    const isRowEmpty = Object.values(row).every(v => v === null || v === undefined || v === '' || (typeof v === 'string' && v.trim() === ''));
+    if (isRowEmpty) {
+      continue; // Silently skip completely empty rows
     }
 
-    const norek = String(getCellValue(row, ['NOREK', 'NO REKENING', 'NO REK']) || '').trim();
+    const norek = String(getCellValue(row, ['NOREK', 'NO REKENING', 'NO REK', 'NO REK.', 'NOMOR REKENING', 'NO_REKENING', 'NO. REKENING', 'REKENING']) || '').trim();
     if (!norek) {
       totalDilewati++;
       continue;

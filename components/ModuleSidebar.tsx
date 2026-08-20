@@ -36,6 +36,7 @@ const MENU_CONFIG: MenuItem[] = [
   { href: '/nasabah', label: 'Data Nasabah', roles: ['ADM_KREDIT_PUSAT', 'ADM_KREDIT_CABANG', 'KEPALA_KAS', 'KASUBAG_PUSAT', 'KASUBAG_CABANG'], icon: Users, module: 'agunan' },
   { href: '/agunan', label: 'Data Agunan', roles: ['ADM_KREDIT_PUSAT', 'ADM_KREDIT_CABANG', 'KEPALA_KAS', 'KASUBAG_PUSAT', 'KASUBAG_CABANG'], icon: Archive, module: 'agunan' },
   { href: '/berita-acara', label: 'Penyerahan Agunan', roles: ['ADM_KREDIT_PUSAT', 'ADM_KREDIT_CABANG', 'KEPALA_KAS', 'KASUBAG_PUSAT', 'KASUBAG_CABANG'], icon: FileSignature, module: 'agunan' },
+  { href: '/berita-acara-lintas-kantor', label: 'BA Lintas Kantor', roles: ['ADM_KREDIT_PUSAT', 'ADM_KREDIT_CABANG', 'KABAG_OPERASIONAL', 'PIMPINAN_CABANG', 'DIREKTUR'], icon: FileSignature, module: 'agunan' },
   { href: '/stock-opname', label: 'Stock Opname', roles: ['KASUBAG_PUSAT', 'KASUBAG_CABANG', 'KABAG_OPERASIONAL', 'PIMPINAN_CABANG', 'DIREKTUR', 'SPI'], icon: ClipboardCheck, module: 'agunan' },
   { href: '/reports', label: 'Laporan', roles: ['KASUBAG_PUSAT', 'KASUBAG_CABANG', 'KABAG_OPERASIONAL', 'PIMPINAN_CABANG', 'DIREKTUR', 'SPI'], icon: FileText, module: 'agunan' },
   { href: '/audit', label: 'Audit', roles: ['KABAG_OPERASIONAL', 'PIMPINAN_CABANG', 'DIREKTUR', 'SPI'], icon: ShieldCheck, module: 'agunan' },

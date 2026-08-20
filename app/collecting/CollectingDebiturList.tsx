@@ -13,6 +13,8 @@ type EwsItem = {
   kantorLabel: string;
   kunjunganCount: number;
   ews: { status: string; label: string; colorClass: string; wajibKunjungan: boolean };
+  kolBulanIni: string | null;
+  kolBulanLalu: string | null;
 };
 
 const FILTER_OPTIONS: { key: string; label: string; match: (item: EwsItem) => boolean }[] = [
@@ -127,6 +129,21 @@ export default function CollectingDebiturList({ items }: { items: EwsItem[] }) {
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 8 }}>
                     <span className={`status-pill ${item.ews.colorClass}`}>{item.ews.label}</span>
+                    
+                    {item.kolBulanIni && (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.8rem', background: '#f1f5f9', padding: '4px 8px', borderRadius: 4 }}>
+                        <span>Kol: <strong>{item.kolBulanIni}</strong></span>
+                        {item.kolBulanLalu && item.kolBulanLalu !== item.kolBulanIni && (
+                          <span style={{ 
+                            color: Number(item.kolBulanIni) > Number(item.kolBulanLalu) ? '#dc2626' : '#10b981',
+                            fontWeight: 600 
+                          }}>
+                            ({Number(item.kolBulanIni) > Number(item.kolBulanLalu) ? 'Memburuk dari ' : 'Membaik dari '} {item.kolBulanLalu})
+                          </span>
+                        )}
+                      </div>
+                    )}
+
                     <Link href={`/collecting/pinjaman/${item.id}`} className="button secondary" style={{ fontSize: '0.85rem', padding: '6px 14px' }}>
                       Detail / Catat Kunjungan
                     </Link>

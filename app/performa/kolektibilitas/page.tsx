@@ -130,6 +130,7 @@ export default async function PerformaKolektibilitasPage() {
   if (!user) redirect('/auth/login');
 
     const periodeAktif = await prisma.periodeNominatif.findFirst({
+    where: { jenisUpload: 'PERFORM_KOLEKTIBILITAS' },
     orderBy: [{ tahun: 'desc' }, { bulan: 'desc' }],
   });
 

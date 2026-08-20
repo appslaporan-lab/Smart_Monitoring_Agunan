@@ -19,7 +19,7 @@ export default async function UploadNominatifPage() {
     <main className="container">
       <section style={{ marginBottom: 32 }}>
         <h1>Upload Data Nominatif</h1>
-        <p>Pisahkan upload untuk Collecting dan Perform Kolektibilitas. Hanya kategori debitur UK, UM, dan UT yang akan diimport.</p>
+        <p>Silakan upload file Excel Data Nominatif. Anda dapat memisahkan jenis upload untuk Collecting dan Perform Kolektibilitas.</p>
       </section>
 
       <div className="card" style={{ padding: 24, marginBottom: 24 }}>
