@@ -18,8 +18,7 @@ export default function LoginPage({ searchParams }: LoginPageProps) {
           </div>
           <h1>Selamat Datang Kembali</h1>
           <p>
-            Sistem informasi terpadu untuk monitoring pergerakan dan status agunan kredit secara real-time.
-            Pastikan data agunan selalu aman dan termonitor dengan baik.
+            Sistem informasi terpadu untuk analisis performa Kolektibilitas, manajemen aktivitas Penagihan (Collecting), penilaian KPI, serta monitoring Agunan kredit secara komprehensif dan real-time.
           </p>
         </div>
       </div>
