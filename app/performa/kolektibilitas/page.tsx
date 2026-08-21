@@ -114,7 +114,7 @@ export default async function PerformaKolektibilitasPage({ searchParams }: { sea
 
   
   const semuaPeriode = await prisma.periodeNominatif.findMany({
-    where: { jenisUpload: 'PERFORMA' },
+    where: { jenisUpload: 'PERFORM_KOLEKTIBILITAS' },
     orderBy: [{ tahun: 'desc' }, { bulan: 'desc' }],
   });
 
