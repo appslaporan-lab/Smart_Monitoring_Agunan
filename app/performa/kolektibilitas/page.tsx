@@ -250,6 +250,7 @@ export default async function PerformaKolektibilitasPage({ searchParams }: { sea
         return (aoMap.get(raw) || raw).toUpperCase();
       })(),
       productBucket: row.produkKredit || '(blank)',
+      sektorBucket: row.sektorEkonomi || 'LAIN-LAIN',
       interestRateBucket: classifyByRange(row.sukuBunga, bungaPdfRanges),
       tenorBucket: classifyByRange(row.jangkaBulan, tenorPdfRanges),
       plafondBucket: classifyByRange(row.plafon, plafondPdfRanges),
@@ -312,6 +313,7 @@ export default async function PerformaKolektibilitasPage({ searchParams }: { sea
 
   const tenorSummary = buildDetailedSummary('tenorBucket', tenorPdfRanges.map(r => r.label));
   const productSummary = buildDetailedSummary('productBucket');
+  const sektorSummary = buildDetailedSummary('sektorBucket');
   const plafondSummary = buildDetailedSummary('plafondBucket', plafondPdfRanges.map(r => r.label));
   const bungaSummary = buildDetailedSummary('interestRateBucket', bungaPdfRanges.map(r => r.label));
   const agunanSummary = buildDetailedSummary('collateralBucket');
@@ -625,6 +627,7 @@ export default async function PerformaKolektibilitasPage({ searchParams }: { sea
 
       {renderDetailedSummaryTable('TENOR', tenorSummary)}
       {renderDetailedSummaryTable('TYPE KREDIT', productSummary)}
+      {renderDetailedSummaryTable('SEKTOR USAHA', sektorSummary)}
       {renderDetailedSummaryTable('PLAFOND', plafondSummary)}
       {renderDetailedSummaryTable('RANGE_BUNGA', bungaSummary)}
       {renderDetailedSummaryTable('AGUNAN', agunanSummary)}
