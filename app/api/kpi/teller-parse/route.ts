@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
     // Process the excel file
     const result = parseTellerExcel(buffer, user.nama);
 
-    // Save error to database (upsert to prevent duplicates for the same day)
+    // Save error to database
     await prisma.rekapKesalahanTeller.upsert({
       where: {
         userId_tanggal: {
@@ -42,6 +42,34 @@ export async function POST(req: NextRequest) {
         userId: user.id,
         tanggal: tanggal,
         jumlah: result.errorCount,
+      }
+    });
+
+    // Format currency for text logging
+    const fmt = (v: number) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(v);
+
+    const kegiatanStr = `Melakukan Transaksi Harian Teller:
+- Setoran Tabungan: ${result.setoran.count} Trx (${fmt(result.setoran.total)})
+- Tarikan Tabungan: ${result.penarikan.count} Trx (${fmt(result.penarikan.total)})
+- Angsuran/Pelunasan: ${result.angsuran.count} Trx (${fmt(result.angsuran.total)})
+- Pencairan Pinjaman: ${result.pencairan.count} Trx (${fmt(result.pencairan.total)})
+- Total Kesalahan Transaksi: ${result.errorCount} kali.`;
+
+    // Save activities to Performa Karyawan
+    await prisma.performaKaryawan.upsert({
+      where: {
+        userId_tanggal: {
+          userId: user.id,
+          tanggal: tanggal,
+        }
+      },
+      update: {
+        kegiatan: kegiatanStr,
+      },
+      create: {
+        userId: user.id,
+        tanggal: tanggal,
+        kegiatan: kegiatanStr,
       }
     });
 
