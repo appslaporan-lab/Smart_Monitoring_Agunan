@@ -239,7 +239,7 @@ export default async function PerformaKolektibilitasPage() {
         } else {
           raw = row.namaAO || '(blank)';
         }
-        return aoMap.get(raw) || raw;
+        return (aoMap.get(raw) || raw).toUpperCase();
       })(),
       productBucket: row.produkKredit || '(blank)',
       interestRateBucket: classifyByRange(row.sukuBunga, bungaPdfRanges),
