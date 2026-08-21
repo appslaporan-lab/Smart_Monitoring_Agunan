@@ -78,7 +78,17 @@ export default async function CollectingDashboardPage() {
       hariTunggakan: dynamicHariTunggakan,
       kantorLabel: getKantorLabel(p.subKantor),
       kunjunganCount: p.kunjunganPenagihan.length,
-      ews: determineEWS(dynamicHariTunggakan, p.tglJatuhTempo),
+      ews: (() => {
+        let tglJanji: Date | null = null;
+        if (p.kunjunganPenagihan && p.kunjunganPenagihan.length > 0) {
+          const janji = p.kunjunganPenagihan.filter((k: any) => k.hasil === 'JANJI_BAYAR' && k.tanggalJanjiBayar);
+          if (janji.length > 0) {
+            janji.sort((a: any, b: any) => new Date(b.tanggalKunjungan).getTime() - new Date(a.tanggalKunjungan).getTime());
+            tglJanji = janji[0].tanggalJanjiBayar;
+          }
+        }
+        return determineEWS(dynamicHariTunggakan, p.tglJatuhTempo, p.tglRealisasi, tglJanji);
+      })(),
       kolBulanIni: p.kdKolektibilitas,
       kolBulanLalu: prevKolMap.get(p.norek) || null,
     };

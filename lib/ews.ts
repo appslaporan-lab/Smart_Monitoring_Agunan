@@ -1,4 +1,4 @@
-import { differenceInDays } from 'date-fns';
+import { differenceInDays, getDate, setDate, isBefore, addMonths } from 'date-fns';
 
 export type EWSResult = {
   status: string;
@@ -8,39 +8,54 @@ export type EWSResult = {
   wajibKunjungan: boolean;
 };
 
-export function determineEWS(hariTunggakan: number, tglJatuhTempo: Date | null): EWSResult {
-  if (tglJatuhTempo) {
-    const hariMenujuJatuhTempo = differenceInDays(new Date(tglJatuhTempo), new Date());
-    if (hariMenujuJatuhTempo <= 7 && hariMenujuJatuhTempo >= 0 && hariTunggakan <= 0) {
+export function determineEWS(hariTunggakan: number, tglJatuhTempo: Date | null, tglRealisasi?: Date | null, tglJanjiBayar?: Date | null): EWSResult {
+  const today = new Date();
+  
+  if (tglJanjiBayar) {
+    const hariMenujuJanji = differenceInDays(new Date(tglJanjiBayar), today);
+    if (hariMenujuJanji <= 3 && hariMenujuJanji >= 0) {
+      return { status: 'JANJI_BAYAR_DEKAT', label: `H-${hariMenujuJanji}: Ingatkan Janji Bayar`, colorClass: 'status-warning', hariTunggakan, wajibKunjungan: false };
+    }
+  }
+
+  if (tglRealisasi && hariTunggakan <= 0) {
+    const billingDay = getDate(new Date(tglRealisasi));
+    let nextBillingDate = setDate(today, billingDay);
+    if (isBefore(nextBillingDate, today)) {
+       nextBillingDate = addMonths(nextBillingDate, 1);
+    }
+    const hariMenujuTagihan = differenceInDays(nextBillingDate, today);
+    
+    if (hariMenujuTagihan <= 7 && hariMenujuTagihan >= 0) {
       return { status: 'H7_DESK_CALL', label: 'H-7: Harus Desk Call', colorClass: 'status-warning', hariTunggakan, wajibKunjungan: false };
     }
   }
 
-  // Aman: belum atau baru 0–3 hari tunggakan
+  // Aman: belum atau baru 0-3 hari tunggakan
   if (hariTunggakan <= 3) {
     return { status: 'AMAN', label: 'Aman', colorClass: 'status-pending', hariTunggakan, wajibKunjungan: false };
   }
-  // Hari ke 4–29: Kunjungan MO
+  // Hari ke 4-29: Kunjungan MO
   if (hariTunggakan < 30) {
     return { status: 'KUNJUNGAN_MO', label: 'Kunjungan MO', colorClass: 'status-warning', hariTunggakan, wajibKunjungan: true };
   }
-  // Hari ke 30–59: Surat Tagihan 1
+  // Hari ke 30-59: Surat Tagihan 1
   if (hariTunggakan < 60) {
     return { status: 'SURAT_TAGIHAN_1', label: 'Terbitkan Surat Tagihan 1', colorClass: 'status-dikeluarkan', hariTunggakan, wajibKunjungan: true };
   }
-  // Hari ke 60–89: Surat Tagihan 2
+  // Hari ke 60-89: Surat Tagihan 2
   if (hariTunggakan < 90) {
     return { status: 'SURAT_TAGIHAN_2', label: 'Terbitkan Surat Tagihan 2', colorClass: 'status-dikeluarkan', hariTunggakan, wajibKunjungan: true };
   }
-  // Hari ke 90–119: Surat Tagihan 3
+  // Hari ke 90-119: Surat Tagihan 3
   if (hariTunggakan < 120) {
     return { status: 'SURAT_TAGIHAN_3', label: 'Terbitkan Surat Tagihan 3', colorClass: 'status-dikeluarkan', hariTunggakan, wajibKunjungan: true };
   }
-  // Hari ke 120–149: SP 1
+  // Hari ke 120-149: SP 1
   if (hariTunggakan < 150) {
     return { status: 'SP_1', label: 'Terbitkan SP 1', colorClass: 'status-kembali', hariTunggakan, wajibKunjungan: true };
   }
-  // Hari ke 150–180: SP 2
+  // Hari ke 150-180: SP 2
   if (hariTunggakan <= 180) {
     return { status: 'SP_2', label: 'Terbitkan SP 2', colorClass: 'status-kembali', hariTunggakan, wajibKunjungan: true };
   }
@@ -51,6 +66,7 @@ export function determineEWS(hariTunggakan: number, tglJatuhTempo: Date | null):
 export const EWS_LABEL_MAP: Record<string, string> = {
   AMAN: 'Aman',
   H7_DESK_CALL: 'H-7: Harus Desk Call',
+  JANJI_BAYAR_DEKAT: 'Mendekati Janji Bayar',
   KUNJUNGAN_MO: 'Kunjungan MO',
   SURAT_TAGIHAN_1: 'Terbitkan Surat Tagihan 1',
   SURAT_TAGIHAN_2: 'Terbitkan Surat Tagihan 2',

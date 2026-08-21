@@ -18,6 +18,7 @@ type EwsItem = {
 };
 
 const FILTER_OPTIONS: { key: string; label: string; match: (item: EwsItem) => boolean }[] = [
+    { key: 'JANJI_BAYAR_DEKAT', label: 'Mendekati Janji Bayar', match: (i) => i.ews.status === 'JANJI_BAYAR_DEKAT' },
   { key: 'ALL', label: 'Semua', match: () => true },
   { key: 'H7_DESK_CALL', label: 'H-7 Desk Call', match: (i) => i.ews.status === 'H7_DESK_CALL' },
   { key: 'KUNJUNGAN_MO', label: 'Kunjungan MO', match: (i) => i.ews.status === 'KUNJUNGAN_MO' },
@@ -48,6 +49,7 @@ export default function CollectingDebiturList({ items }: { items: EwsItem[] }) {
   }, [items, activeFilter, query]);
 
   const cardColors: Record<string, string> = {
+    JANJI_BAYAR_DEKAT: '#84cc16',
     H7_DESK_CALL: '#fbbf24',
     KUNJUNGAN_MO: '#fb923c',
     SURAT_TAGIHAN: '#f87171',
@@ -56,6 +58,7 @@ export default function CollectingDebiturList({ items }: { items: EwsItem[] }) {
   };
 
   const cardLabels: Record<string, string> = {
+    JANJI_BAYAR_DEKAT: 'Mendekati Janji Bayar',
     H7_DESK_CALL: 'H-7 Desk Call',
     KUNJUNGAN_MO: 'Kunjungan MO',
     SURAT_TAGIHAN: 'Surat Tagihan',
