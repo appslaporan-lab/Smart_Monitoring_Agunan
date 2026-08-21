@@ -58,10 +58,27 @@ const DISTANCE_MATRIX: Record<string, Record<string, number>> = {
   'KAS NGENTRONG': { CAMPURDARAT: 2, BANDUNG: 12, PAKEL: 10 },
 };
 
+const SUBKANTOR_CODES: Record<string, string> = {
+  '01': 'PUSAT', '06': 'KAUMAN', '07': 'NGANTRU', '10': 'NGEMPLAK', '14': 'KARANGREJO',
+  '03': 'NGUNUT', '05': 'KALIDAWIR', '09': 'REJOTANGAN', '12': 'PUCANGLABAN',
+  '02': 'CAMPURDARAT', '04': 'BANDUNG', '08': 'BOYOLANGU', '13': 'PAKEL', '15': 'NGENTRONG'
+};
+
 export function estimateJarakKantor(kantorString: string | null, kecamatanNasabah: string | null): number {
-  if (!kantorString || !kecamatanNasabah) return 0;
+  if (!kantorString || !kecamatanNasabah) return 15;
   
-  const kantor = kantorString.trim().toUpperCase();
+  let kantor = kantorString.trim().toUpperCase();
+  
+  // Convert "01 - 06" to "KAUMAN"
+  if (kantor.includes('-')) {
+    const code = kantor.split('-').pop()?.trim() || '';
+    if (SUBKANTOR_CODES[code]) {
+      kantor = SUBKANTOR_CODES[code];
+    }
+  } else if (SUBKANTOR_CODES[kantor]) {
+    kantor = SUBKANTOR_CODES[kantor];
+  }
+
   const kec = kecamatanNasabah.trim().toUpperCase();
 
   let matchedKantorKey: string | null = null;

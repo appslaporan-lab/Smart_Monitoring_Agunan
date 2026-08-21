@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation';
 import { prisma } from '@/lib/prisma';
 import Link from 'next/link';
 import { getKantorGroup } from '@/lib/kantor';
+import { estimateJarakKantor } from '@/lib/mappingUtils';
 import { COLLECTING_REPORT_CONFIG, classifyByRange } from '@/lib/collecting-report-config';
 
 export const dynamic = 'force-dynamic';
@@ -223,7 +224,11 @@ export default async function PerformaKolektibilitasPage() {
   const matrixData = matrixTunggakanRanges.map(tRow => {
     const rowEntries = rows.filter(r => classifyByRange(r.hariTunggakan, matrixTunggakanRanges) === tRow.label);
     const rowRadiusData = matrixRadiusRanges.map(rCol => {
-      const cellEntries = rowEntries.filter(r => classifyByRange(r.jarakKantorKm || 0, matrixRadiusRanges) === rCol.label);
+      const cellEntries = rowEntries.filter(r => {
+        // Hitung ulang secara dinamis untuk memastikan akurasi data lama
+        const jarakReal = estimateJarakKantor(r.subKantor, JSON.parse(r.rawDataJson || '{}')['K'] || '');
+        return classifyByRange(jarakReal, matrixRadiusRanges) === rCol.label;
+      });
       return cellEntries.reduce((sum, r) => sum + (r.outstanding || 0), 0);
     });
     const rowTotal = rowRadiusData.reduce((a, b) => a + b, 0);
