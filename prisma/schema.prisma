@@ -133,6 +133,7 @@ model User {
   createdAt          DateTime @default(now())
   pengajuanDiajukan  PengajuanKeluar[] @relation("PengajuanDiajukan")
   stepDisetujui      PengajuanStep[]   @relation("StepDisetujui")
+  kesalahanTeller    RekapKesalahanTeller[]
 }
 
 enum UserStatus {
@@ -435,4 +436,17 @@ model MasterAo {
   mappedName  String   
   subKantor   String?  
   updatedAt   DateTime @updatedAt
+}
+
+
+model RekapKesalahanTeller {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
+  tanggal   DateTime @db.Date
+  jumlah    Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, tanggal])
 }

@@ -5,6 +5,7 @@ export type TellerKPIResult = {
   penarikan: { count: number; total: number };
   angsuran: { count: number; total: number };
   pencairan: { count: number; total: number };
+  errorCount: number;
 };
 
 function parseNumber(val: any): number {
@@ -15,7 +16,7 @@ function parseNumber(val: any): number {
   return isNaN(num) ? 0 : num;
 }
 
-export function parseTellerExcel(buffer: Buffer): TellerKPIResult {
+export function parseTellerExcel(buffer: Buffer, currentUserName: string): TellerKPIResult {
   const workbook = xlsx.read(buffer, { type: 'buffer' });
   const sheetName = workbook.SheetNames[0];
   const sheet = workbook.Sheets[sheetName];
@@ -26,6 +27,7 @@ export function parseTellerExcel(buffer: Buffer): TellerKPIResult {
   let ketIdx = -1;
   let dbIdx = -1;
   let crIdx = -1;
+  let userIdx = -1;
 
   // Find header row
   for (let i = 0; i < Math.min(20, rows.length); i++) {
@@ -36,6 +38,7 @@ export function parseTellerExcel(buffer: Buffer): TellerKPIResult {
       if (cell === 'KETERANGAN') ketIdx = j;
       if (cell === 'NILAI DB' || cell === 'DEBET' || cell === 'DB') dbIdx = j;
       if (cell === 'NILAI CR' || cell === 'KREDIT' || cell === 'CR') crIdx = j;
+      if (cell === 'USER') userIdx = j;
     }
     if (ketIdx !== -1 && dbIdx !== -1 && crIdx !== -1) {
       break;
@@ -43,21 +46,16 @@ export function parseTellerExcel(buffer: Buffer): TellerKPIResult {
   }
 
   // Fallback if headers not exactly matched
-  if (ketIdx === -1) ketIdx = 5; // Usually 5 or 6 in the PDF OCR
+  if (ketIdx === -1) ketIdx = 5; 
   if (dbIdx === -1) dbIdx = 6;
   if (crIdx === -1) crIdx = 7;
+  if (userIdx === -1) userIdx = 8; // In the OCR, USER is right after CR
 
-  let setoranCount = 0;
-  let setoranTotal = 0;
-  
-  let penarikanCount = 0;
-  let penarikanTotal = 0;
-  
-  let angsuranCount = 0;
-  let angsuranTotal = 0;
-  
-  let pencairanCount = 0;
-  let pencairanTotal = 0;
+  let setoranCount = 0; let setoranTotal = 0;
+  let penarikanCount = 0; let penarikanTotal = 0;
+  let angsuranCount = 0; let angsuranTotal = 0;
+  let pencairanCount = 0; let pencairanTotal = 0;
+  let errorCount = 0;
 
   for (let i = 0; i < rows.length; i++) {
     const row = rows[i];
@@ -66,20 +64,25 @@ export function parseTellerExcel(buffer: Buffer): TellerKPIResult {
     const ket = String(row[ketIdx]).trim().toUpperCase();
     const nilaiDb = parseNumber(row[dbIdx]);
     const nilaiCr = parseNumber(row[crIdx]);
+    const rowUser = String(row[userIdx] || '').toUpperCase().trim();
+
+    // Check errors (only count if it belongs to the logged in user)
+    // Sometimes user names might be abbreviated, so we do a simple substring match
+    const normalizedCurrentUser = currentUserName.toUpperCase().trim();
+    if (rowUser.includes(normalizedCurrentUser) || normalizedCurrentUser.includes(rowUser)) {
+      if (nilaiDb < 0 || nilaiCr < 0) {
+        errorCount++;
+      }
+    }
 
     if (ket.startsWith('SETORAN')) {
-      setoranCount++;
-      setoranTotal += nilaiCr;
+      setoranCount++; setoranTotal += nilaiCr;
     } else if (ket.startsWith('TARIKAN')) {
-      penarikanCount++;
-      penarikanTotal += nilaiDb;
+      penarikanCount++; penarikanTotal += nilaiDb;
     } else if (ket.startsWith('PENCAIRAN')) {
-      pencairanCount++;
-      pencairanTotal += nilaiCr;
+      pencairanCount++; pencairanTotal += nilaiCr;
     } else if (ket.startsWith('BAYAR') || ket.startsWith('PELUNASAN') || ket.startsWith('BIAYA PROVISI') || ket.startsWith('BIAYA ADMIN')) {
-      angsuranCount++;
-      // All these are DB in the PDF
-      angsuranTotal += nilaiDb;
+      angsuranCount++; angsuranTotal += nilaiDb;
     }
   }
 
@@ -88,5 +91,6 @@ export function parseTellerExcel(buffer: Buffer): TellerKPIResult {
     penarikan: { count: penarikanCount, total: penarikanTotal },
     angsuran: { count: angsuranCount, total: angsuranTotal },
     pencairan: { count: pencairanCount, total: pencairanTotal },
+    errorCount
   };
 }

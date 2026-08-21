@@ -7,6 +7,7 @@ import type { TellerKPIResult } from '@/lib/kpiTellerParser';
 
 export default function TellerTransaksiHarianPage() {
   const [file, setFile] = useState<File | null>(null);
+  const [tanggal, setTanggal] = useState<string>(new Date().toISOString().split('T')[0]);
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<TellerKPIResult | null>(null);
@@ -36,6 +37,7 @@ export default function TellerTransaksiHarianPage() {
     try {
       const formData = new FormData();
       formData.append('file', file);
+      formData.append('tanggal', tanggal);
 
       const res = await fetch('/api/kpi/teller-parse', {
         method: 'POST',
@@ -77,6 +79,18 @@ export default function TellerTransaksiHarianPage() {
           )}
 
           <form onSubmit={handleUpload}>
+            
+            <div className="form-group" style={{ marginBottom: 20 }}>
+              <label className="label">Tanggal Laporan</label>
+              <input 
+                type="date" 
+                className="inputField" 
+                value={tanggal}
+                onChange={(e) => setTanggal(e.target.value)}
+                required
+              />
+            </div>
+
             <div className="form-group" style={{ marginBottom: 24 }}>
               <label className="label">File Laporan Excel (.xls, .xlsx, .csv)</label>
               
@@ -196,6 +210,22 @@ export default function TellerTransaksiHarianPage() {
                   <div style={{ fontSize: 14, color: '#2563eb', fontWeight: 600, textTransform: 'uppercase', marginBottom: 4 }}>Angsuran / Pelunasan</div>
                   <div style={{ fontSize: 24, fontWeight: 'bold', color: '#0f172a' }}>{formatCurrency(result.angsuran.total)}</div>
                   <div style={{ fontSize: 14, color: '#64748b', marginTop: 4 }}>{result.angsuran.count} Transaksi</div>
+                </div>
+              </div>
+            </div>
+
+            
+            {/* Kesalahan */}
+            <div className="metric-card" style={{ background: '#fff1f2', borderColor: '#fecdd3' }}>
+              <div className="metric-accent" style={{ background: '#e11d48' }} />
+              <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+                <div style={{ background: '#ffe4e6', padding: 12, borderRadius: '50%', color: '#e11d48' }}>
+                  <AlertCircle size={32} />
+                </div>
+                <div>
+                  <div style={{ fontSize: 14, color: '#e11d48', fontWeight: 600, textTransform: 'uppercase', marginBottom: 4 }}>Kesalahan (Minus)</div>
+                  <div style={{ fontSize: 24, fontWeight: 'bold', color: '#0f172a' }}>{result.errorCount}</div>
+                  <div style={{ fontSize: 14, color: '#64748b', marginTop: 4 }}>Terdeteksi otomatis</div>
                 </div>
               </div>
             </div>
