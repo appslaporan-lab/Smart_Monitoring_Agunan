@@ -422,7 +422,7 @@ export default async function PerformaKolektibilitasPage() {
         <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'right' }}>
           <thead>
             <tr style={{ backgroundColor: '#db2777', color: 'white' }}>
-              <th rowSpan={2} style={{ padding: '4px 8px', border: '1px solid #000', textAlign: 'left', minWidth: '150px' }}>RANGE_TENOR</th>
+              <th rowSpan={2} style={{ padding: '4px 8px', border: '1px solid #000', textAlign: 'left', minWidth: '150px' }}>Range Tunggakan</th>
               <th colSpan={matrixRadiusRanges.length} style={{ padding: '4px 8px', border: '1px solid #000', textAlign: 'center' }}>RANGE RADIUS</th>
               <th rowSpan={2} style={{ padding: '4px 8px', border: '1px solid #000', minWidth: '150px' }}>Grand Total</th>
               <th rowSpan={2} style={{ padding: '4px 8px', border: '1px solid #000' }}>%</th>
