@@ -52,8 +52,10 @@ export async function POST(req: NextRequest) {
 - Setoran Tabungan: ${result.setoran.count} Trx (${fmt(result.setoran.total)})
 - Tarikan Tabungan: ${result.penarikan.count} Trx (${fmt(result.penarikan.total)})
 - Angsuran/Pelunasan: ${result.angsuran.count} Trx (${fmt(result.angsuran.total)})
-- Pencairan Pinjaman: ${result.pencairan.count} Trx (${fmt(result.pencairan.total)})
-- Total Kesalahan Transaksi: ${result.errorCount} kali.`;
+- Pencairan Pinjaman: ${result.pencairan.count} Trx (${fmt(result.pencairan.total)})`;
+
+    const totalCount = result.setoran.count + result.penarikan.count + result.angsuran.count + result.pencairan.count;
+    const totalNominal = result.setoran.total + result.penarikan.total + result.angsuran.total + result.pencairan.total;
 
     // Save activities to Performa Karyawan
     await prisma.performaKaryawan.upsert({
@@ -65,11 +67,17 @@ export async function POST(req: NextRequest) {
       },
       update: {
         kegiatan: kegiatanStr,
+        jumlahKegiatan: totalCount,
+        nominal: totalNominal,
+        kesalahan: result.errorCount,
       },
       create: {
         userId: user.id,
         tanggal: tanggal,
         kegiatan: kegiatanStr,
+        jumlahKegiatan: totalCount,
+        nominal: totalNominal,
+        kesalahan: result.errorCount,
       }
     });
 

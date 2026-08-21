@@ -2,7 +2,7 @@ import React from 'react';
 import { prisma } from '@/lib/prisma';
 import { getCurrentUser } from '@/lib/session';
 import { redirect } from 'next/navigation';
-import { Info } from 'lucide-react';
+import { Info, CheckCircle2, AlertCircle } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
 
@@ -25,6 +25,10 @@ export default async function PerformaKaryawanPage() {
     },
     take: 100 // Show latest 100 days
   });
+
+  const formatCurrency = (val: number) => {
+    return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(val);
+  };
 
   return (
     <main className="container">
@@ -52,6 +56,9 @@ export default async function PerformaKaryawanPage() {
                   <th style={{ borderBottom: '2px solid #e2e8f0', padding: '12px 16px', whiteSpace: 'nowrap' }}>Nama Karyawan</th>
                   <th style={{ borderBottom: '2px solid #e2e8f0', padding: '12px 16px', whiteSpace: 'nowrap' }}>Jabatan</th>
                   <th style={{ borderBottom: '2px solid #e2e8f0', padding: '12px 16px' }}>Kegiatan</th>
+                  <th style={{ borderBottom: '2px solid #e2e8f0', padding: '12px 16px', textAlign: 'center' }}>Jml Kegiatan</th>
+                  <th style={{ borderBottom: '2px solid #e2e8f0', padding: '12px 16px', textAlign: 'right' }}>Nominal</th>
+                  <th style={{ borderBottom: '2px solid #e2e8f0', padding: '12px 16px', textAlign: 'center' }}>Kesalahan</th>
                 </tr>
               </thead>
               <tbody>
@@ -64,7 +71,9 @@ export default async function PerformaKaryawanPage() {
                       {r.user.nama}
                     </td>
                     <td style={{ borderBottom: '1px solid #f1f5f9', padding: '12px 16px', verticalAlign: 'top', whiteSpace: 'nowrap' }}>
-                      {r.user.role}
+                      <span style={{ fontSize: 13, background: '#f8fafc', border: '1px solid #e2e8f0', padding: '4px 8px', borderRadius: 4 }}>
+                        {r.user.role}
+                      </span>
                     </td>
                     <td style={{ borderBottom: '1px solid #f1f5f9', padding: '12px 16px', verticalAlign: 'top' }}>
                       <pre style={{ 
@@ -75,11 +84,31 @@ export default async function PerformaKaryawanPage() {
                         padding: '8px 12px',
                         borderRadius: 6,
                         border: '1px solid #e2e8f0',
-                        fontSize: 14,
-                        lineHeight: 1.5
+                        fontSize: 13,
+                        lineHeight: 1.5,
+                        color: '#334155'
                       }}>
                         {r.kegiatan}
                       </pre>
+                    </td>
+                    <td style={{ borderBottom: '1px solid #f1f5f9', padding: '12px 16px', verticalAlign: 'top', textAlign: 'center' }}>
+                      <span style={{ fontWeight: 600, color: '#0f172a' }}>{r.jumlahKegiatan}</span>
+                    </td>
+                    <td style={{ borderBottom: '1px solid #f1f5f9', padding: '12px 16px', verticalAlign: 'top', textAlign: 'right', whiteSpace: 'nowrap' }}>
+                      <span style={{ fontWeight: 600, color: '#16a34a' }}>{formatCurrency(r.nominal)}</span>
+                    </td>
+                    <td style={{ borderBottom: '1px solid #f1f5f9', padding: '12px 16px', verticalAlign: 'top', textAlign: 'center' }}>
+                      {r.kesalahan > 0 ? (
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, background: '#fee2e2', color: '#e11d48', padding: '4px 8px', borderRadius: 12, fontSize: 13, fontWeight: 600 }}>
+                          <AlertCircle size={14} />
+                          {r.kesalahan}
+                        </span>
+                      ) : (
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, background: '#dcfce7', color: '#16a34a', padding: '4px 8px', borderRadius: 12, fontSize: 13, fontWeight: 600 }}>
+                          <CheckCircle2 size={14} />
+                          0
+                        </span>
+                      )}
                     </td>
                   </tr>
                 ))}
