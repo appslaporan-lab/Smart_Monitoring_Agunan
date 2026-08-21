@@ -61,7 +61,7 @@ export default function ModuleSidebar({
 }) {
   const pathname = usePathname();
 
-  const visibleMenuAll = MENU_CONFIG.filter((item) => item.roles === 'all' || item.roles.includes(userRole));
+  const visibleMenuAll = MENU_CONFIG.filter((item) => item.roles === 'all' || item.roles.includes(userRole) || userRole === 'SUPERADMIN');
 
   const visibleModules = MODULES.filter((m) => visibleMenuAll.some((item) => item.module === m.key));
 
