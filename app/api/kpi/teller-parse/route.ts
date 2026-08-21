@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
     // Process the excel file
     const result = parseTellerExcel(buffer, user.nama);
 
-    // Save error to database
+    // Save error to RekapKesalahanTeller
     await prisma.rekapKesalahanTeller.upsert({
       where: {
         userId_tanggal: {
@@ -45,41 +45,42 @@ export async function POST(req: NextRequest) {
       }
     });
 
-    // Format currency for text logging
-    const fmt = (v: number) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(v);
+    // Save multiple rows to PerformaKaryawan instead of one aggregated string
+    const activities = [
+      { nama: 'Setoran Tabungan', data: result.setoran },
+      { nama: 'Tarikan Tabungan', data: result.penarikan },
+      { nama: 'Angsuran/Pelunasan', data: result.angsuran },
+      { nama: 'Pencairan Pinjaman', data: result.pencairanPinjaman },
+      { nama: 'Pencairan Deposito', data: result.pencairanDeposito },
+    ];
 
-    const kegiatanStr = `Melakukan Transaksi Harian Teller:
-- Setoran Tabungan: ${result.setoran.count} Trx (${fmt(result.setoran.total)})
-- Tarikan Tabungan: ${result.penarikan.count} Trx (${fmt(result.penarikan.total)})
-- Angsuran/Pelunasan: ${result.angsuran.count} Trx (${fmt(result.angsuran.total)})
-- Pencairan Pinjaman: ${result.pencairan.count} Trx (${fmt(result.pencairan.total)})`;
-
-    const totalCount = result.setoran.count + result.penarikan.count + result.angsuran.count + result.pencairan.count;
-    const totalNominal = result.setoran.total + result.penarikan.total + result.angsuran.total + result.pencairan.total;
-
-    // Save activities to Performa Karyawan
-    await prisma.performaKaryawan.upsert({
-      where: {
-        userId_tanggal: {
-          userId: user.id,
-          tanggal: tanggal,
-        }
-      },
-      update: {
-        kegiatan: kegiatanStr,
-        jumlahKegiatan: totalCount,
-        nominal: totalNominal,
-        kesalahan: result.errorCount,
-      },
-      create: {
-        userId: user.id,
-        tanggal: tanggal,
-        kegiatan: kegiatanStr,
-        jumlahKegiatan: totalCount,
-        nominal: totalNominal,
-        kesalahan: result.errorCount,
+    for (const act of activities) {
+      // Only record if there are transactions or errors
+      if (act.data.count > 0 || act.data.errors > 0) {
+        await prisma.performaKaryawan.upsert({
+          where: {
+            userId_tanggal_kegiatan: {
+              userId: user.id,
+              tanggal: tanggal,
+              kegiatan: act.nama,
+            }
+          },
+          update: {
+            jumlahKegiatan: act.data.count,
+            nominal: act.data.total,
+            kesalahan: act.data.errors,
+          },
+          create: {
+            userId: user.id,
+            tanggal: tanggal,
+            kegiatan: act.nama,
+            jumlahKegiatan: act.data.count,
+            nominal: act.data.total,
+            kesalahan: act.data.errors,
+          }
+        });
       }
-    });
+    }
 
     return NextResponse.json({ success: true, data: result });
   } catch (error: any) {

@@ -239,8 +239,8 @@ export default function TellerTransaksiHarianPage() {
                 </div>
                 <div>
                   <div style={{ fontSize: 14, color: '#c026d3', fontWeight: 600, textTransform: 'uppercase', marginBottom: 4 }}>Pencairan Pinjaman</div>
-                  <div style={{ fontSize: 24, fontWeight: 'bold', color: '#0f172a' }}>{formatCurrency(result.pencairan.total)}</div>
-                  <div style={{ fontSize: 14, color: '#64748b', marginTop: 4 }}>{result.pencairan.count} Transaksi</div>
+                  <div style={{ fontSize: 24, fontWeight: 'bold', color: '#0f172a' }}>{formatCurrency(result.pencairanPinjaman.total)}</div>
+                  <div style={{ fontSize: 14, color: '#64748b', marginTop: 4 }}>{result.pencairanPinjaman.count} Transaksi</div>
                 </div>
               </div>
             </div>

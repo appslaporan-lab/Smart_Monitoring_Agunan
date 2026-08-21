@@ -1,10 +1,13 @@
 import * as xlsx from 'xlsx';
 
+export type TellerBucket = { count: number; total: number; errors: number };
+
 export type TellerKPIResult = {
-  setoran: { count: number; total: number };
-  penarikan: { count: number; total: number };
-  angsuran: { count: number; total: number };
-  pencairan: { count: number; total: number };
+  setoran: TellerBucket;
+  penarikan: TellerBucket;
+  angsuran: TellerBucket;
+  pencairanPinjaman: TellerBucket;
+  pencairanDeposito: TellerBucket;
   errorCount: number;
 };
 
@@ -51,10 +54,12 @@ export function parseTellerExcel(buffer: Buffer, currentUserName: string): Telle
   if (crIdx === -1) crIdx = 7;
   if (userIdx === -1) userIdx = 8; // In the OCR, USER is right after CR
 
-  let setoranCount = 0; let setoranTotal = 0;
-  let penarikanCount = 0; let penarikanTotal = 0;
-  let angsuranCount = 0; let angsuranTotal = 0;
-  let pencairanCount = 0; let pencairanTotal = 0;
+  let setoran: TellerBucket = { count: 0, total: 0, errors: 0 };
+  let penarikan: TellerBucket = { count: 0, total: 0, errors: 0 };
+  let angsuran: TellerBucket = { count: 0, total: 0, errors: 0 };
+  let pencairanPinjaman: TellerBucket = { count: 0, total: 0, errors: 0 };
+  let pencairanDeposito: TellerBucket = { count: 0, total: 0, errors: 0 };
+  
   let errorCount = 0;
 
   for (let i = 0; i < rows.length; i++) {
@@ -66,31 +71,40 @@ export function parseTellerExcel(buffer: Buffer, currentUserName: string): Telle
     const nilaiCr = parseNumber(row[crIdx]);
     const rowUser = String(row[userIdx] || '').toUpperCase().trim();
 
-    // Check errors (only count if it belongs to the logged in user)
-    // Sometimes user names might be abbreviated, so we do a simple substring match
+    // Check if belongs to current user
     const normalizedCurrentUser = currentUserName.toUpperCase().trim();
-    if (rowUser.includes(normalizedCurrentUser) || normalizedCurrentUser.includes(rowUser)) {
-      if (nilaiDb < 0 || nilaiCr < 0) {
-        errorCount++;
-      }
+    if (!rowUser.includes(normalizedCurrentUser) && !normalizedCurrentUser.includes(rowUser)) {
+      continue;
     }
 
+    const isError = (nilaiDb < 0 || nilaiCr < 0);
+    if (isError) errorCount++;
+
     if (ket.startsWith('SETORAN')) {
-      setoranCount++; setoranTotal += nilaiCr;
+      setoran.count++; setoran.total += nilaiCr;
+      if (isError) setoran.errors++;
     } else if (ket.startsWith('TARIKAN')) {
-      penarikanCount++; penarikanTotal += nilaiDb;
+      penarikan.count++; penarikan.total += nilaiDb;
+      if (isError) penarikan.errors++;
+    } else if (ket.includes('DEPOSITO') && (ket.startsWith('PENCAIRAN') || ket.startsWith('TARIKAN'))) {
+      pencairanDeposito.count++; pencairanDeposito.total += (nilaiDb > 0 ? nilaiDb : nilaiCr);
+      if (isError) pencairanDeposito.errors++;
     } else if (ket.startsWith('PENCAIRAN')) {
-      pencairanCount++; pencairanTotal += nilaiCr;
+      // Pinjaman
+      pencairanPinjaman.count++; pencairanPinjaman.total += nilaiCr;
+      if (isError) pencairanPinjaman.errors++;
     } else if (ket.startsWith('BAYAR') || ket.startsWith('PELUNASAN') || ket.startsWith('BIAYA PROVISI') || ket.startsWith('BIAYA ADMIN')) {
-      angsuranCount++; angsuranTotal += nilaiDb;
+      angsuran.count++; angsuran.total += nilaiDb;
+      if (isError) angsuran.errors++;
     }
   }
 
   return {
-    setoran: { count: setoranCount, total: setoranTotal },
-    penarikan: { count: penarikanCount, total: penarikanTotal },
-    angsuran: { count: angsuranCount, total: angsuranTotal },
-    pencairan: { count: pencairanCount, total: pencairanTotal },
+    setoran,
+    penarikan,
+    angsuran,
+    pencairanPinjaman,
+    pencairanDeposito,
     errorCount
   };
 }

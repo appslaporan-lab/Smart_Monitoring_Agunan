@@ -458,12 +458,12 @@ model PerformaKaryawan {
   userId         Int
   user           User     @relation(fields: [userId], references: [id])
   tanggal        DateTime @db.Date
-  kegiatan       String   @db.Text
+  kegiatan       String
   jumlahKegiatan Int      @default(0)
   nominal        Float    @default(0)
   kesalahan      Int      @default(0)
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
-  @@unique([userId, tanggal])
+  @@unique([userId, tanggal, kegiatan])
 }
