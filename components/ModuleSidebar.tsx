@@ -76,7 +76,7 @@ export default function ModuleSidebar({
       <div className="app-sidebar-header">
         <div className="app-logo">
           <div className="app-logo-icon" style={{ background: 'transparent', color: 'inherit' }}>
-            <img src="/logo-bpr-resmi.png" alt="Logo BPR" style={{ width: '28px', height: 'auto', objectFit: 'contain' }} />
+            <img src="/logo-bpr-resmi.png" alt="Logo BPR" style={{ width: '50px', height: 'auto', objectFit: 'contain' }} />
           </div>
           Smart Monitoring
         </div>

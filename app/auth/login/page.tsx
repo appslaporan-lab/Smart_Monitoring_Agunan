@@ -13,8 +13,8 @@ export default function LoginPage({ searchParams }: LoginPageProps) {
     <main className="login-layout">
       <div className="login-graphic">
         <div className="login-graphic-content">
-          <div className="login-graphic-logo" style={{ background: 'transparent', padding: 0, boxShadow: 'none' }}>
-              <img src="/logo-bpr-resmi.png" alt="Logo BPR" style={{ width: '100px', height: 'auto', objectFit: 'contain' }} />
+          <div className="login-graphic-logo" style={{ background: 'transparent', padding: 0, boxShadow: 'none', width: 'auto', height: 'auto', display: 'inline-block' }}>
+              <img src="/logo-bpr-resmi.png" alt="Logo BPR" style={{ width: '320px', height: 'auto', objectFit: 'contain' }} />
             </div>
           <h1>Selamat Datang Kembali</h1>
           <p>
