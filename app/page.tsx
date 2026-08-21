@@ -4,6 +4,10 @@ import Link from 'next/link';
 import { format, differenceInDays } from 'date-fns';
 import AgunanStatusChart from './AgunanStatusChart';
 
+import MasterDashboardCharts from './MasterDashboardCharts';
+import { getKantorGroup } from '@/lib/kantor';
+
+
 export const dynamic = 'force-dynamic';
 
 type AgunanWithNasabah = Prisma.AgunanGetPayload<{ include: { nasabah: true; registrasi: true } }>;
@@ -45,8 +49,65 @@ const statusClass = (status: string) => {
   }
 };
 
+
 export default async function Home() {
   const agunans = await fetchAgunans();
+
+  // --- NEW DASHBOARD DATA ---
+  // Kolektibilitas
+  const latestPeriode = await prisma.periodeNominatif.findFirst({ orderBy: { id: 'desc' } });
+  let kolekStats = { byBranch: [] as any[] };
+  if (latestPeriode) {
+    const pinjamans = await prisma.pinjamanPeriode.findMany({
+      where: { periodeId: latestPeriode.id },
+      select: { kdKolektibilitas: true, outstanding: true, subKantor: true }
+    });
+    const grouped: any = {};
+    for (const p of pinjamans) {
+      const g = getKantorGroup(p.subKantor) || 'LAINNYA';
+      const label = g.replace('_', ' ');
+      if (!grouped[label]) grouped[label] = { branch: label, nonNpl: 0, npl: 0 };
+      const isNpl = p.kdKolektibilitas && parseInt(p.kdKolektibilitas) >= 3;
+      if (isNpl) grouped[label].npl += p.outstanding || 0;
+      else grouped[label].nonNpl += p.outstanding || 0;
+    }
+    kolekStats.byBranch = Object.values(grouped).sort((a: any, b: any) => b.nonNpl - a.nonNpl);
+  }
+
+  // Collecting
+  const collectingData = await prisma.kunjunganPenagihan.findMany({
+    where: {
+      tanggalKunjungan: {
+        gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
+      }
+    },
+    select: { hasil: true, tanggalKunjungan: true }
+  });
+  
+  const collectGrouped: any = {};
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(Date.now() - i * 24 * 60 * 60 * 1000);
+    const dateStr = format(d, 'dd MMM');
+    collectGrouped[dateStr] = { date: dateStr, BERHASIL: 0, JANJI_BAYAR: 0, GAGAL: 0 };
+  }
+  
+  for (const c of collectingData) {
+    const dateStr = format(new Date(c.tanggalKunjungan), 'dd MMM');
+    if (!collectGrouped[dateStr]) continue;
+    if (c.hasil === 'LUNAS' || c.hasil === 'ANGSURAN') collectGrouped[dateStr].BERHASIL++;
+    else if (c.hasil === 'JANJI_BAYAR') collectGrouped[dateStr].JANJI_BAYAR++;
+    else collectGrouped[dateStr].GAGAL++;
+  }
+  const collectingStats = Object.values(collectGrouped);
+
+  // KPI (Mock Data since no model yet)
+  const kpiStats = [
+    { name: 'Sangat Baik', value: 12 },
+    { name: 'Baik', value: 25 },
+    { name: 'Cukup', value: 8 },
+    { name: 'Kurang', value: 2 }
+  ];
+
 
   const warnings = agunans.filter((item) => item.status === 'PROSES_KELUAR');
   const herWarnings = agunans.filter((item) => item.status === 'HER_5_TAHUNAN');
@@ -109,19 +170,27 @@ export default async function Home() {
   return (
     <main className="container">
       <header style={{ marginBottom: 32 }}>
-        <h1>Monitoring Agunan</h1>
-        <p>Aplikasi untuk memonitor agunan, HER BPKB, dan proses sertifikasi.</p>
+        <h1>Dashboard Executive</h1>
+        <p>Ringkasan performa kolektibilitas, penagihan, KPI, dan agunan.</p>
       </header>
 
+      <MasterDashboardCharts 
+        agunanProps={{
+          totalCount: agunans.length,
+          summaryStats,
+          statusSegments: donutSegments,
+          jenisCounts
+        }}
+        kolekStats={kolekStats}
+        collectingStats={collectingStats}
+        kpiStats={kpiStats}
+      />
+
+      <div style={{ marginTop: 40, marginBottom: 20 }}>
+        <h2>Tindak Lanjut & Peringatan Agunan</h2>
+      </div>
+
       <section className="grid" style={{ marginBottom: 32 }}>
-        <div className="card chart-card" style={{ padding: 24 }}>
-          <AgunanStatusChart
-            totalCount={agunans.length}
-            summaryStats={summaryStats}
-            statusSegments={donutSegments}
-            jenisCounts={jenisCounts}
-          />
-        </div>
 
         <div className="card" style={{ padding: 24 }}>
           <h2>Agunan Dalam Proses Keluar</h2>
