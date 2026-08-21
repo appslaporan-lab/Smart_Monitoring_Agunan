@@ -1,16 +1,37 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { UploadCloud, FileType, CheckCircle, AlertCircle, ArrowLeft, Loader2, ArrowDownCircle, ArrowUpCircle, Banknote, CreditCard } from 'lucide-react';
 import Link from 'next/link';
 import type { TellerKPIResult } from '@/lib/kpiTellerParser';
+
+type UserOption = { id: number; nama: string; role: string };
 
 export default function TellerTransaksiHarianPage() {
   const [file, setFile] = useState<File | null>(null);
   const [tanggal, setTanggal] = useState<string>(new Date().toISOString().split('T')[0]);
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [result, setResult] = useState<TellerKPIResult | null>(null);
+  
+  // Extend result to capture the target name from API
+  const [result, setResult] = useState<(TellerKPIResult & { targetNama?: string }) | null>(null);
+  
+  const [targetUserId, setTargetUserId] = useState<string>('');
+  const [users, setUsers] = useState<UserOption[]>([]);
+  const [isSuperadmin, setIsSuperadmin] = useState(false);
+
+  useEffect(() => {
+    // Attempt to fetch users. Only Superadmin will succeed.
+    fetch('/api/users')
+      .then(res => res.json())
+      .then(json => {
+        if (json.success && json.data) {
+          setIsSuperadmin(true);
+          setUsers(json.data);
+        }
+      })
+      .catch(() => { /* not superadmin */ });
+  }, []);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -38,6 +59,9 @@ export default function TellerTransaksiHarianPage() {
       const formData = new FormData();
       formData.append('file', file);
       formData.append('tanggal', tanggal);
+      if (isSuperadmin && targetUserId) {
+        formData.append('targetUserId', targetUserId);
+      }
 
       const res = await fetch('/api/kpi/teller-parse', {
         method: 'POST',
@@ -50,7 +74,7 @@ export default function TellerTransaksiHarianPage() {
         throw new Error(json.error || 'Terjadi kesalahan sistem');
       }
 
-      setResult(json.data);
+      setResult({ ...json.data, targetNama: json.targetNama });
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -79,7 +103,22 @@ export default function TellerTransaksiHarianPage() {
           )}
 
           <form onSubmit={handleUpload}>
-            
+            {isSuperadmin && (
+              <div className="form-group" style={{ marginBottom: 20 }}>
+                <label className="label">Teller yang Dituju (Akses Superadmin)</label>
+                <select 
+                  className="inputField" 
+                  value={targetUserId}
+                  onChange={(e) => setTargetUserId(e.target.value)}
+                >
+                  <option value="">-- Diri Sendiri (Default) --</option>
+                  {users.map(u => (
+                    <option key={u.id} value={u.id}>{u.nama} ({u.role})</option>
+                  ))}
+                </select>
+              </div>
+            )}
+
             <div className="form-group" style={{ marginBottom: 20 }}>
               <label className="label">Tanggal Laporan</label>
               <input 
@@ -90,7 +129,6 @@ export default function TellerTransaksiHarianPage() {
                 required
               />
             </div>
-
             <div className="form-group" style={{ marginBottom: 24 }}>
               <label className="label">File Laporan Excel (.xls, .xlsx, .csv)</label>
               
@@ -167,20 +205,18 @@ export default function TellerTransaksiHarianPage() {
             </button>
           </div>
 
-          
           {result.setoran.count === 0 && result.penarikan.count === 0 && result.angsuran.count === 0 && result.pencairanPinjaman.count === 0 && result.pencairanDeposito.count === 0 && result.foundUsers && result.foundUsers.length > 0 && (
             <div className="alert alert-warning" style={{ marginBottom: 24, display: 'flex', gap: 12, alignItems: 'flex-start', background: '#fffbeb', color: '#b45309', padding: 16, borderRadius: 8 }}>
               <AlertCircle size={24} style={{ flexShrink: 0 }} />
               <div>
                 <strong>Nol Transaksi Terdeteksi!</strong>
-                <p style={{ margin: '4px 0 0' }}>File yang Anda unggah berisi transaksi milik teller <strong>{result.foundUsers.join(', ')}</strong>, sedangkan Anda login sebagai akun lain.</p>
-                <p style={{ margin: '4px 0 0', fontSize: 13, opacity: 0.8 }}>Sistem secara otomatis memblokir transaksi ini agar tidak salah masuk ke rapor performa Anda (sesuai aturan "cocokkan nama user dengan nama di file"). Harap login menggunakan akun teller yang bersangkutan.</p>
+                <p style={{ margin: '4px 0 0' }}>File yang Anda unggah berisi transaksi milik teller <strong>{result.foundUsers.join(', ')}</strong>, sedangkan file ini sedang diproses untuk <strong>{result.targetNama || 'akun Anda'}</strong>.</p>
+                <p style={{ margin: '4px 0 0', fontSize: 13, opacity: 0.8 }}>Sistem secara otomatis memblokir transaksi ini agar tidak salah masuk ke rapor performa. Pastikan Anda memilih teller yang benar sebelum melakukan upload.</p>
               </div>
             </div>
           )}
 
           <div className="grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 24 }}>
-
             
             {/* Setoran */}
             <div className="metric-card" style={{ background: '#f0fdf4', borderColor: '#bbf7d0' }}>
@@ -227,7 +263,21 @@ export default function TellerTransaksiHarianPage() {
               </div>
             </div>
 
-            
+            {/* Pencairan Pinjaman */}
+            <div className="metric-card" style={{ background: '#fdf4ff', borderColor: '#f5d0fe' }}>
+              <div className="metric-accent" style={{ background: '#d946ef' }} />
+              <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+                <div style={{ background: '#fae8ff', padding: 12, borderRadius: '50%', color: '#c026d3' }}>
+                  <CreditCard size={32} />
+                </div>
+                <div>
+                  <div style={{ fontSize: 14, color: '#c026d3', fontWeight: 600, textTransform: 'uppercase', marginBottom: 4 }}>Pencairan Pinjaman</div>
+                  <div style={{ fontSize: 24, fontWeight: 'bold', color: '#0f172a' }}>{formatCurrency(result.pencairanPinjaman.total)}</div>
+                  <div style={{ fontSize: 14, color: '#64748b', marginTop: 4 }}>{result.pencairanPinjaman.count} Transaksi</div>
+                </div>
+              </div>
+            </div>
+
             {/* Kesalahan */}
             <div className="metric-card" style={{ background: '#fff1f2', borderColor: '#fecdd3' }}>
               <div className="metric-accent" style={{ background: '#e11d48' }} />
@@ -239,21 +289,6 @@ export default function TellerTransaksiHarianPage() {
                   <div style={{ fontSize: 14, color: '#e11d48', fontWeight: 600, textTransform: 'uppercase', marginBottom: 4 }}>Kesalahan (Minus)</div>
                   <div style={{ fontSize: 24, fontWeight: 'bold', color: '#0f172a' }}>{result.errorCount}</div>
                   <div style={{ fontSize: 14, color: '#64748b', marginTop: 4 }}>Terdeteksi otomatis</div>
-                </div>
-              </div>
-            </div>
-
-            {/* Pencairan */}
-            <div className="metric-card" style={{ background: '#fdf4ff', borderColor: '#f5d0fe' }}>
-              <div className="metric-accent" style={{ background: '#d946ef' }} />
-              <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-                <div style={{ background: '#fae8ff', padding: 12, borderRadius: '50%', color: '#c026d3' }}>
-                  <CreditCard size={32} />
-                </div>
-                <div>
-                  <div style={{ fontSize: 14, color: '#c026d3', fontWeight: 600, textTransform: 'uppercase', marginBottom: 4 }}>Pencairan Pinjaman</div>
-                  <div style={{ fontSize: 24, fontWeight: 'bold', color: '#0f172a' }}>{formatCurrency(result.pencairanPinjaman.total)}</div>
-                  <div style={{ fontSize: 14, color: '#64748b', marginTop: 4 }}>{result.pencairanPinjaman.count} Transaksi</div>
                 </div>
               </div>
             </div>

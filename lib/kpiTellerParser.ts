@@ -9,6 +9,7 @@ export type TellerKPIResult = {
   pencairanPinjaman: TellerBucket;
   pencairanDeposito: TellerBucket;
   errorCount: number;
+  foundUsers: string[];
 };
 
 function parseNumber(val: any): number {
@@ -61,6 +62,7 @@ export function parseTellerExcel(buffer: Buffer, currentUserName: string): Telle
   let pencairanDeposito: TellerBucket = { count: 0, total: 0, errors: 0 };
   
   let errorCount = 0;
+  const foundUsersSet = new Set<string>();
 
   for (let i = 0; i < rows.length; i++) {
     const row = rows[i];
@@ -70,6 +72,10 @@ export function parseTellerExcel(buffer: Buffer, currentUserName: string): Telle
     const nilaiDb = parseNumber(row[dbIdx]);
     const nilaiCr = parseNumber(row[crIdx]);
     const rowUser = String(row[userIdx] || '').toUpperCase().trim();
+
+    if (rowUser && rowUser !== 'USER' && rowUser !== 'KANTOR') {
+      foundUsersSet.add(rowUser);
+    }
 
     // Check if belongs to current user
     const normalizedCurrentUser = currentUserName.toUpperCase().trim();
@@ -90,7 +96,6 @@ export function parseTellerExcel(buffer: Buffer, currentUserName: string): Telle
       pencairanDeposito.count++; pencairanDeposito.total += (nilaiDb > 0 ? nilaiDb : nilaiCr);
       if (isError) pencairanDeposito.errors++;
     } else if (ket.startsWith('PENCAIRAN')) {
-      // Pinjaman
       pencairanPinjaman.count++; pencairanPinjaman.total += nilaiCr;
       if (isError) pencairanPinjaman.errors++;
     } else if (ket.startsWith('BAYAR') || ket.startsWith('PELUNASAN') || ket.startsWith('BIAYA PROVISI') || ket.startsWith('BIAYA ADMIN')) {
@@ -105,6 +110,7 @@ export function parseTellerExcel(buffer: Buffer, currentUserName: string): Telle
     angsuran,
     pencairanPinjaman,
     pencairanDeposito,
-    errorCount
+    errorCount,
+    foundUsers: Array.from(foundUsersSet)
   };
 }

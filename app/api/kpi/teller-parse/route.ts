@@ -13,6 +13,7 @@ export async function POST(req: NextRequest) {
     const formData = await req.formData();
     const file = formData.get('file') as File | null;
     const tanggalStr = formData.get('tanggal') as string | null;
+    const targetUserIdStr = formData.get('targetUserId') as string | null;
 
     if (!file) {
       return NextResponse.json({ error: 'File tidak ditemukan' }, { status: 400 });
@@ -21,17 +22,32 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Tanggal Laporan wajib diisi' }, { status: 400 });
     }
 
+    // Determine whose KPI this belongs to
+    let targetId = user.id;
+    let targetNama = user.nama;
+
+    if (user.role === 'SUPERADMIN' && targetUserIdStr) {
+      const parsedId = parseInt(targetUserIdStr, 10);
+      if (!isNaN(parsedId)) {
+        const targetUser = await prisma.user.findUnique({ where: { id: parsedId } });
+        if (targetUser) {
+          targetId = targetUser.id;
+          targetNama = targetUser.nama;
+        }
+      }
+    }
+
     const tanggal = new Date(tanggalStr);
     const buffer = Buffer.from(await file.arrayBuffer());
     
-    // Process the excel file
-    const result = parseTellerExcel(buffer, user.nama);
+    // Process the excel file (filter by target user's name)
+    const result = parseTellerExcel(buffer, targetNama);
 
     // Save error to RekapKesalahanTeller
     await prisma.rekapKesalahanTeller.upsert({
       where: {
         userId_tanggal: {
-          userId: user.id,
+          userId: targetId,
           tanggal: tanggal,
         }
       },
@@ -39,13 +55,12 @@ export async function POST(req: NextRequest) {
         jumlah: result.errorCount,
       },
       create: {
-        userId: user.id,
+        userId: targetId,
         tanggal: tanggal,
         jumlah: result.errorCount,
       }
     });
 
-    // Save multiple rows to PerformaKaryawan instead of one aggregated string
     const activities = [
       { nama: 'Setoran Tabungan', data: result.setoran },
       { nama: 'Tarikan Tabungan', data: result.penarikan },
@@ -55,12 +70,11 @@ export async function POST(req: NextRequest) {
     ];
 
     for (const act of activities) {
-      // Only record if there are transactions or errors
       if (act.data.count > 0 || act.data.errors > 0) {
         await prisma.performaKaryawan.upsert({
           where: {
             userId_tanggal_kegiatan: {
-              userId: user.id,
+              userId: targetId,
               tanggal: tanggal,
               kegiatan: act.nama,
             }
@@ -71,7 +85,7 @@ export async function POST(req: NextRequest) {
             kesalahan: act.data.errors,
           },
           create: {
-            userId: user.id,
+            userId: targetId,
             tanggal: tanggal,
             kegiatan: act.nama,
             jumlahKegiatan: act.data.count,
@@ -82,7 +96,7 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    return NextResponse.json({ success: true, data: result });
+    return NextResponse.json({ success: true, data: result, targetNama });
   } catch (error: any) {
     console.error('Teller parser error:', error);
     return NextResponse.json({ error: error.message || 'Terjadi kesalahan saat memproses file.' }, { status: 500 });
