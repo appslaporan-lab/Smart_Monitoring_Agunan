@@ -108,14 +108,22 @@ function renderDetailedSummaryTable(title: string, rows: DetailedTableRow[]) {
   );
 }
 
-export default async function PerformaKolektibilitasPage() {
+export default async function PerformaKolektibilitasPage({ searchParams }: { searchParams: { periodeId?: string } }) {
   const user = getCurrentUser();
   if (!user) redirect('/auth/login');
 
-  const periodeAktif = await prisma.periodeNominatif.findFirst({
-    where: { jenisUpload: 'PERFORM_KOLEKTIBILITAS' },
+  
+  const semuaPeriode = await prisma.periodeNominatif.findMany({
+    where: { jenisUpload: 'PERFORMA' },
     orderBy: [{ tahun: 'desc' }, { bulan: 'desc' }],
   });
+
+  let periodeAktif = semuaPeriode[0];
+  if (searchParams.periodeId) {
+    const selected = semuaPeriode.find(p => p.id === parseInt(searchParams.periodeId as string));
+    if (selected) periodeAktif = selected;
+  }
+
 
   if (!periodeAktif) {
     return (
@@ -500,12 +508,24 @@ export default async function PerformaKolektibilitasPage() {
 
   return (
     <main className="container">
-      <section style={{ marginBottom: 24, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <section style={{ marginBottom: 24, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 16 }}>
         <div>
-          <h1 style={{ marginBottom: 4 }}>LAPORAN PERFORM KOLEKTIBILITY</h1>
-          <p style={{ fontWeight: 'bold' }}>JULI 2026</p>
+          <h1 style={{ marginBottom: 8 }}>LAPORAN PERFORM KOLEKTIBILITY</h1>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <span>Periode:</span>
+            <form method="GET" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+              <select name="periodeId" className="inputField" defaultValue={periodeAktif.id} style={{ padding: '4px 8px', width: 'auto' }}>
+                {semuaPeriode.map((p: any) => (
+                  <option key={p.id} value={p.id}>{p.bulan}/{p.tahun}</option>
+                ))}
+              </select>
+              <button type="submit" className="button" style={{ padding: '6px 12px' }}>Tampilkan</button>
+            </form>
+          </div>
         </div>
-        <Link href="/performa" className="button secondary">Kembali ke Performa</Link>
+        <div>
+          <Link href="/admin/upload-nominatif?type=performa" className="button secondary">Kelola Data Laporan</Link>
+        </div>
       </section>
 
       {/* Main Table */}
