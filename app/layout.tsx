@@ -7,7 +7,7 @@ import ModuleSidebar from '@/components/ModuleSidebar';
 import { prisma } from '@/lib/prisma';
 
 export const metadata: Metadata = {
-  title: 'BPR Suite',
+  title: 'Smart Monitoring',
   description: 'Sistem informasi terpadu: monitoring agunan, collecting kredit, KPI, dan performa kantor.',
 };
 export const viewport = {
