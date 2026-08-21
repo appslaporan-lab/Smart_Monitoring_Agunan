@@ -128,6 +128,9 @@ export default async function PerformaKolektibilitasPage() {
     );
   }
 
+  const allAOs = await prisma.masterAo.findMany();
+  const aoMap = new Map(allAOs.map(a => [a.rawName, a.mappedName]));
+
   const rows = await prisma.pinjamanPeriode.findMany({
     where: { periodeId: periodeAktif.id },
     orderBy: { id: 'asc' },
@@ -222,7 +225,22 @@ export default async function PerformaKolektibilitasPage() {
       kol: kolStr,
       isNpl: COLLECTING_REPORT_CONFIG.nplCodes.includes(kolStr.toUpperCase()),
       outstanding: row.outstanding ?? 0,
-      moName: row.namaAO || '(blank)',
+      moName: (() => {
+        let raw = '';
+        if (row.rawDataJson) {
+          const parsed = JSON.parse(row.rawDataJson);
+          raw = String(parsed['AQ'] || '').trim();
+          if (!raw) {
+            const kantor = String(parsed['E'] || '').trim();
+            const sub = String(parsed['F'] || '').trim();
+            const subKantorGabungan = [kantor, sub].filter(Boolean).join(' - ') || null;
+            raw = subKantorGabungan || 'KANTOR TIDAK DIKETAHUI';
+          }
+        } else {
+          raw = row.namaAO || '(blank)';
+        }
+        return aoMap.get(raw) || raw;
+      })(),
       productBucket: row.produkKredit || '(blank)',
       interestRateBucket: classifyByRange(row.sukuBunga, bungaPdfRanges),
       tenorBucket: classifyByRange(row.jangkaBulan, tenorPdfRanges),
