@@ -45,6 +45,7 @@ const MENU_CONFIG: MenuItem[] = [
   { href: '/collecting/upload', label: 'Upload Nominatif', roles: ['SUPERADMIN'], icon: PlusCircle, module: 'collecting' },
 
   { href: '/kpi', label: 'Dashboard KPI', roles: 'all', icon: LayoutDashboard, module: 'kpi' },
+  { href: '/kpi/teller/transaksi-harian', label: 'Teller (Transaksi Harian)', roles: 'all', icon: FileText, module: 'kpi' },
 
   { href: '/performa/kolektibilitas', label: 'Laporan Kolektibilitas', roles: ['SUPERADMIN', 'KASUBAG_KREDIT_PUSAT_1', 'KASUBAG_KREDIT_PUSAT_2', 'KASUBAG_KREDIT_CABANG', 'KABAG_MARKETING_PUSAT_1', 'KABAG_MARKETING_PUSAT_2', 'PIMPINAN_CABANG', 'DIREKTUR', 'KABAG_OPERASIONAL'], icon: FileText, module: 'performa' },
   { href: '/performa', label: 'Dashboard Performa', roles: 'all', icon: LayoutDashboard, module: 'performa' },
