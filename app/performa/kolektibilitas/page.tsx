@@ -16,69 +16,77 @@ function formatPercent(value: number) {
   return value.toFixed(2).replace('.', ',') + '%';
 }
 
-type SummaryRow = {
+
+type KolStats = { noa: number; os: number };
+type DetailedTableRow = {
   label: string;
-  nonNplNominal: number;
-  nplNominal: number;
-  totalNominal: number;
+  k1: KolStats; k2: KolStats; k3: KolStats; k4: KolStats; k5: KolStats;
+  nonNpl: KolStats; npl: KolStats; total: KolStats;
 };
 
-function renderPDFSummaryTable(title: string, rows: SummaryRow[]) {
-  const grandTotal = rows.reduce(
-    (acc, row) => {
-      acc.nonNplNominal += row.nonNplNominal;
-      acc.nplNominal += row.nplNominal;
-      acc.totalNominal += row.totalNominal;
-      return acc;
-    },
-    { nonNplNominal: 0, nplNominal: 0, totalNominal: 0 }
-  );
+const Cell = ({ v }: { v: KolStats }) => (
+  <>
+    <td style={{ padding: '4px 8px', border: '1px solid #000', textAlign: 'right' }}>{v.noa === 0 ? '-' : formatRupiah(v.noa)}</td>
+    <td style={{ padding: '4px 8px', border: '1px solid #000', textAlign: 'right' }}>{v.os === 0 ? '-' : formatRupiah(v.os)}</td>
+  </>
+);
 
-  const grandTotalPercentage = grandTotal.totalNominal
-    ? ((grandTotal.nplNominal / grandTotal.totalNominal) * 100)
-    : 0;
+function renderDetailedSummaryTable(title: string, rows: DetailedTableRow[]) {
+  const grandTotal: DetailedTableRow = {
+    label: 'Grand Total',
+    k1: {noa:0, os:0}, k2: {noa:0, os:0}, k3: {noa:0, os:0}, k4: {noa:0, os:0}, k5: {noa:0, os:0},
+    nonNpl: {noa:0, os:0}, npl: {noa:0, os:0}, total: {noa:0, os:0}
+  };
+
+  for (const r of rows) {
+    for (const k of ['k1','k2','k3','k4','k5','nonNpl','npl','total'] as const) {
+      grandTotal[k].noa += r[k].noa;
+      grandTotal[k].os += r[k].os;
+    }
+  }
 
   return (
-    <section className="card" style={{ padding: 24, marginBottom: 24, overflowX: 'auto' }}>
+    <section className="card" style={{ padding: 24, marginBottom: 24, overflowX: 'auto', fontSize: '13px' }}>
       <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-          <thead>
-            <tr>
-              <th rowSpan={3} style={{ padding: '4px 8px', border: '1px solid #000', backgroundColor: '#e2e8f0' }}>KANTOR</th>
-              <th colSpan={10} style={{ padding: '4px 8px', border: '1px solid #000', backgroundColor: '#e2e8f0' }}>KOLEKTIBILITAS</th>
-              <th colSpan={2} style={{ padding: '4px 8px', border: '1px solid #000', backgroundColor: '#86efac' }}>NON NPL</th>
-              <th colSpan={2} style={{ padding: '4px 8px', border: '1px solid #000', backgroundColor: '#fca5a5' }}>NPL</th>
-              <th rowSpan={3} style={{ padding: '4px 8px', border: '1px solid #000', backgroundColor: '#e2e8f0' }}>Total NOA</th>
-              <th rowSpan={3} style={{ padding: '4px 8px', border: '1px solid #000', backgroundColor: '#e2e8f0' }}>Total OS</th>
-              <th rowSpan={3} style={{ padding: '4px 8px', border: '1px solid #000', backgroundColor: '#fef08a' }}>% NPL</th>
-            </tr>
-            <tr style={{ backgroundColor: '#e2e8f0' }}>
-              <th colSpan={2} style={{ border: '1px solid #000' }}>1</th>
-              <th colSpan={2} style={{ border: '1px solid #000' }}>2</th>
-              <th colSpan={2} style={{ border: '1px solid #000' }}>3</th>
-              <th colSpan={2} style={{ border: '1px solid #000' }}>4</th>
-              <th colSpan={2} style={{ border: '1px solid #000' }}>5</th>
-              <th colSpan={2} style={{ border: '1px solid #000', backgroundColor: '#86efac' }}></th>
-              <th colSpan={2} style={{ border: '1px solid #000', backgroundColor: '#fca5a5' }}></th>
-            </tr>
-            <tr style={{ backgroundColor: '#e2e8f0' }}>
-              <th style={{ border: '1px solid #000', padding: '4px' }}>NOA</th><th style={{ border: '1px solid #000', padding: '4px' }}>OS</th>
-              <th style={{ border: '1px solid #000', padding: '4px' }}>NOA</th><th style={{ border: '1px solid #000', padding: '4px' }}>OS</th>
-              <th style={{ border: '1px solid #000', padding: '4px' }}>NOA</th><th style={{ border: '1px solid #000', padding: '4px' }}>OS</th>
-              <th style={{ border: '1px solid #000', padding: '4px' }}>NOA</th><th style={{ border: '1px solid #000', padding: '4px' }}>OS</th>
-              <th style={{ border: '1px solid #000', padding: '4px' }}>NOA</th><th style={{ border: '1px solid #000', padding: '4px' }}>OS</th>
-              <th style={{ border: '1px solid #000', padding: '4px', backgroundColor: '#86efac' }}>NOA</th><th style={{ border: '1px solid #000', padding: '4px', backgroundColor: '#86efac' }}>OS</th>
-              <th style={{ border: '1px solid #000', padding: '4px', backgroundColor: '#fca5a5' }}>NOA</th><th style={{ border: '1px solid #000', padding: '4px', backgroundColor: '#fca5a5' }}>OS</th>
-            </tr>
-          </thead>
+        <thead>
+          <tr>
+            <th rowSpan={3} style={{ padding: '4px 8px', border: '1px solid #000', backgroundColor: '#e2e8f0', minWidth: '150px' }}>{title}</th>
+            <th colSpan={10} style={{ padding: '4px 8px', border: '1px solid #000', backgroundColor: '#e2e8f0' }}>KOLEKTIBILITAS</th>
+            <th colSpan={2} style={{ padding: '4px 8px', border: '1px solid #000', backgroundColor: '#86efac' }}>NON NPL</th>
+            <th colSpan={2} style={{ padding: '4px 8px', border: '1px solid #000', backgroundColor: '#fca5a5' }}>NPL</th>
+            <th rowSpan={3} style={{ padding: '4px 8px', border: '1px solid #000', backgroundColor: '#e2e8f0' }}>Total NOA</th>
+            <th rowSpan={3} style={{ padding: '4px 8px', border: '1px solid #000', backgroundColor: '#e2e8f0' }}>Total OS</th>
+            <th rowSpan={3} style={{ padding: '4px 8px', border: '1px solid #000', backgroundColor: '#fef08a' }}>% NPL</th>
+          </tr>
+          <tr style={{ backgroundColor: '#e2e8f0' }}>
+            <th colSpan={2} style={{ border: '1px solid #000' }}>1</th>
+            <th colSpan={2} style={{ border: '1px solid #000' }}>2</th>
+            <th colSpan={2} style={{ border: '1px solid #000' }}>3</th>
+            <th colSpan={2} style={{ border: '1px solid #000' }}>4</th>
+            <th colSpan={2} style={{ border: '1px solid #000' }}>5</th>
+            <th colSpan={2} style={{ border: '1px solid #000', backgroundColor: '#86efac' }}></th>
+            <th colSpan={2} style={{ border: '1px solid #000', backgroundColor: '#fca5a5' }}></th>
+          </tr>
+          <tr style={{ backgroundColor: '#e2e8f0' }}>
+            <th style={{ border: '1px solid #000', padding: '4px' }}>NOA</th><th style={{ border: '1px solid #000', padding: '4px' }}>OS</th>
+            <th style={{ border: '1px solid #000', padding: '4px' }}>NOA</th><th style={{ border: '1px solid #000', padding: '4px' }}>OS</th>
+            <th style={{ border: '1px solid #000', padding: '4px' }}>NOA</th><th style={{ border: '1px solid #000', padding: '4px' }}>OS</th>
+            <th style={{ border: '1px solid #000', padding: '4px' }}>NOA</th><th style={{ border: '1px solid #000', padding: '4px' }}>OS</th>
+            <th style={{ border: '1px solid #000', padding: '4px' }}>NOA</th><th style={{ border: '1px solid #000', padding: '4px' }}>OS</th>
+            <th style={{ border: '1px solid #000', padding: '4px', backgroundColor: '#86efac' }}>NOA</th><th style={{ border: '1px solid #000', padding: '4px', backgroundColor: '#86efac' }}>OS</th>
+            <th style={{ border: '1px solid #000', padding: '4px', backgroundColor: '#fca5a5' }}>NOA</th><th style={{ border: '1px solid #000', padding: '4px', backgroundColor: '#fca5a5' }}>OS</th>
+          </tr>
+        </thead>
         <tbody>
-          {rows.map((item) => (
-            <tr key={item.label}>
-              <td style={{ padding: '4px 8px', border: '1px solid #000' }}>{item.label}</td>
-              <td style={{ padding: '4px 8px', border: '1px solid #000', textAlign: 'right' }}>{item.nonNplNominal === 0 ? '-' : formatRupiah(item.nonNplNominal)}</td>
-              <td style={{ padding: '4px 8px', border: '1px solid #000', textAlign: 'right' }}>{item.nplNominal === 0 ? '-' : formatRupiah(item.nplNominal)}</td>
-              <td style={{ padding: '4px 8px', border: '1px solid #000', textAlign: 'right' }}>{item.totalNominal === 0 ? '-' : formatRupiah(item.totalNominal)}</td>
+          {rows.map((r, i) => (
+            <tr key={i} style={{ backgroundColor: '#fff' }}>
+              <td style={{ padding: '4px 8px', border: '1px solid #000' }}>{r.label}</td>
+              <Cell v={r.k1} /> <Cell v={r.k2} /> <Cell v={r.k3} /> <Cell v={r.k4} /> <Cell v={r.k5} />
+              <Cell v={r.nonNpl} /> <Cell v={r.npl} />
+              <td style={{ padding: '4px 8px', border: '1px solid #000', textAlign: 'right' }}>{r.total.noa === 0 ? '-' : formatRupiah(r.total.noa)}</td>
+              <td style={{ padding: '4px 8px', border: '1px solid #000', textAlign: 'right' }}>{r.total.os === 0 ? '-' : formatRupiah(r.total.os)}</td>
               <td style={{ padding: '4px 8px', border: '1px solid #000', textAlign: 'right' }}>
-                {item.totalNominal ? formatPercent((item.nplNominal / item.totalNominal) * 100) : '0,00%'}
+                {r.total.os ? formatPercent((r.npl.os / r.total.os) * 100) : '0,00%'}
               </td>
             </tr>
           ))}
@@ -86,10 +94,13 @@ function renderPDFSummaryTable(title: string, rows: SummaryRow[]) {
         <tfoot>
           <tr style={{ backgroundColor: '#38bdf8', color: '#000', fontWeight: 'bold' }}>
             <td style={{ padding: '4px 8px', border: '1px solid #000' }}>Grand Total</td>
-            <td style={{ padding: '4px 8px', border: '1px solid #000', textAlign: 'right' }}>{formatRupiah(grandTotal.nonNplNominal)}</td>
-            <td style={{ padding: '4px 8px', border: '1px solid #000', textAlign: 'right' }}>{formatRupiah(grandTotal.nplNominal)}</td>
-            <td style={{ padding: '4px 8px', border: '1px solid #000', textAlign: 'right' }}>{formatRupiah(grandTotal.totalNominal)}</td>
-            <td style={{ padding: '4px 8px', border: '1px solid #000', textAlign: 'right' }}>{formatPercent(grandTotalPercentage)}</td>
+            <Cell v={grandTotal.k1} /> <Cell v={grandTotal.k2} /> <Cell v={grandTotal.k3} /> <Cell v={grandTotal.k4} /> <Cell v={grandTotal.k5} />
+            <Cell v={grandTotal.nonNpl} /> <Cell v={grandTotal.npl} />
+            <td style={{ padding: '4px 8px', border: '1px solid #000', textAlign: 'right' }}>{formatRupiah(grandTotal.total.noa)}</td>
+            <td style={{ padding: '4px 8px', border: '1px solid #000', textAlign: 'right' }}>{formatRupiah(grandTotal.total.os)}</td>
+            <td style={{ padding: '4px 8px', border: '1px solid #000', textAlign: 'right' }}>
+              {grandTotal.total.os ? formatPercent((grandTotal.npl.os / grandTotal.total.os) * 100) : '0,00%'}
+            </td>
           </tr>
         </tfoot>
       </table>
@@ -242,49 +253,44 @@ export default async function PerformaKolektibilitasPage() {
   const matrixColTotals = matrixRadiusRanges.map((_, colIdx) => matrixData.reduce((sum, r) => sum + r.columns[colIdx], 0));
 
   // Generate generic summary tables
-  function buildSummary(groupKey: keyof typeof reportRows[0], sortAlphabetical = true) {
-    const keys = Array.from(new Set(reportRows.map(r => String(r[groupKey]))));
-    if (sortAlphabetical) keys.sort();
+  
+  function buildDetailedSummary(groupKey: keyof typeof reportRows[0], predefinedKeys?: string[]) {
+    let keys = predefinedKeys;
+    if (!keys) {
+      keys = Array.from(new Set(reportRows.map(r => String(r[groupKey]))));
+      keys.sort();
+    }
     
     return keys.map(key => {
       const entries = reportRows.filter(r => String(r[groupKey]) === key);
-      const nonNplNominal = entries.filter(r => !r.isNpl).reduce((sum, r) => sum + r.outstanding, 0);
-      const nplNominal = entries.filter(r => r.isNpl).reduce((sum, r) => sum + r.outstanding, 0);
-      return {
-        label: key,
-        nonNplNominal,
-        nplNominal,
-        totalNominal: nonNplNominal + nplNominal
+      const stats = {
+        k1: {noa:0, os:0}, k2: {noa:0, os:0}, k3: {noa:0, os:0}, k4: {noa:0, os:0}, k5: {noa:0, os:0},
+        nonNpl: {noa:0, os:0}, npl: {noa:0, os:0}, total: {noa:0, os:0}
       };
+
+      for (const e of entries) {
+        stats.total.noa++; stats.total.os += e.outstanding;
+        if (e.isNpl) { stats.npl.noa++; stats.npl.os += e.outstanding; }
+        else { stats.nonNpl.noa++; stats.nonNpl.os += e.outstanding; }
+
+        if (e.kol === '1') { stats.k1.noa++; stats.k1.os += e.outstanding; }
+        else if (e.kol === '2') { stats.k2.noa++; stats.k2.os += e.outstanding; }
+        else if (e.kol === '3') { stats.k3.noa++; stats.k3.os += e.outstanding; }
+        else if (e.kol === '4') { stats.k4.noa++; stats.k4.os += e.outstanding; }
+        else if (e.kol === '5' || e.kol === '6') { stats.k5.noa++; stats.k5.os += e.outstanding; }
+      }
+
+      return { label: key, ...stats };
     });
   }
 
-  const tenorSummary = tenorPdfRanges.map(range => {
-    const entries = reportRows.filter(r => r.tenorBucket === range.label);
-    const nonNplNominal = entries.filter(r => !r.isNpl).reduce((sum, r) => sum + r.outstanding, 0);
-    const nplNominal = entries.filter(r => r.isNpl).reduce((sum, r) => sum + r.outstanding, 0);
-    return { label: range.label, nonNplNominal, nplNominal, totalNominal: nonNplNominal + nplNominal };
-  });
+  const tenorSummary = buildDetailedSummary('tenorBucket', tenorPdfRanges.map(r => r.label));
+  const productSummary = buildDetailedSummary('productBucket');
+  const plafondSummary = buildDetailedSummary('plafondBucket', plafondPdfRanges.map(r => r.label));
+  const bungaSummary = buildDetailedSummary('interestRateBucket', bungaPdfRanges.map(r => r.label));
+  const agunanSummary = buildDetailedSummary('collateralBucket');
+  const aoSummary = buildDetailedSummary('moName');
 
-  const productSummary = buildSummary('productBucket');
-  const plafondSummary = plafondPdfRanges.map(range => {
-    const entries = reportRows.filter(r => r.plafondBucket === range.label);
-    const nonNplNominal = entries.filter(r => !r.isNpl).reduce((sum, r) => sum + r.outstanding, 0);
-    const nplNominal = entries.filter(r => r.isNpl).reduce((sum, r) => sum + r.outstanding, 0);
-    return { label: range.label, nonNplNominal, nplNominal, totalNominal: nonNplNominal + nplNominal };
-  });
-  
-  const bungaSummary = bungaPdfRanges.map(range => {
-    const entries = reportRows.filter(r => r.interestRateBucket === range.label);
-    const nonNplNominal = entries.filter(r => !r.isNpl).reduce((sum, r) => sum + r.outstanding, 0);
-    const nplNominal = entries.filter(r => r.isNpl).reduce((sum, r) => sum + r.outstanding, 0);
-    return { label: range.label, nonNplNominal, nplNominal, totalNominal: nonNplNominal + nplNominal };
-  });
-
-  const agunanSummary = buildSummary('collateralBucket');
-  const aoSummary = buildSummary('moName');
-
-  // Main Kolektibilitas Table Logic
   const kantorOrder = [
     { group: 'PUSAT 1', subKantors: ['PUSAT', 'KAUMAN', 'NGANTRU', 'NGEMPLAK', 'KARANGREJO'] },
     { group: 'PUSAT 2', subKantors: ['NGUNUT', 'KALIDAWIR', 'REJOTANGAN', 'PUCANGLABAN'] },
@@ -422,7 +428,7 @@ export default async function PerformaKolektibilitasPage() {
         <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'right' }}>
           <thead>
             <tr style={{ backgroundColor: '#db2777', color: 'white' }}>
-              <th rowSpan={2} style={{ padding: '4px 8px', border: '1px solid #000', textAlign: 'left', minWidth: '150px' }}>Range Tunggakan</th>
+              <th rowSpan={2} style={{ padding: '4px 8px', border: '1px solid #000', textAlign: 'left', minWidth: '150px' }}>RANGE TUNGGAKAN</th>
               <th colSpan={matrixRadiusRanges.length} style={{ padding: '4px 8px', border: '1px solid #000', textAlign: 'center' }}>RANGE RADIUS</th>
               <th rowSpan={2} style={{ padding: '4px 8px', border: '1px solid #000', minWidth: '150px' }}>Grand Total</th>
               <th rowSpan={2} style={{ padding: '4px 8px', border: '1px solid #000' }}>%</th>
@@ -458,12 +464,12 @@ export default async function PerformaKolektibilitasPage() {
         </table>
       </section>
 
-      {renderPDFSummaryTable('TENOR', tenorSummary)}
-      {renderPDFSummaryTable('TYPE KREDIT', productSummary)}
-      {renderPDFSummaryTable('PLAFOND', plafondSummary)}
-      {renderPDFSummaryTable('RANGE_BUNGA', bungaSummary)}
-      {renderPDFSummaryTable('AGUNAN', agunanSummary)}
-      {renderPDFSummaryTable('AO', aoSummary)}
+      {renderDetailedSummaryTable('TENOR', tenorSummary)}
+      {renderDetailedSummaryTable('TYPE KREDIT', productSummary)}
+      {renderDetailedSummaryTable('PLAFOND', plafondSummary)}
+      {renderDetailedSummaryTable('RANGE_BUNGA', bungaSummary)}
+      {renderDetailedSummaryTable('AGUNAN', agunanSummary)}
+      {renderDetailedSummaryTable('AO', aoSummary)}
 
     </main>
   );
