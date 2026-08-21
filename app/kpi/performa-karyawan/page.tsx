@@ -12,9 +12,7 @@ export default async function PerformaKaryawanPage() {
 
   // Fetch only the logged in user's records
   const records = await prisma.performaKaryawan.findMany({
-    where: {
-      userId: user.id
-    },
+    where: user.role === 'SUPERADMIN' ? {} : { userId: user.id },
     include: {
       user: {
         select: { nama: true, role: true }
@@ -39,7 +37,7 @@ export default async function PerformaKaryawanPage() {
 
       <section className="card" style={{ padding: 24 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-          <h2 style={{ margin: 0 }}>Riwayat Kegiatan (Pribadi)</h2>
+          <h2 style={{ margin: 0 }}>Riwayat Kegiatan {user.role === 'SUPERADMIN' ? '(Semua Karyawan)' : '(Pribadi)'}</h2>
         </div>
 
         {records.length === 0 ? (
