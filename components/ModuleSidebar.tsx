@@ -75,8 +75,8 @@ export default function ModuleSidebar({
     <aside className="app-sidebar">
       <div className="app-sidebar-header">
         <div className="app-logo">
-          <div className="app-logo-icon">
-            <Shield size={20} />
+          <div className="app-logo-icon" style={{ background: 'transparent', color: 'inherit' }}>
+            <img src="/logo-bpr-resmi.png" alt="Logo BPR" style={{ width: '28px', height: 'auto', objectFit: 'contain' }} />
           </div>
           BPR Suite
         </div>

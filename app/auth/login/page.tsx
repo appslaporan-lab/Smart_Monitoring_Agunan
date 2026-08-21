@@ -13,9 +13,9 @@ export default function LoginPage({ searchParams }: LoginPageProps) {
     <main className="login-layout">
       <div className="login-graphic">
         <div className="login-graphic-content">
-          <div className="login-graphic-logo">
-            <Shield size={36} strokeWidth={2.5} />
-          </div>
+          <div className="login-graphic-logo" style={{ background: 'transparent', padding: 0, boxShadow: 'none' }}>
+              <img src="/logo-bpr-resmi.png" alt="Logo BPR" style={{ width: '100px', height: 'auto', objectFit: 'contain' }} />
+            </div>
           <h1>Selamat Datang Kembali</h1>
           <p>
             Sistem informasi terpadu untuk analisis performa Kolektibilitas, manajemen aktivitas Penagihan (Collecting), penilaian KPI, serta monitoring Agunan kredit secara komprehensif dan real-time.
