@@ -168,15 +168,45 @@ export default async function PerformaKolektibilitasPage() {
     { label: '15,51 - 27,00', min: 15.51, max: 27 },
   ];
 
+  
+  const SUBKANTOR_NAME_MAP: Record<string, string> = {
+    '01': 'PUSAT',
+    '06': 'KAUMAN',
+    '07': 'NGANTRU',
+    '10': 'NGEMPLAK',
+    '14': 'KARANGREJO',
+    '03': 'NGUNUT',
+    '05': 'KALIDAWIR',
+    '09': 'REJOTANGAN',
+    '12': 'PUCANGLABAN',
+    '02': 'CAMPURDARAT',
+    '04': 'BANDUNG',
+    '08': 'BOYOLANGU',
+    '13': 'PAKEL',
+    '15': 'NGENTRONG'
+  };
+
   const reportRows = rows.map((row) => {
-    let subKantorClean = row.subKantor || '';
-    if (subKantorClean.includes('-')) {
-      subKantorClean = subKantorClean.split('-').pop()?.trim() || subKantorClean;
+    let subKantorCode = row.subKantor || '';
+    if (subKantorCode.includes('-')) {
+      subKantorCode = subKantorCode.split('-').pop()?.trim() || subKantorCode;
+    } else {
+      subKantorCode = subKantorCode.trim();
     }
+    
+    // Fallback if not numeric code, try to match by string, otherwise use the code
+    let subKantorClean = SUBKANTOR_NAME_MAP[subKantorCode] || subKantorCode.toUpperCase();
+    
+    let kGroup = getKantorGroup(row.subKantor) || '';
+    // Fix PUSAT_1 to PUSAT 1
+    if (kGroup === 'PUSAT_1') kGroup = 'PUSAT 1';
+    if (kGroup === 'PUSAT_2') kGroup = 'PUSAT 2';
+
     const kolStr = String(row.kdKolektibilitas || '').trim();
     return {
       subKantor: subKantorClean,
-      kantorGroup: getKantorGroup(row.subKantor),
+      kantorGroup: kGroup,
+
       kol: kolStr,
       isNpl: COLLECTING_REPORT_CONFIG.nplCodes.includes(kolStr.toUpperCase()),
       outstanding: row.outstanding ?? 0,
