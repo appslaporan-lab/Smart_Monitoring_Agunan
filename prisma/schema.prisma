@@ -137,6 +137,7 @@ model User {
   performaKaryawan   PerformaKaryawan[]
   realisasiMo        RealisasiHarianMO[]
   activityLogs       ActivityLog[]
+  notifications      Notification[]
 }
 
 enum UserStatus {
@@ -496,4 +497,14 @@ model ActivityLog {
   details String?
   createdAt DateTime @default(now())
   user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+}
+
+model Notification {
+  id Int @id @default(autoincrement())
+  userId Int
+  title String
+  message String
+  isRead Boolean @default(false)
+  createdAt DateTime @default(now())
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

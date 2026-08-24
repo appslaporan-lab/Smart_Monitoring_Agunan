@@ -4,6 +4,7 @@ import { getCurrentUser } from '@/lib/session';
 import IdleLogout from '@/components/IdleLogout';
 import PasswordExpiryNotice from '@/components/PasswordExpiryNotice';
 import { Toaster } from 'react-hot-toast';
+import NotificationBell from '@/components/NotificationBell';
 import ModuleSidebar from '@/components/ModuleSidebar';
 import { prisma } from '@/lib/prisma';
 
@@ -50,8 +51,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
           <main className="app-main">
             <header className="app-topbar">
-              <div />
-              <div className="topbar-actions" />
+              <div style={{ flex: 1 }} />
+              <div className="topbar-actions" style={{ display: 'flex', alignItems: 'center', paddingRight: '20px' }}>
+                <NotificationBell />
+              </div>
             </header>
             <div className="app-content">
               {passwordNotice}
