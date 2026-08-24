@@ -5,6 +5,8 @@ import { redirect } from 'next/navigation';
 import { Trophy, AlertTriangle, Calendar, PlusCircle, CheckCircle } from 'lucide-react';
 import Link from 'next/link';
 import EmptyState from '@/components/EmptyState';
+import ExportExcelButton from '@/components/ExportExcelButton';
+import TableSearch from '@/components/TableSearch';
 import SuperadminManageRealisasi from '@/components/SuperadminManageRealisasi';
 
 export const dynamic = 'force-dynamic';
@@ -79,6 +81,26 @@ export default async function MORankingPage({ searchParams }: { searchParams: { 
 
   const formatCurrency = (val: number) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(val);
 
+  
+  const excelDataRanking = rankingArray.map((mo, idx) => ({
+    'Rank': idx + 1,
+    'Nama MO': mo.nama,
+    'Kantor Kas': mo.subKantor,
+    'Jml Nasabah': mo.count,
+    'Nominal Realisasi': mo.total,
+    'Target MO': TARGET_MO,
+    'Selisih': mo.total - TARGET_MO,
+    'Status': mo.total >= TARGET_MO ? 'Lulus Target' : 'Belum Lulus'
+  }));
+
+  const excelDataRecon = Object.entries(rekonStats).map(([sk, data]) => ({
+    'Kantor Kas': sk,
+    'Total Input MO': data.moTotal,
+    'Total Laporan Teller': data.tellerTotal,
+    'Selisih': data.moTotal - data.tellerTotal,
+    'Status': data.moTotal === data.tellerTotal ? 'Cocok' : 'Selisih'
+  }));
+
   return (
     <main className="container">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
@@ -114,12 +136,16 @@ export default async function MORankingPage({ searchParams }: { searchParams: { 
           <Trophy size={24} color="#eab308" />
           <h2 style={{ margin: 0 }}>Ranking MO (Bulan {bulan}/{tahun})</h2>
         </div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, marginBottom: 16 }}>
+          <TableSearch tableId="table-ranking-mo" placeholder="Cari nama MO atau kantor..." />
+          <ExportExcelButton data={excelDataRanking} fileName={`Ranking_MO_${bulan}_${tahun}`} sheetName="Ranking" />
+        </div>
 
         {rankingArray.length === 0 ? (
           <EmptyState title="Belum ada realisasi" description="Belum ada input realisasi MO pada bulan ini." />
         ) : (
           <div style={{ overflowX: 'auto' }}>
-            <table className="table" style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+            <table id="table-ranking-mo" className="table" style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
               <thead>
                 <tr>
                   <th style={{ borderBottom: '2px solid #e2e8f0', padding: '12px' }}>Rank</th>
@@ -181,6 +207,10 @@ export default async function MORankingPage({ searchParams }: { searchParams: { 
           <AlertTriangle size={24} color="#f97316" />
           <h2 style={{ margin: 0 }}>Rekonsiliasi per Kantor (Bulan {bulan}/{tahun})</h2>
         </div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, marginBottom: 16 }}>
+          <TableSearch tableId="table-recon-mo" placeholder="Cari kantor kas..." />
+          <ExportExcelButton data={excelDataRecon} fileName={`Rekonsiliasi_MO_${bulan}_${tahun}`} sheetName="Rekonsiliasi" />
+        </div>
         <p style={{ color: '#64748b', fontSize: 14, marginTop: -12, marginBottom: 20 }}>
           Membandingkan total Input Manual MO dengan total Laporan Pencairan dari Teller per masing-masing Sub Kantor.
         </p>
@@ -189,7 +219,7 @@ export default async function MORankingPage({ searchParams }: { searchParams: { 
           <EmptyState title="Belum ada rekonsiliasi" description="Data perbandingan Teller vs MO kosong." />
         ) : (
           <div style={{ overflowX: 'auto' }}>
-            <table className="table" style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+            <table id="table-recon-mo" className="table" style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
               <thead>
                 <tr>
                   <th style={{ borderBottom: '2px solid #e2e8f0', padding: '12px' }}>Kantor Kas</th>

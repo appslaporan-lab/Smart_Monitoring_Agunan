@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
+import ExportExcelButton from '@/components/ExportExcelButton';
 
 type EwsItem = {
   id: number;
@@ -57,6 +58,19 @@ export default function CollectingDebiturList({ items }: { items: EwsItem[] }) {
     BELUM_DIKUNJUNGI: '#94a3b8',
   };
 
+  
+  const excelData = filtered.map(item => ({
+    'Nama Nasabah': item.namaNasabahExcel,
+    'No Rekening': item.norek,
+    'Kantor': item.kantorLabel,
+    'Nama AO': item.namaAO,
+    'Hari Tunggakan': item.hariTunggakan,
+    'Status EWS': item.ews,
+    'Kol Bulan Ini': item.kolBulanIni || '-',
+    'Kol Bulan Lalu': item.kolBulanLalu || '-',
+    'Jml Kunjungan': item.kunjunganCount
+  }));
+  
   const cardLabels: Record<string, string> = {
     JANJI_BAYAR_DEKAT: 'Mendekati Janji Bayar',
     H7_DESK_CALL: 'H-7 Desk Call',
@@ -96,6 +110,7 @@ export default function CollectingDebiturList({ items }: { items: EwsItem[] }) {
           <h2 style={{ margin: 0 }}>
             Daftar Debitur {activeFilter !== 'ALL' && `— ${cardLabels[activeFilter] || activeFilter}`}
           </h2>
+          <ExportExcelButton data={excelData} fileName="Collecting_Debitur" sheetName="Collecting" />
           <input
             className="inputField"
             type="search"
