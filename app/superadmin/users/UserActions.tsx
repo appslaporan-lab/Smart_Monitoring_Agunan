@@ -79,14 +79,25 @@ export default function UserActions({ userId, userName, username, role }: Props)
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 6 }}>
       {message && <div className="alert alert-info" style={{ padding: '6px 10px', fontSize: '0.9rem' }}>{message}</div>}
-      <button
-        type="button"
-        className="button secondary"
-        disabled={loading}
-        onClick={handleResetPassword}
-      >
-        {loading ? 'Memproses...' : 'Reset Password'}
-      </button>
+      
+      <div style={{ display: 'flex', gap: 8 }}>
+        <button
+          type="button"
+          className="button secondary"
+          disabled={loading}
+          onClick={handleResetPassword}
+        >
+          {loading ? 'Memproses...' : 'Reset Password'}
+        </button>
+        <button
+          type="button"
+          style={{ background: '#ef4444', color: 'white', border: 'none', padding: '8px 12px', borderRadius: '4px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}
+          disabled={loading}
+          onClick={handleDelete}
+        >
+          <Trash2 size={16} /> Hapus
+        </button>
+      </div>
     </div>
   );
 }

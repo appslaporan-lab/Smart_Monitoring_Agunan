@@ -1,11 +1,21 @@
+import { redirect } from 'next/navigation';
+import { getCurrentUser } from '@/lib/session';
+
 export const dynamic = 'force-dynamic';
-export default function KpiPage() {
-  return (
-    <main className="container">
-      <div className="card" style={{ padding: 40, textAlign: 'center' }}>
-        <h1>Modul KPI</h1>
-        <p style={{ color: '#64748b' }}>Modul ini sedang dalam pengembangan. Segera hadir.</p>
-      </div>
-    </main>
-  );
+
+export default async function KpiPage() {
+  const user = getCurrentUser();
+  if (!user) redirect('/auth/login');
+
+  // Cek apakah user adalah teller / cabang yang lebih relevan ke transaksi harian
+  if (user.role === 'TELLER') {
+    redirect('/kpi/teller/transaksi-harian');
+  }
+  
+  if (user.role === 'MARKETING' || user.role === 'AO') {
+    redirect('/kpi/mo-realisasi');
+  }
+
+  // Fallback untuk semua user yang punya akses KPI
+  redirect('/kpi/performa-karyawan');
 }
