@@ -1,12 +1,14 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { CheckCircle, AlertCircle, ArrowLeft, Loader2, Save } from 'lucide-react';
+import { CheckCircle, AlertCircle, ArrowLeft, Loader2, Save, Calculator } from 'lucide-react';
 import Link from 'next/link';
 
 export default function InputRealisasiMOPage() {
   const [tanggal, setTanggal] = useState<string>(new Date().toISOString().split('T')[0]);
-  const [nominal, setNominal] = useState<string>('');
+  const [jenis, setJenis] = useState<'BARU' | 'TOP_UP'>('BARU');
+  const [nominalRealisasi, setNominalRealisasi] = useState<string>(''); // Plafon kotor
+  const [saldoAkhir, setSaldoAkhir] = useState<string>(''); // Saldo pinjaman lama
   const [keterangan, setKeterangan] = useState<string>('');
   
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -29,10 +31,29 @@ export default function InputRealisasiMOPage() {
       .catch(() => {});
   }, []);
 
+  const getNominalNet = () => {
+    const nr = Number(nominalRealisasi) || 0;
+    if (jenis === 'BARU') return nr;
+    const sa = Number(saldoAkhir) || 0;
+    return nr - sa;
+  };
+
+  const formatCurrency = (val: number) => {
+    return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(val);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!nominal || isNaN(Number(nominal))) {
-      setError('Nominal tidak valid');
+    
+    const nr = Number(nominalRealisasi);
+    if (!nr || isNaN(nr)) {
+      setError('Nominal realisasi tidak valid');
+      return;
+    }
+
+    const net = getNominalNet();
+    if (net < 0) {
+      setError('Nominal pencapaian KPI tidak boleh minus (Saldo Akhir lebih besar dari Realisasi).');
       return;
     }
 
@@ -46,7 +67,10 @@ export default function InputRealisasiMOPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           tanggal,
-          nominal: Number(nominal),
+          jenis,
+          nominalAsli: nr,
+          saldoAkhir: jenis === 'TOP_UP' ? (Number(saldoAkhir) || 0) : 0,
+          nominal: net, // Pencapaian KPI bersih
           keterangan,
           targetUserId: targetUserId || undefined
         })
@@ -55,9 +79,11 @@ export default function InputRealisasiMOPage() {
       const json = await res.json();
       if (!res.ok) throw new Error(json.error || 'Terjadi kesalahan sistem');
 
-      setSuccess('Data realisasi harian berhasil disimpan!');
-      setNominal('');
+      setSuccess(`Data realisasi harian berhasil disimpan! Pencapaian KPI yang tercatat: ${formatCurrency(net)}`);
+      setNominalRealisasi('');
+      setSaldoAkhir('');
       setKeterangan('');
+      setJenis('BARU');
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -66,7 +92,7 @@ export default function InputRealisasiMOPage() {
   };
 
   return (
-    <main className="container" style={{ maxWidth: 600 }}>
+    <main className="container" style={{ maxWidth: 650 }}>
       <div style={{ marginBottom: 24 }}>
         <Link href="/kpi/mo-realisasi" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, color: '#64748b', textDecoration: 'none', marginBottom: 16 }}>
           <ArrowLeft size={16} />
@@ -93,7 +119,7 @@ export default function InputRealisasiMOPage() {
 
         <form onSubmit={handleSubmit}>
           {isSuperadmin && (
-            <div className="form-group" style={{ marginBottom: 20 }}>
+            <div className="form-group" style={{ marginBottom: 24 }}>
               <label className="label">Nama MO (Akses Superadmin)</label>
               <select className="inputField" value={targetUserId} onChange={e => setTargetUserId(e.target.value)}>
                 <option value="">-- Diri Sendiri --</option>
@@ -104,21 +130,68 @@ export default function InputRealisasiMOPage() {
             </div>
           )}
 
-          <div className="form-group" style={{ marginBottom: 20 }}>
+          <div className="form-group" style={{ marginBottom: 24 }}>
             <label className="label">Tanggal Realisasi</label>
             <input type="date" className="inputField" value={tanggal} onChange={e => setTanggal(e.target.value)} required />
           </div>
 
-          <div className="form-group" style={{ marginBottom: 20 }}>
-            <label className="label">Nominal Realisasi (Rp)</label>
-            <input 
-              type="number" 
-              className="inputField" 
-              value={nominal} 
-              onChange={e => setNominal(e.target.value)} 
-              placeholder="Contoh: 150000000"
-              required 
-            />
+          <div className="form-group" style={{ marginBottom: 24 }}>
+            <label className="label">Jenis Realisasi</label>
+            <div style={{ display: 'flex', gap: 16 }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
+                <input type="radio" name="jenis" value="BARU" checked={jenis === 'BARU'} onChange={() => setJenis('BARU')} />
+                Realisasi Baru
+              </label>
+              <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
+                <input type="radio" name="jenis" value="TOP_UP" checked={jenis === 'TOP_UP'} onChange={() => setJenis('TOP_UP')} />
+                Top Up
+              </label>
+            </div>
+          </div>
+
+          <div className="grid" style={{ gridTemplateColumns: jenis === 'TOP_UP' ? '1fr 1fr' : '1fr', gap: 16, marginBottom: 24 }}>
+            <div className="form-group">
+              <label className="label">Nominal Realisasi (Plafon Baru)</label>
+              <input 
+                type="number" 
+                className="inputField" 
+                value={nominalRealisasi} 
+                onChange={e => setNominalRealisasi(e.target.value)} 
+                placeholder="Contoh: 150000000"
+                required 
+              />
+            </div>
+            
+            {jenis === 'TOP_UP' && (
+              <div className="form-group">
+                <label className="label">Saldo Akhir (Pinjaman Lama)</label>
+                <input 
+                  type="number" 
+                  className="inputField" 
+                  value={saldoAkhir} 
+                  onChange={e => setSaldoAkhir(e.target.value)} 
+                  placeholder="Contoh: 50000000"
+                  required={jenis === 'TOP_UP'}
+                />
+              </div>
+            )}
+          </div>
+
+          <div style={{ background: '#f8fafc', padding: 16, borderRadius: 8, border: '1px solid #e2e8f0', marginBottom: 24, display: 'flex', alignItems: 'center', gap: 16 }}>
+            <div style={{ background: '#e2e8f0', padding: 12, borderRadius: '50%', color: '#475569' }}>
+              <Calculator size={24} />
+            </div>
+            <div>
+              <div style={{ fontSize: 13, color: '#64748b', fontWeight: 600, textTransform: 'uppercase', marginBottom: 4 }}>
+                Pencapaian KPI Anda
+              </div>
+              <div style={{ fontSize: 24, fontWeight: 'bold', color: '#0f172a' }}>
+                {formatCurrency(getNominalNet())}
+              </div>
+              <div style={{ fontSize: 13, color: '#64748b', marginTop: 4 }}>
+                {jenis === 'TOP_UP' ? 'Dihitung dari (Plafon Baru - Saldo Akhir)' : 'Dihitung penuh dari Plafon Baru'}
+              </div>
+            </div>
           </div>
 
           <div className="form-group" style={{ marginBottom: 24 }}>
@@ -127,7 +200,7 @@ export default function InputRealisasiMOPage() {
               className="inputField" 
               value={keterangan} 
               onChange={e => setKeterangan(e.target.value)} 
-              placeholder="Contoh: Pencairan nasabah A, B, C..."
+              placeholder="Contoh: Pencairan nasabah Budi (Top Up)"
               rows={3}
             />
           </div>

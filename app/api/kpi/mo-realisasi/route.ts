@@ -9,7 +9,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { tanggal, nominal, keterangan, targetUserId } = await req.json();
+    const { tanggal, nominal, keterangan, targetUserId, jenis, saldoAkhir, nominalAsli } = await req.json();
 
     if (!tanggal || nominal === undefined || nominal === null) {
       return NextResponse.json({ error: 'Tanggal dan nominal wajib diisi' }, { status: 400 });
@@ -26,6 +26,9 @@ export async function POST(req: NextRequest) {
         userId: finalUserId,
         tanggal: new Date(tanggal),
         nominal: parseFloat(nominal),
+        jenis: jenis || 'BARU',
+        saldoAkhir: saldoAkhir ? parseFloat(saldoAkhir) : 0,
+        nominalAsli: nominalAsli ? parseFloat(nominalAsli) : parseFloat(nominal),
         keterangan: keterangan || '',
       }
     });

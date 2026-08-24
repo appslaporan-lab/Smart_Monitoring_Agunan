@@ -471,12 +471,15 @@ model PerformaKaryawan {
 
 
 model RealisasiHarianMO {
-  id        Int      @id @default(autoincrement())
-  userId    Int
-  user      User     @relation(fields: [userId], references: [id])
-  tanggal   DateTime @db.Date
-  nominal   Float    @default(0)
-  keterangan String? @db.Text
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id           Int      @id @default(autoincrement())
+  userId       Int
+  user         User     @relation(fields: [userId], references: [id])
+  tanggal      DateTime @db.Date
+  nominal      Float    @default(0)
+  jenis        String   @default("BARU")
+  saldoAkhir   Float    @default(0)
+  nominalAsli  Float    @default(0)
+  keterangan   String?  @db.Text
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 }
