@@ -135,6 +135,7 @@ model User {
   stepDisetujui      PengajuanStep[]   @relation("StepDisetujui")
   kesalahanTeller    RekapKesalahanTeller[]
   performaKaryawan   PerformaKaryawan[]
+  realisasiMo        RealisasiHarianMO[]
 }
 
 enum UserStatus {
@@ -466,4 +467,16 @@ model PerformaKaryawan {
   updatedAt      DateTime @updatedAt
 
   @@unique([userId, tanggal, kegiatan])
+}
+
+
+model RealisasiHarianMO {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
+  tanggal   DateTime @db.Date
+  nominal   Float    @default(0)
+  keterangan String? @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

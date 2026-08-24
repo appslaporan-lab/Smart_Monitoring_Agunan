@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
-  LogOut, Shield, LayoutDashboard, PlusCircle, Users, ClipboardCheck,
+  LogOut, Trophy, Shield, LayoutDashboard, PlusCircle, Users, ClipboardCheck,
   FileText, ShieldCheck, Archive, FileSignature, PackageOpen, CheckCircle2,
   UserCog, Wallet, TrendingUp, BarChart3, Settings
 } from 'lucide-react';
@@ -48,6 +48,7 @@ const MENU_CONFIG: MenuItem[] = [
   { href: '/kpi/teller/transaksi-harian', label: 'Teller (Transaksi Harian)', roles: 'all', icon: FileText, module: 'kpi' },
   { href: '/kpi/teller/kesalahan', label: 'Daftar Kesalahan', roles: 'all', icon: ShieldCheck, module: 'kpi' },
   { href: '/kpi/performa-karyawan', label: 'Performa Karyawan', roles: 'all', icon: Users, module: 'kpi' },
+  { href: '/kpi/mo-realisasi', label: 'MO (Realisasi)', roles: 'all', icon: Trophy, module: 'kpi' },
 
   { href: '/performa/kolektibilitas', label: 'Laporan Kolektibilitas', roles: ['SUPERADMIN', 'KASUBAG_KREDIT_PUSAT_1', 'KASUBAG_KREDIT_PUSAT_2', 'KASUBAG_KREDIT_CABANG', 'KABAG_MARKETING_PUSAT_1', 'KABAG_MARKETING_PUSAT_2', 'PIMPINAN_CABANG', 'DIREKTUR', 'KABAG_OPERASIONAL'], icon: FileText, module: 'performa' },
   { href: '/performa', label: 'Dashboard Performa', roles: 'all', icon: LayoutDashboard, module: 'performa' },
