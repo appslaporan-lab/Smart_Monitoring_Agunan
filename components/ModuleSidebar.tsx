@@ -24,12 +24,13 @@ const MODULES: ModuleDef[] = [
   { key: 'collecting', label: 'Collecting Kredit', icon: Wallet, pathPrefix: '/collecting' },
   { key: 'kpi', label: 'KPI', icon: TrendingUp, pathPrefix: '/kpi' },
   { key: 'performa', label: 'Performa Kantor', icon: BarChart3, pathPrefix: '/performa' },
+    { key: 'settings', label: 'Pengaturan', icon: Settings, pathPrefix: '/settings' },
 ];
 
 const MENU_CONFIG: MenuItem[] = [
-  { href: '/superadmin/users', label: 'Approval User', roles: ['SUPERADMIN'], icon: UserCog, module: 'agunan' },
+  { href: '/superadmin/users', label: 'Approval User', roles: ['SUPERADMIN'], icon: UserCog, module: 'settings' },
   { href: '/', label: 'Dashboard', roles: AGUNAN_ROLES, icon: LayoutDashboard, module: 'agunan' },
-  { href: '/auth/change-password', label: 'Ganti Password', roles: 'all', icon: Shield, module: 'agunan' },
+  { href: '/auth/change-password', label: 'Ganti Password', roles: 'all', icon: Shield, module: 'settings' },
   { href: '/pengambilan', label: 'Pengambilan Agunan', roles: ['ADM_KREDIT_PUSAT', 'ADM_KREDIT_CABANG', 'KEPALA_KAS'], icon: PackageOpen, module: 'agunan' },
   { href: '/approval', label: 'Approval', roles: ['KABAG_OPERASIONAL', 'PIMPINAN_CABANG', 'DIREKTUR', 'DIREKSI', 'ADM_KREDIT_PUSAT', 'ADM_KREDIT_CABANG'], icon: CheckCircle2, module: 'agunan' },
   { href: '/create', label: 'Tambah Agunan', roles: ['ADM_KREDIT_PUSAT', 'ADM_KREDIT_CABANG', 'KEPALA_KAS'], icon: PlusCircle, module: 'agunan' },
@@ -69,9 +70,9 @@ export default function ModuleSidebar({
 
   const visibleModules = MODULES.filter((m) => visibleMenuAll.some((item) => item.module === m.key));
 
-  const activeModuleKey =
-    visibleModules.find((m) => m.pathPrefix !== '/' && pathname.startsWith(m.pathPrefix))?.key
-    || (visibleModules.some((m) => m.key === 'agunan') ? 'agunan' : visibleModules[0]?.key);
+  let activeModuleKey = visibleMenuAll.find(item => item.href !== '/' && pathname.startsWith(item.href))?.module;
+  if (!activeModuleKey && pathname === '/') activeModuleKey = 'agunan';
+  if (!activeModuleKey) activeModuleKey = visibleModules.some((m) => m.key === 'agunan') ? 'agunan' : visibleModules[0]?.key;
 
   const visibleMenu = visibleMenuAll.filter((item) => item.module === activeModuleKey);
 
