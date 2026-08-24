@@ -15,7 +15,7 @@ const AGUNAN_ROLES = [
   'ADM_KREDIT_PUSAT', 'ADM_KREDIT_CABANG',
   'KASUBAG_PUSAT', 'KASUBAG_CABANG',
   'KASUBAG_KREDIT_PUSAT_1', 'KASUBAG_KREDIT_PUSAT_2', 'KASUBAG_KREDIT_CABANG',
-  'KEPALA_KAS', 'KABAG_OPERASIONAL', 'PIMPINAN_CABANG', 'SPI', 'DIREKTUR',
+  'KEPALA_KAS', 'KABAG_OPERASIONAL', 'PIMPINAN_CABANG', 'SPI', 'DIREKTUR', 'DIREKSI',
   'SUPERADMIN',
 ];
 
@@ -31,15 +31,15 @@ const MENU_CONFIG: MenuItem[] = [
   { href: '/', label: 'Dashboard', roles: AGUNAN_ROLES, icon: LayoutDashboard, module: 'agunan' },
   { href: '/auth/change-password', label: 'Ganti Password', roles: 'all', icon: Shield, module: 'agunan' },
   { href: '/pengambilan', label: 'Pengambilan Agunan', roles: ['ADM_KREDIT_PUSAT', 'ADM_KREDIT_CABANG', 'KEPALA_KAS'], icon: PackageOpen, module: 'agunan' },
-  { href: '/approval', label: 'Approval', roles: ['KABAG_OPERASIONAL', 'PIMPINAN_CABANG', 'DIREKTUR', 'ADM_KREDIT_PUSAT', 'ADM_KREDIT_CABANG'], icon: CheckCircle2, module: 'agunan' },
+  { href: '/approval', label: 'Approval', roles: ['KABAG_OPERASIONAL', 'PIMPINAN_CABANG', 'DIREKTUR', 'DIREKSI', 'ADM_KREDIT_PUSAT', 'ADM_KREDIT_CABANG'], icon: CheckCircle2, module: 'agunan' },
   { href: '/create', label: 'Tambah Agunan', roles: ['ADM_KREDIT_PUSAT', 'ADM_KREDIT_CABANG', 'KEPALA_KAS'], icon: PlusCircle, module: 'agunan' },
   { href: '/nasabah', label: 'Data Nasabah', roles: ['ADM_KREDIT_PUSAT', 'ADM_KREDIT_CABANG', 'KEPALA_KAS', 'KASUBAG_PUSAT', 'KASUBAG_CABANG'], icon: Users, module: 'agunan' },
   { href: '/agunan', label: 'Data Agunan', roles: ['ADM_KREDIT_PUSAT', 'ADM_KREDIT_CABANG', 'KEPALA_KAS', 'KASUBAG_PUSAT', 'KASUBAG_CABANG'], icon: Archive, module: 'agunan' },
   { href: '/berita-acara', label: 'Penyerahan Agunan', roles: ['ADM_KREDIT_PUSAT', 'ADM_KREDIT_CABANG', 'KEPALA_KAS', 'KASUBAG_PUSAT', 'KASUBAG_CABANG'], icon: FileSignature, module: 'agunan' },
-  { href: '/berita-acara-lintas-kantor', label: 'BA Lintas Kantor', roles: ['ADM_KREDIT_PUSAT', 'ADM_KREDIT_CABANG', 'KABAG_OPERASIONAL', 'PIMPINAN_CABANG', 'DIREKTUR'], icon: FileSignature, module: 'agunan' },
-  { href: '/stock-opname', label: 'Stock Opname', roles: ['KASUBAG_PUSAT', 'KASUBAG_CABANG', 'KABAG_OPERASIONAL', 'PIMPINAN_CABANG', 'DIREKTUR', 'SPI'], icon: ClipboardCheck, module: 'agunan' },
-  { href: '/reports', label: 'Laporan', roles: ['KASUBAG_PUSAT', 'KASUBAG_CABANG', 'KABAG_OPERASIONAL', 'PIMPINAN_CABANG', 'DIREKTUR', 'SPI'], icon: FileText, module: 'agunan' },
-  { href: '/audit', label: 'Audit', roles: ['KABAG_OPERASIONAL', 'PIMPINAN_CABANG', 'DIREKTUR', 'SPI'], icon: ShieldCheck, module: 'agunan' },
+  { href: '/berita-acara-lintas-kantor', label: 'BA Lintas Kantor', roles: ['ADM_KREDIT_PUSAT', 'ADM_KREDIT_CABANG', 'KABAG_OPERASIONAL', 'PIMPINAN_CABANG', 'DIREKTUR', 'DIREKSI'], icon: FileSignature, module: 'agunan' },
+  { href: '/stock-opname', label: 'Stock Opname', roles: ['KASUBAG_PUSAT', 'KASUBAG_CABANG', 'KABAG_OPERASIONAL', 'PIMPINAN_CABANG', 'DIREKTUR', 'DIREKSI', 'SPI'], icon: ClipboardCheck, module: 'agunan' },
+  { href: '/reports', label: 'Laporan', roles: ['KASUBAG_PUSAT', 'KASUBAG_CABANG', 'KABAG_OPERASIONAL', 'PIMPINAN_CABANG', 'DIREKTUR', 'DIREKSI', 'SPI'], icon: FileText, module: 'agunan' },
+  { href: '/audit', label: 'Audit', roles: ['KABAG_OPERASIONAL', 'PIMPINAN_CABANG', 'DIREKTUR', 'DIREKSI', 'SPI'], icon: ShieldCheck, module: 'agunan' },
 
   { href: '/collecting', label: 'Dashboard Collecting', roles: ["MARKETING","AO","KEPALA_KAS","KASUBAG_KREDIT","KASUBAG_KREDIT_PUSAT_1","KASUBAG_KREDIT_PUSAT_2","KASUBAG_KREDIT_CABANG","KABAG_MARKETING","KABAG_MARKETING_PUSAT_1","KABAG_MARKETING_PUSAT_2","PIMPINAN_CABANG","DIREKSI","DIREKTUR","SUPERADMIN"], icon: LayoutDashboard, module: 'collecting' },
   { href: '/collecting/upload', label: 'Upload Nominatif', roles: ['SUPERADMIN'], icon: PlusCircle, module: 'collecting' },
@@ -50,7 +50,7 @@ const MENU_CONFIG: MenuItem[] = [
   { href: '/kpi/performa-karyawan', label: 'Performa Karyawan', roles: ["TELLER","MARKETING","AO","ADM_KREDIT","CS","KEPALA_KAS","KASUBAG_OPERASIONAL","KASUBAG_PUSAT","KASUBAG_CABANG","KASUBAG_KREDIT","KASUBAG_KREDIT_PUSAT_1","KASUBAG_KREDIT_PUSAT_2","KASUBAG_KREDIT_CABANG","KABAG_OPERASIONAL","KABAG_MARKETING","KABAG_MARKETING_PUSAT_1","KABAG_MARKETING_PUSAT_2","PIMPINAN_CABANG","DIREKSI","DIREKTUR","SUPERADMIN"], icon: Users, module: 'kpi' },
   { href: '/kpi/mo-realisasi', label: 'MO (Realisasi)', roles: ["MARKETING","AO","KEPALA_KAS","KASUBAG_KREDIT","KASUBAG_KREDIT_PUSAT_1","KASUBAG_KREDIT_PUSAT_2","KASUBAG_KREDIT_CABANG","KABAG_MARKETING","PIMPINAN_CABANG","DIREKSI","DIREKTUR","SUPERADMIN"], icon: Trophy, module: 'kpi' },
 
-  { href: '/performa/kolektibilitas', label: 'Laporan Kolektibilitas', roles: ['SUPERADMIN', 'KASUBAG_KREDIT_PUSAT_1', 'KASUBAG_KREDIT_PUSAT_2', 'KASUBAG_KREDIT_CABANG', 'KABAG_MARKETING_PUSAT_1', 'KABAG_MARKETING_PUSAT_2', 'PIMPINAN_CABANG', 'DIREKTUR', 'KABAG_OPERASIONAL'], icon: FileText, module: 'performa' },
+  { href: '/performa/kolektibilitas', label: 'Laporan Kolektibilitas', roles: ['SUPERADMIN', 'KASUBAG_KREDIT_PUSAT_1', 'KASUBAG_KREDIT_PUSAT_2', 'KASUBAG_KREDIT_CABANG', 'KABAG_MARKETING_PUSAT_1', 'KABAG_MARKETING_PUSAT_2', 'PIMPINAN_CABANG', 'DIREKTUR', 'DIREKSI', 'KABAG_OPERASIONAL'], icon: FileText, module: 'performa' },
   { href: '/performa', label: 'Dashboard Performa', roles: ["KEPALA_KAS","KASUBAG_KREDIT","KASUBAG_KREDIT_PUSAT_1","KASUBAG_KREDIT_PUSAT_2","KASUBAG_KREDIT_CABANG","KABAG_MARKETING","KABAG_MARKETING_PUSAT_1","KABAG_MARKETING_PUSAT_2","KABAG_OPERASIONAL","PIMPINAN_CABANG","DIREKSI","DIREKTUR","SUPERADMIN"], icon: LayoutDashboard, module: 'performa' },
   { href: '/admin/settings', label: 'Pengaturan Bucket', roles: ['SUPERADMIN'], icon: Settings, module: 'performa' },
   { href: '/admin/ao', label: 'Mapping AO', roles: ['SUPERADMIN'], icon: UserCog, module: 'performa' },
