@@ -50,10 +50,11 @@ export default async function MORankingPage({ searchParams }: { searchParams: { 
   });
 
   // Calculate MO Ranking
-  const moStats: Record<number, { nama: string; total: number; subKantor: string }> = {};
+  const moStats: Record<number, { nama: string; total: number; count: number; subKantor: string }> = {};
   for (const r of moRecords) {
-    if (!moStats[r.userId]) moStats[r.userId] = { nama: r.user.nama, subKantor: r.user.subKantor || 'Pusat', total: 0 };
+    if (!moStats[r.userId]) moStats[r.userId] = { nama: r.user.nama, subKantor: r.user.subKantor || 'Pusat', total: 0, count: 0 };
     moStats[r.userId].total += r.nominal;
+    moStats[r.userId].count += 1;
   }
 
   const rankingArray = Object.values(moStats).sort((a, b) => b.total - a.total);
@@ -123,6 +124,7 @@ export default async function MORankingPage({ searchParams }: { searchParams: { 
                   <th style={{ borderBottom: '2px solid #e2e8f0', padding: '12px' }}>Rank</th>
                   <th style={{ borderBottom: '2px solid #e2e8f0', padding: '12px' }}>Nama MO</th>
                   <th style={{ borderBottom: '2px solid #e2e8f0', padding: '12px' }}>Kantor</th>
+                  <th style={{ borderBottom: '2px solid #e2e8f0', padding: '12px', textAlign: 'center' }}>Jml Nasabah</th>
                   <th style={{ borderBottom: '2px solid #e2e8f0', padding: '12px' }}>Nominal Realisasi</th>
                   <th style={{ borderBottom: '2px solid #e2e8f0', padding: '12px' }}>Target MO</th>
                   <th style={{ borderBottom: '2px solid #e2e8f0', padding: '12px' }}>+/- dari Target</th>
@@ -153,6 +155,7 @@ export default async function MORankingPage({ searchParams }: { searchParams: { 
                       <td style={{ borderBottom: '1px solid #f1f5f9', padding: '12px' }}>{rankBadge}</td>
                       <td style={{ borderBottom: '1px solid #f1f5f9', padding: '12px', fontWeight: 600 }}>{mo.nama}</td>
                       <td style={{ borderBottom: '1px solid #f1f5f9', padding: '12px' }}>{mo.subKantor}</td>
+                      <td style={{ borderBottom: '1px solid #f1f5f9', padding: '12px', textAlign: 'center', fontWeight: 'bold' }}>{mo.count}</td>
                       <td style={{ borderBottom: '1px solid #f1f5f9', padding: '12px', fontWeight: 'bold', color: '#0f172a' }}>{formatCurrency(mo.total)}</td>
                       <td style={{ borderBottom: '1px solid #f1f5f9', padding: '12px', color: '#64748b' }}>{formatCurrency(TARGET_MO)}</td>
                       <td style={{ borderBottom: '1px solid #f1f5f9', padding: '12px', fontWeight: 600, color: isHit ? '#16a34a' : '#dc2626' }}>
