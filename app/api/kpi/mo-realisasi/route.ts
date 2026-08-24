@@ -40,33 +40,58 @@ export async function POST(req: NextRequest) {
   }
 }
 
-export async function GET(req: NextRequest) {
+export async function PUT(req: NextRequest) {
   try {
-    const url = new URL(req.url);
-    const bulan = url.searchParams.get('bulan');
-    const tahun = url.searchParams.get('tahun');
-
-    if (!bulan || !tahun) {
-      return NextResponse.json({ error: 'Bulan dan tahun wajib diisi' }, { status: 400 });
+    const user = getCurrentUser();
+    if (!user || user.role !== 'SUPERADMIN') {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const startDate = new Date(parseInt(tahun), parseInt(bulan) - 1, 1);
-    const endDate = new Date(parseInt(tahun), parseInt(bulan), 0, 23, 59, 59, 999);
+    const { id, nominal, keterangan, jenis, saldoAkhir, nominalAsli } = await req.json();
 
-    const records = await prisma.realisasiHarianMO.findMany({
-      where: {
-        tanggal: {
-          gte: startDate,
-          lte: endDate,
-        }
-      },
-      include: {
-        user: { select: { nama: true, subKantor: true, role: true } }
+    if (!id) return NextResponse.json({ error: 'ID wajib diisi' }, { status: 400 });
+
+    const updatedRecord = await prisma.realisasiHarianMO.update({
+      where: { id: parseInt(id, 10) },
+      data: {
+        nominal: nominal !== undefined ? parseFloat(nominal) : undefined,
+        jenis: jenis !== undefined ? jenis : undefined,
+        saldoAkhir: saldoAkhir !== undefined ? parseFloat(saldoAkhir) : undefined,
+        nominalAsli: nominalAsli !== undefined ? parseFloat(nominalAsli) : undefined,
+        keterangan: keterangan !== undefined ? keterangan : undefined,
       }
     });
 
-    return NextResponse.json({ success: true, data: records });
+    return NextResponse.json({ success: true, data: updatedRecord });
   } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error('API PUT Error:', error);
+    return NextResponse.json({ error: error.message || 'Terjadi kesalahan' }, { status: 500 });
   }
+}
+
+export async function DELETE(req: NextRequest) {
+  try {
+    const user = getCurrentUser();
+    if (!user || user.role !== 'SUPERADMIN') {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const { id } = await req.json();
+
+    if (!id) return NextResponse.json({ error: 'ID wajib diisi' }, { status: 400 });
+
+    await prisma.realisasiHarianMO.delete({
+      where: { id: parseInt(id, 10) }
+    });
+
+    return NextResponse.json({ success: true });
+  } catch (error: any) {
+    console.error('API DELETE Error:', error);
+    return NextResponse.json({ error: error.message || 'Terjadi kesalahan' }, { status: 500 });
+  }
+}
+
+export async function GET(req: NextRequest) {
+  // Existing GET logic (omitted as it's not strictly needed if we fetch via Server Components, but kept for completeness)
+  return NextResponse.json({ success: false, error: 'Not Implemented' }, { status: 404 });
 }

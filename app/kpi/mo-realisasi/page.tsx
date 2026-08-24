@@ -4,6 +4,7 @@ import { getCurrentUser } from '@/lib/session';
 import { redirect } from 'next/navigation';
 import { Trophy, AlertTriangle, Calendar, PlusCircle, CheckCircle } from 'lucide-react';
 import Link from 'next/link';
+import SuperadminManageRealisasi from '@/components/SuperadminManageRealisasi';
 
 export const dynamic = 'force-dynamic';
 
@@ -20,18 +21,31 @@ export default async function MORankingPage({ searchParams }: { searchParams: { 
   const startDate = new Date(tahun, bulan - 1, 1);
   const endDate = new Date(tahun, bulan, 0, 23, 59, 59, 999);
 
+
+  let whereMO: any = { tanggal: { gte: startDate, lte: endDate } };
+  let whereTeller: any = { tanggal: { gte: startDate, lte: endDate }, kegiatan: 'Pencairan Pinjaman' };
+
+  if (user.role === 'SUPERADMIN' || user.role === 'DIREKSI') {
+    // see all
+  } else if (user.role.includes('MARKETING') || user.role === 'AO') {
+    whereMO.userId = user.id;
+    whereTeller.user = { subKantor: user.subKantor || 'Pusat' };
+  } else {
+    // KEPALA KAS, KASUBAG KREDIT, dll see their branch
+    whereMO.user = { subKantor: user.subKantor || 'Pusat' };
+    whereTeller.user = { subKantor: user.subKantor || 'Pusat' };
+  }
+
   // 1. Fetch MO Manual Inputs
   const moRecords = await prisma.realisasiHarianMO.findMany({
-    where: { tanggal: { gte: startDate, lte: endDate } },
+    where: whereMO,
+
     include: { user: { select: { nama: true, subKantor: true } } }
   });
 
   // 2. Fetch Teller "Pencairan Pinjaman"
   const tellerRecords = await prisma.performaKaryawan.findMany({
-    where: { 
-      tanggal: { gte: startDate, lte: endDate },
-      kegiatan: 'Pencairan Pinjaman'
-    },
+    where: whereTeller,
     include: { user: { select: { subKantor: true } } }
   });
 
@@ -213,6 +227,7 @@ export default async function MORankingPage({ searchParams }: { searchParams: { 
           </div>
         )}
       </section>
+      {user.role === 'SUPERADMIN' && <SuperadminManageRealisasi records={moRecords as any} />}
     </main>
   );
 }
