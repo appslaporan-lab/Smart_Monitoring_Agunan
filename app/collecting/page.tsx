@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma';
 import { determineEWS } from '@/lib/ews';
 import { getKantorLabel, canAccessKantorData } from '@/lib/kantor';
 import Link from 'next/link';
+import EmptyState from '@/components/EmptyState';
 import CollectingDebiturList from './CollectingDebiturList';
 
 export const dynamic = 'force-dynamic';
@@ -30,11 +31,13 @@ export default async function CollectingDashboardPage({ searchParams }: { search
       <main className="container">
         <section style={{ marginBottom: 32 }}>
           <h1>Dashboard Collecting Kredit</h1>
-          <p>Belum ada data nominatif yang diupload.</p>
         </section>
-        {user.role === 'SUPERADMIN' && (
-          <Link href="/collecting/upload" className="button">Upload Nominatif Sekarang</Link>
-        )}
+        <EmptyState 
+          title="Belum ada data nominatif" 
+          description="Silakan upload data nominatif collecting terlebih dahulu untuk melihat dashboard pemantauan debitur."
+          actionLabel={user.role === 'SUPERADMIN' ? "Upload Nominatif Sekarang" : undefined}
+          actionHref={user.role === 'SUPERADMIN' ? "/collecting/upload" : undefined}
+        />
       </main>
     );
   }

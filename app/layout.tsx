@@ -3,6 +3,7 @@ import './globals.css';
 import { getCurrentUser } from '@/lib/session';
 import IdleLogout from '@/components/IdleLogout';
 import PasswordExpiryNotice from '@/components/PasswordExpiryNotice';
+import { Toaster } from 'react-hot-toast';
 import ModuleSidebar from '@/components/ModuleSidebar';
 import { prisma } from '@/lib/prisma';
 
@@ -32,6 +33,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     return (
       <html lang="id" suppressHydrationWarning>
         <body suppressHydrationWarning>
+        <Toaster position="top-right" />
           {children}
         </body>
       </html>
@@ -41,6 +43,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   return (
     <html lang="id" suppressHydrationWarning>
       <body suppressHydrationWarning>
+        <Toaster position="top-right" />
         <IdleLogout />
         <div className="app-layout">
           <ModuleSidebar userNama={user.nama} userRole={user.role} />

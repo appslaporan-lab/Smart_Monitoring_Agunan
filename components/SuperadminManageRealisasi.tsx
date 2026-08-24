@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { Edit2, Trash2, Save, X, AlertTriangle } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import toast from 'react-hot-toast';
 
 type RealisasiRecord = {
   id: number;
@@ -62,13 +63,14 @@ export default function SuperadminManageRealisasi({ records }: { records: Realis
         })
       });
       if (res.ok) {
+        toast.success('Berhasil disimpan');
         setEditingId(null);
         router.refresh();
       } else {
-        alert('Gagal menyimpan data');
+        toast.error('Gagal menyimpan data');
       }
     } catch (e) {
-      alert('Error saving data');
+      toast.error('Terjadi kesalahan');
     } finally {
       setIsProcessing(false);
     }
@@ -85,12 +87,13 @@ export default function SuperadminManageRealisasi({ records }: { records: Realis
         body: JSON.stringify({ id })
       });
       if (res.ok) {
+        toast.success('Berhasil dihapus');
         router.refresh();
       } else {
-        alert('Gagal menghapus data');
+        toast.error('Gagal menghapus data');
       }
     } catch (e) {
-      alert('Error deleting data');
+      toast.error('Terjadi kesalahan');
     } finally {
       setIsProcessing(false);
     }

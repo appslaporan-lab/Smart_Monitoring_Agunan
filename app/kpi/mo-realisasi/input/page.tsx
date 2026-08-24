@@ -3,6 +3,9 @@
 import React, { useState, useEffect } from 'react';
 import { CheckCircle, AlertCircle, ArrowLeft, Loader2, Save, Calculator } from 'lucide-react';
 import Link from 'next/link';
+import CurrencyInput from '@/components/CurrencyInput';
+import toast from 'react-hot-toast';
+// from '@/components/CurrencyInput';
 
 export default function InputRealisasiMOPage() {
   const [tanggal, setTanggal] = useState<string>(new Date().toISOString().split('T')[0]);
@@ -47,13 +50,13 @@ export default function InputRealisasiMOPage() {
     
     const nr = Number(nominalRealisasi);
     if (!nr || isNaN(nr)) {
-      setError('Nominal realisasi tidak valid');
+      toast.error('Nominal realisasi tidak valid');
       return;
     }
 
     const net = getNominalNet();
     if (net < 0) {
-      setError('Nominal pencapaian KPI tidak boleh minus (Saldo Akhir lebih besar dari Realisasi).');
+      toast.error('KPI tidak boleh minus (Saldo Akhir > Realisasi).');
       return;
     }
 
@@ -79,13 +82,13 @@ export default function InputRealisasiMOPage() {
       const json = await res.json();
       if (!res.ok) throw new Error(json.error || 'Terjadi kesalahan sistem');
 
-      setSuccess(`Data realisasi harian berhasil disimpan! Pencapaian KPI yang tercatat: ${formatCurrency(net)}`);
+      toast.success(`Berhasil! Pencapaian KPI tercatat: ${formatCurrency(net)}`);
       setNominalRealisasi('');
       setSaldoAkhir('');
       setKeterangan('');
       setJenis('BARU');
     } catch (err: any) {
-      setError(err.message);
+      toast.error(err.message);
     } finally {
       setIsSubmitting(false);
     }
@@ -152,12 +155,10 @@ export default function InputRealisasiMOPage() {
           <div className="grid" style={{ gridTemplateColumns: jenis === 'TOP_UP' ? '1fr 1fr' : '1fr', gap: 16, marginBottom: 24 }}>
             <div className="form-group">
               <label className="label">Nominal Realisasi (Plafon Baru)</label>
-              <input 
-                type="number" 
-                className="inputField" 
+              <CurrencyInput 
                 value={nominalRealisasi} 
-                onChange={e => setNominalRealisasi(e.target.value)} 
-                placeholder="Contoh: 150000000"
+                onChange={setNominalRealisasi} 
+                placeholder="Rp 0"
                 required 
               />
             </div>
@@ -165,12 +166,10 @@ export default function InputRealisasiMOPage() {
             {jenis === 'TOP_UP' && (
               <div className="form-group">
                 <label className="label">Saldo Akhir (Pinjaman Lama)</label>
-                <input 
-                  type="number" 
-                  className="inputField" 
+                <CurrencyInput 
                   value={saldoAkhir} 
-                  onChange={e => setSaldoAkhir(e.target.value)} 
-                  placeholder="Contoh: 50000000"
+                  onChange={setSaldoAkhir} 
+                  placeholder="Rp 0"
                   required={jenis === 'TOP_UP'}
                 />
               </div>

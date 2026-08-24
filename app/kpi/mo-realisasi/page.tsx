@@ -4,6 +4,7 @@ import { getCurrentUser } from '@/lib/session';
 import { redirect } from 'next/navigation';
 import { Trophy, AlertTriangle, Calendar, PlusCircle, CheckCircle } from 'lucide-react';
 import Link from 'next/link';
+import EmptyState from '@/components/EmptyState';
 import SuperadminManageRealisasi from '@/components/SuperadminManageRealisasi';
 
 export const dynamic = 'force-dynamic';
@@ -115,7 +116,7 @@ export default async function MORankingPage({ searchParams }: { searchParams: { 
         </div>
 
         {rankingArray.length === 0 ? (
-          <p style={{ color: '#64748b', textAlign: 'center', padding: 20 }}>Belum ada input realisasi MO bulan ini.</p>
+          <EmptyState title="Belum ada realisasi" description="Belum ada input realisasi MO pada bulan ini." />
         ) : (
           <div style={{ overflowX: 'auto' }}>
             <table className="table" style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
@@ -185,7 +186,7 @@ export default async function MORankingPage({ searchParams }: { searchParams: { 
         </p>
 
         {Object.keys(rekonStats).length === 0 ? (
-          <p style={{ color: '#64748b', textAlign: 'center', padding: 20 }}>Belum ada data rekonsiliasi.</p>
+          <EmptyState title="Belum ada rekonsiliasi" description="Data perbandingan Teller vs MO kosong." />
         ) : (
           <div style={{ overflowX: 'auto' }}>
             <table className="table" style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>

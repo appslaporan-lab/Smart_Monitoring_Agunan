@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Trash2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import toast from 'react-hot-toast';
 
 type Props = {
   userId: number;
@@ -31,15 +32,15 @@ export default function UserActions({ userId, userName, username, role }: Props)
 
       const result = await res.json();
       if (!res.ok) {
-        setMessage(result.error || 'Gagal menghapus user.');
+        toast.error(result.error || 'Gagal menghapus user.');
         setLoading(false);
         return;
       }
 
-      window.alert(`User ${username} berhasil dihapus.`);
+      toast.success(`User ${username} berhasil dihapus.`);
       router.refresh();
     } catch {
-      setMessage('Terjadi kesalahan saat menghapus user.');
+      toast.error('Terjadi kesalahan saat menghapus user.');
     } finally {
       setLoading(false);
     }
@@ -62,7 +63,7 @@ export default function UserActions({ userId, userName, username, role }: Props)
 
       const result = await res.json();
       if (!res.ok) {
-        setMessage(result.error || 'Gagal mereset password.');
+        toast.error(result.error || 'Gagal mereset password.');
         setLoading(false);
         return;
       }
@@ -70,7 +71,7 @@ export default function UserActions({ userId, userName, username, role }: Props)
       setMessage(`Password ${username} berhasil direset. Password default: Password123`);
       setTimeout(() => router.refresh(), 800);
     } catch {
-      setMessage('Terjadi kesalahan saat mereset password.');
+      toast.error('Terjadi kesalahan saat mereset password.');
     } finally {
       setLoading(false);
     }
@@ -78,7 +79,7 @@ export default function UserActions({ userId, userName, username, role }: Props)
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 6 }}>
-      {message && <div className="alert alert-info" style={{ padding: '6px 10px', fontSize: '0.9rem' }}>{message}</div>}
+      
       
       <div style={{ display: 'flex', gap: 8 }}>
         <button

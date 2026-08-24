@@ -1113,3 +1113,8 @@ input[type="email"] {
   background: #3b82f6;
   color: white;
 }
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: .5; }
+}
