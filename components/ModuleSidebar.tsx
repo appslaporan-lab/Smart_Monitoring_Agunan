@@ -41,17 +41,17 @@ const MENU_CONFIG: MenuItem[] = [
   { href: '/reports', label: 'Laporan', roles: ['KASUBAG_PUSAT', 'KASUBAG_CABANG', 'KABAG_OPERASIONAL', 'PIMPINAN_CABANG', 'DIREKTUR', 'SPI'], icon: FileText, module: 'agunan' },
   { href: '/audit', label: 'Audit', roles: ['KABAG_OPERASIONAL', 'PIMPINAN_CABANG', 'DIREKTUR', 'SPI'], icon: ShieldCheck, module: 'agunan' },
 
-  { href: '/collecting', label: 'Dashboard Collecting', roles: 'all', icon: LayoutDashboard, module: 'collecting' },
+  { href: '/collecting', label: 'Dashboard Collecting', roles: ["MARKETING","AO","KEPALA_KAS","KASUBAG_KREDIT","KASUBAG_KREDIT_PUSAT_1","KASUBAG_KREDIT_PUSAT_2","KASUBAG_KREDIT_CABANG","KABAG_MARKETING","KABAG_MARKETING_PUSAT_1","KABAG_MARKETING_PUSAT_2","PIMPINAN_CABANG","DIREKSI","DIREKTUR","SUPERADMIN"], icon: LayoutDashboard, module: 'collecting' },
   { href: '/collecting/upload', label: 'Upload Nominatif', roles: ['SUPERADMIN'], icon: PlusCircle, module: 'collecting' },
 
-  { href: '/kpi', label: 'Dashboard KPI', roles: 'all', icon: LayoutDashboard, module: 'kpi' },
-  { href: '/kpi/teller/transaksi-harian', label: 'Teller (Transaksi Harian)', roles: 'all', icon: FileText, module: 'kpi' },
-  { href: '/kpi/teller/kesalahan', label: 'Daftar Kesalahan', roles: 'all', icon: ShieldCheck, module: 'kpi' },
-  { href: '/kpi/performa-karyawan', label: 'Performa Karyawan', roles: 'all', icon: Users, module: 'kpi' },
-  { href: '/kpi/mo-realisasi', label: 'MO (Realisasi)', roles: 'all', icon: Trophy, module: 'kpi' },
+  { href: '/kpi', label: 'Dashboard KPI', roles: ["TELLER","MARKETING","AO","ADM_KREDIT","CS","KEPALA_KAS","KASUBAG_OPERASIONAL","KASUBAG_PUSAT","KASUBAG_CABANG","KASUBAG_KREDIT","KASUBAG_KREDIT_PUSAT_1","KASUBAG_KREDIT_PUSAT_2","KASUBAG_KREDIT_CABANG","KABAG_OPERASIONAL","KABAG_MARKETING","KABAG_MARKETING_PUSAT_1","KABAG_MARKETING_PUSAT_2","PIMPINAN_CABANG","DIREKSI","DIREKTUR","SUPERADMIN"], icon: LayoutDashboard, module: 'kpi' },
+  { href: '/kpi/teller/transaksi-harian', label: 'Teller (Transaksi Harian)', roles: ["TELLER","KEPALA_KAS","KASUBAG_OPERASIONAL","KASUBAG_PUSAT","KASUBAG_CABANG","KABAG_OPERASIONAL","PIMPINAN_CABANG","DIREKSI","DIREKTUR","SUPERADMIN"], icon: FileText, module: 'kpi' },
+  { href: '/kpi/teller/kesalahan', label: 'Daftar Kesalahan', roles: ["TELLER","KEPALA_KAS","KASUBAG_OPERASIONAL","KASUBAG_PUSAT","KASUBAG_CABANG","KABAG_OPERASIONAL","PIMPINAN_CABANG","DIREKSI","DIREKTUR","SUPERADMIN"], icon: ShieldCheck, module: 'kpi' },
+  { href: '/kpi/performa-karyawan', label: 'Performa Karyawan', roles: ["TELLER","MARKETING","AO","ADM_KREDIT","CS","KEPALA_KAS","KASUBAG_OPERASIONAL","KASUBAG_PUSAT","KASUBAG_CABANG","KASUBAG_KREDIT","KASUBAG_KREDIT_PUSAT_1","KASUBAG_KREDIT_PUSAT_2","KASUBAG_KREDIT_CABANG","KABAG_OPERASIONAL","KABAG_MARKETING","KABAG_MARKETING_PUSAT_1","KABAG_MARKETING_PUSAT_2","PIMPINAN_CABANG","DIREKSI","DIREKTUR","SUPERADMIN"], icon: Users, module: 'kpi' },
+  { href: '/kpi/mo-realisasi', label: 'MO (Realisasi)', roles: ["MARKETING","AO","KEPALA_KAS","KASUBAG_KREDIT","KASUBAG_KREDIT_PUSAT_1","KASUBAG_KREDIT_PUSAT_2","KASUBAG_KREDIT_CABANG","KABAG_MARKETING","PIMPINAN_CABANG","DIREKSI","DIREKTUR","SUPERADMIN"], icon: Trophy, module: 'kpi' },
 
   { href: '/performa/kolektibilitas', label: 'Laporan Kolektibilitas', roles: ['SUPERADMIN', 'KASUBAG_KREDIT_PUSAT_1', 'KASUBAG_KREDIT_PUSAT_2', 'KASUBAG_KREDIT_CABANG', 'KABAG_MARKETING_PUSAT_1', 'KABAG_MARKETING_PUSAT_2', 'PIMPINAN_CABANG', 'DIREKTUR', 'KABAG_OPERASIONAL'], icon: FileText, module: 'performa' },
-  { href: '/performa', label: 'Dashboard Performa', roles: 'all', icon: LayoutDashboard, module: 'performa' },
+  { href: '/performa', label: 'Dashboard Performa', roles: ["KEPALA_KAS","KASUBAG_KREDIT","KASUBAG_KREDIT_PUSAT_1","KASUBAG_KREDIT_PUSAT_2","KASUBAG_KREDIT_CABANG","KABAG_MARKETING","KABAG_MARKETING_PUSAT_1","KABAG_MARKETING_PUSAT_2","KABAG_OPERASIONAL","PIMPINAN_CABANG","DIREKSI","DIREKTUR","SUPERADMIN"], icon: LayoutDashboard, module: 'performa' },
   { href: '/admin/settings', label: 'Pengaturan Bucket', roles: ['SUPERADMIN'], icon: Settings, module: 'performa' },
   { href: '/admin/ao', label: 'Mapping AO', roles: ['SUPERADMIN'], icon: UserCog, module: 'performa' },
 ];
