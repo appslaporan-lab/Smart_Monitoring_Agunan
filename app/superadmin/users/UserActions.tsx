@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { Trash2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 type Props = {
@@ -15,7 +16,37 @@ export default function UserActions({ userId, userName, username, role }: Props)
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
 
+
+  const handleDelete = async () => {
+    const confirmed = window.confirm(`PERINGATAN! Yakin ingin menghapus user ${userName} (${username})? Semua data terkait (bila ada) bisa ikut terhapus atau menyebabkan error jika ada transaksi.`);
+    if (!confirmed) return;
+
+    setLoading(true);
+    setMessage(null);
+
+    try {
+      const res = await fetch(`/api/superadmin/users/${userId}`, {
+        method: 'DELETE',
+      });
+
+      const result = await res.json();
+      if (!res.ok) {
+        setMessage(result.error || 'Gagal menghapus user.');
+        setLoading(false);
+        return;
+      }
+
+      window.alert(`User ${username} berhasil dihapus.`);
+      router.refresh();
+    } catch {
+      setMessage('Terjadi kesalahan saat menghapus user.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleResetPassword = async () => {
+
     const confirmed = window.confirm(`Reset password untuk ${userName} (${username})? Password akan diubah ke default: Password123`);
     if (!confirmed) return;
 
