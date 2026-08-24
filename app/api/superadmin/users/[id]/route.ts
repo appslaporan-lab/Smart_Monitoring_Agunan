@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getCurrentUser } from '@/lib/session';
+import { logActivity } from '@/lib/audit';
 
 export async function DELETE(
   request: NextRequest,
@@ -26,8 +27,18 @@ export async function DELETE(
     // Since we have foreign key relations (PerformaKaryawan, RealisasiHarianMO, dll),
     // deleting a user directly might cause constraint violations.
     // If the database has onDelete: Cascade, it's fine. If not, it will throw an error.
-    await prisma.user.delete({
+    const deletedUser = await prisma.user.delete({
       where: { id: userId },
+    });
+
+    await logActivity({
+      userId: currentUser.id,
+      username: currentUser.username,
+      role: currentUser.role,
+      action: 'DELETE_USER',
+      entity: 'User',
+      entityId: userId.toString(),
+      details: `Dihapus oleh superadmin. Username target: ${deletedUser.username}`
     });
 
     return NextResponse.json({ success: true });

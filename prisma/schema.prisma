@@ -136,6 +136,7 @@ model User {
   kesalahanTeller    RekapKesalahanTeller[]
   performaKaryawan   PerformaKaryawan[]
   realisasiMo        RealisasiHarianMO[]
+  activityLogs       ActivityLog[]
 }
 
 enum UserStatus {
@@ -482,4 +483,17 @@ model RealisasiHarianMO {
   keterangan   String?  @db.Text
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+}
+
+model ActivityLog {
+  id Int @id @default(autoincrement())
+  userId Int?
+  username String?
+  role String?
+  action String
+  entity String?
+  entityId String?
+  details String?
+  createdAt DateTime @default(now())
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
 }

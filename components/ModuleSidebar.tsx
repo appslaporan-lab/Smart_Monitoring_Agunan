@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation';
 import {
   LogOut, Trophy, Shield, LayoutDashboard, PlusCircle, Users, ClipboardCheck,
   FileText, ShieldCheck, Archive, FileSignature, PackageOpen, CheckCircle2,
-  UserCog, Wallet, TrendingUp, BarChart3, Settings
+  UserCog, Wallet, TrendingUp, BarChart3, Settings, Activity
 } from 'lucide-react';
 
 type MenuItem = { href: string; label: string; roles: string[] | 'all'; icon: any; module: string };
@@ -29,6 +29,7 @@ const MODULES: ModuleDef[] = [
 
 const MENU_CONFIG: MenuItem[] = [
   { href: '/superadmin/users', label: 'Approval User', roles: ['SUPERADMIN'], icon: UserCog, module: 'settings' },
+    { href: '/superadmin/audit-log', label: 'Log Aktivitas', roles: ['SUPERADMIN', 'DIREKTUR', 'DIREKSI'], icon: Activity, module: 'settings' },
   { href: '/', label: 'Dashboard', roles: AGUNAN_ROLES, icon: LayoutDashboard, module: 'agunan' },
   { href: '/auth/change-password', label: 'Ganti Password', roles: 'all', icon: Shield, module: 'settings' },
   { href: '/pengambilan', label: 'Pengambilan Agunan', roles: ['ADM_KREDIT_PUSAT', 'ADM_KREDIT_CABANG', 'KEPALA_KAS'], icon: PackageOpen, module: 'agunan' },

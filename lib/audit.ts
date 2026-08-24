@@ -52,3 +52,31 @@ export const appendAuditLog = async (entry: {
     createdAt: created.createdAt.toISOString(),
   };
 };
+export type LogOptions = {
+  userId?: number;
+  username?: string;
+  role?: string;
+  action: string;
+  entity?: string;
+  entityId?: string;
+  details?: string | object;
+};
+
+export async function logActivity(options: LogOptions) {
+  try {
+    const detailsStr = typeof options.details === 'object' ? JSON.stringify(options.details) : options.details;
+    await prisma.activityLog.create({
+      data: {
+        userId: options.userId,
+        username: options.username,
+        role: options.role,
+        action: options.action,
+        entity: options.entity,
+        entityId: options.entityId,
+        details: detailsStr,
+      }
+    });
+  } catch (error) {
+    console.error('Failed to log activity:', error);
+  }
+}

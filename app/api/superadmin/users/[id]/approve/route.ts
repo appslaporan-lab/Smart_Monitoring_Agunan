@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getCurrentUser } from '@/lib/session';
+import { logActivity } from '@/lib/audit';
 import { appendAuditLog } from '@/lib/audit';
 
 export async function POST(request: Request, { params }: { params: { id: string } }) {
