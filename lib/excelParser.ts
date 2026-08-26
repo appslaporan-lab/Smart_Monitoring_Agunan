@@ -32,6 +32,12 @@ const toDate = (val: any): Date | null => {
     if (!parsed) return null;
     return new Date(parsed.y, parsed.m - 1, parsed.d);
   }
+  if (typeof val === 'string') {
+    const match = val.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
+    if (match) {
+      return new Date(parseInt(match[3]), parseInt(match[2]) - 1, parseInt(match[1]));
+    }
+  }
   const parsed = new Date(val);
   return isNaN(parsed.getTime()) ? null : parsed;
 };
