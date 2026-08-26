@@ -2,7 +2,7 @@ import { getCurrentUser } from '@/lib/session';
 import { redirect } from 'next/navigation';
 import { prisma } from '@/lib/prisma';
 import { determineEWS } from '@/lib/ews';
-import { getKantorLabel } from '@/lib/kantor';
+import { getKantorLabel, getSubKantorName } from '@/lib/kantor';
 import { format } from 'date-fns';
 import Link from 'next/link';
 import KunjunganForm from './KunjunganForm';
@@ -73,7 +73,7 @@ export default async function PinjamanDetailPage({ params }: { params: { id: str
         <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 16 }}>
           <p>Alamat: {pinjaman.alamatExcel || '-'}</p>
           <p>No. Telepon: {pinjaman.noTelepon || '-'}</p>
-          <p>Kantor: {getKantorLabel(pinjaman.subKantor)} (Sub: {pinjaman.subKantor || '-'})</p>
+          <p>Kantor: {getKantorLabel(pinjaman.subKantor)} ({getSubKantorName(pinjaman.subKantor)})</p>
           <p>Nama AO: {pinjaman.namaAO || '-'}</p>
           <p>Plafon: {formatRupiah(pinjaman.plafon)}</p>
           <p>Outstanding: {formatRupiah(pinjaman.outstanding)}</p>
@@ -83,6 +83,7 @@ export default async function PinjamanDetailPage({ params }: { params: { id: str
           <p>Tgl Jatuh Tempo: {formatDate(pinjaman.tglJatuhTempo)}</p>
           <p>Hari Tunggakan: {pinjaman.hariTunggakan} hari</p>
           <p>Kolektibilitas: {pinjaman.kdKolektibilitas || '-'}</p>
+            <p>Kolektibilitas Bulan Lalu: {pinjaman.kdKolektibilitasLalu || '-'}</p>
         </div>
       </div>
 

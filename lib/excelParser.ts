@@ -63,6 +63,7 @@ export type ParsedRow = {
   tglJatuhTempo: Date | null;
   jangkaBulan: number | null;
   kdKolektibilitas: string | null;
+  kdKolektibilitasLalu: string | null;
   produkKredit: string | null;
   sektorEkonomi?: string | null;
   jarakKantorKm?: number | null;
@@ -138,6 +139,7 @@ export function parseNominatifExcel(buffer: Buffer, uploadType: string = 'COLLEC
       tglJatuhTempo: toDate(row['AD']),
       jangkaBulan: toNumber(row['AE']),
       kdKolektibilitas: row['P'] ? String(row['P']).trim() : null,
+      kdKolektibilitasLalu: row['Q'] ? String(row['Q']).trim() : null,
       jenisJaminan: mapJenisJaminan(rawJaminan),
       produkKredit: mapProdukKredit(kdProduct),
       sektorEkonomi: mapSektorEkonomi(kdProduct),

@@ -108,6 +108,7 @@ export async function POST(request: Request) {
               tglJatuhTempo: row.tglJatuhTempo,
               jangkaBulan: row.jangkaBulan,
               kdKolektibilitas: row.kdKolektibilitas,
+              kdKolektibilitasLalu: row.kdKolektibilitasLalu,
               produkKredit: row.produkKredit,
               sektorEkonomi: row.sektorEkonomi,
               jarakKantorKm: row.jarakKantorKm,
