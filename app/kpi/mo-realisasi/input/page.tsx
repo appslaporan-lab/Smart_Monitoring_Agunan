@@ -9,7 +9,7 @@ import toast from 'react-hot-toast';
 
 export default function InputRealisasiMOPage() {
   const [tanggal, setTanggal] = useState<string>(new Date().toISOString().split('T')[0]);
-  const [jenis, setJenis] = useState<'BARU' | 'TOP_UP'>('BARU');
+  const [jenis, setJenis] = useState<'NASABAH_BARU' | 'NASABAH_LAMA' | 'TOP_UP'>('NASABAH_BARU');
   const [nominalRealisasi, setNominalRealisasi] = useState<string>(''); // Plafon kotor
   const [saldoAkhir, setSaldoAkhir] = useState<string>(''); // Saldo pinjaman lama
   const [keterangan, setKeterangan] = useState<string>('');
@@ -36,7 +36,7 @@ export default function InputRealisasiMOPage() {
 
   const getNominalNet = () => {
     const nr = Number(nominalRealisasi) || 0;
-    if (jenis === 'BARU') return nr;
+    if (jenis !== 'TOP_UP') return nr;
     const sa = Number(saldoAkhir) || 0;
     return nr - sa;
   };
@@ -86,7 +86,7 @@ export default function InputRealisasiMOPage() {
       setNominalRealisasi('');
       setSaldoAkhir('');
       setKeterangan('');
-      setJenis('BARU');
+      setJenis('NASABAH_BARU');
     } catch (err: any) {
       toast.error(err.message);
     } finally {
@@ -140,10 +140,14 @@ export default function InputRealisasiMOPage() {
 
           <div className="form-group" style={{ marginBottom: 24 }}>
             <label className="label">Jenis Realisasi</label>
-            <div style={{ display: 'flex', gap: 16 }}>
+            <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
               <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
-                <input type="radio" name="jenis" value="BARU" checked={jenis === 'BARU'} onChange={() => setJenis('BARU')} />
-                Realisasi Baru
+                <input type="radio" name="jenis" value="NASABAH_BARU" checked={jenis === 'NASABAH_BARU'} onChange={() => setJenis('NASABAH_BARU')} />
+                Nasabah Baru
+              </label>
+              <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
+                <input type="radio" name="jenis" value="NASABAH_LAMA" checked={jenis === 'NASABAH_LAMA'} onChange={() => setJenis('NASABAH_LAMA')} />
+                Nasabah Lama
               </label>
               <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
                 <input type="radio" name="jenis" value="TOP_UP" checked={jenis === 'TOP_UP'} onChange={() => setJenis('TOP_UP')} />

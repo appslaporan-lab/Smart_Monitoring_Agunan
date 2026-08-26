@@ -22,7 +22,7 @@ export default function SuperadminManageRealisasi({ records }: { records: Realis
   const router = useRouter();
   const [editingId, setEditingId] = useState<number | null>(null);
   
-  const [editJenis, setEditJenis] = useState('BARU');
+  const [editJenis, setEditJenis] = useState('NASABAH_BARU');
   const [editNominalAsli, setEditNominalAsli] = useState('');
   const [editSaldoAkhir, setEditSaldoAkhir] = useState('');
   const [editKeterangan, setEditKeterangan] = useState('');
@@ -140,7 +140,8 @@ export default function SuperadminManageRealisasi({ records }: { records: Realis
                     <>
                       <td style={{ borderBottom: '1px solid #f1f5f9', padding: '12px' }}>
                         <select value={editJenis} onChange={(e) => setEditJenis(e.target.value)} style={{ padding: 4, width: '100%' }}>
-                          <option value="BARU">BARU</option>
+                          <option value="NASABAH_BARU">NASABAH BARU</option>
+                          <option value="NASABAH_LAMA">NASABAH LAMA</option>
                           <option value="TOP_UP">TOP UP</option>
                         </select>
                       </td>
