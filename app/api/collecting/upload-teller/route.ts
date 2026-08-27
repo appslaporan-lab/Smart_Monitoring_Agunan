@@ -17,9 +17,10 @@ export async function POST(req: Request) {
     const buffer = Buffer.from(await file.arrayBuffer());
     const workbook = XLSX.read(buffer, { type: 'buffer' });
     const sheet = workbook.Sheets[workbook.SheetNames[0]];
-    const allRows: any[] = XLSX.utils.sheet_to_json(sheet);
+    
+    // Read as 2D array to easily check previous rows and ignore column headers
+    const allRows: any[][] = XLSX.utils.sheet_to_json(sheet, { header: 1 });
 
-    // Get the active COLLECTING period
     const activePeriode = await prisma.periodeNominatif.findFirst({
       where: { jenisUpload: 'COLLECTING' },
       orderBy: { id: 'desc' },
@@ -29,7 +30,6 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Tidak ada periode Collecting yang aktif.' }, { status: 400 });
     }
 
-    // Pre-fetch all norek in active period to cross-reference
     const allPinjaman = await prisma.pinjamanPeriode.findMany({
       where: { periodeId: activePeriode.id },
       select: { norek: true }
@@ -39,34 +39,45 @@ export async function POST(req: Request) {
     let updatedCount = 0;
     const errors: string[] = [];
 
-    for (const row of allRows) {
-      const rowStr = JSON.stringify(row).toLowerCase();
+    // Process rows
+    for (let i = 0; i < allRows.length; i++) {
+      const row = allRows[i];
+      if (!row || row.length === 0) continue;
       
-      // Look for ANY 10-digit number in the row
-      const norekMatches = rowStr.match(/\\b\\d{10}\\b/g);
+      const rowStr = row.join(' ').toLowerCase();
+      const norekMatches = rowStr.match(/\b\d{10}\b/g);
       
       if (norekMatches) {
-        // Find the first 10-digit number that is an actual active Norek
         const validNorek = norekMatches.find(n => activeNoreks.has(n));
         
         if (validNorek) {
-          // Extract nominal: usually in 'Kredit' or 'Mutasi Kredit' column
-          // We will find the largest number in this row's values
+          // Extract nominal: look in current row AND previous row 
+          // because CBS often splits descriptions and amounts across two visual rows
           let nominal = 0;
-          for (const key in row) {
-            const val = row[key];
-            if (typeof val === 'number' && val > nominal) {
-              nominal = val;
-            } else if (typeof val === 'string') {
-              const num = parseFloat(val.replace(/[^\\d.-]/g, ''));
-              if (!isNaN(num) && num > nominal && num !== parseInt(validNorek)) {
-                // ignore if the number is exactly the norek
-                nominal = num;
+          
+          const extractMaxNum = (r: any[]) => {
+            let max = 0;
+            for (const val of r) {
+              if (typeof val === 'number' && val > max) max = val;
+              else if (typeof val === 'string') {
+                const numStr = val.replace(/[^\\d.-]/g, '');
+                const num = parseFloat(numStr);
+                if (!isNaN(num) && num > max && num !== parseInt(validNorek)) {
+                  max = num;
+                }
               }
             }
+            return max;
+          };
+
+          const maxCurrent = extractMaxNum(row);
+          let maxPrev = 0;
+          if (i > 0 && allRows[i-1]) {
+            maxPrev = extractMaxNum(allRows[i-1]);
           }
 
-          // Update DB
+          nominal = Math.max(maxCurrent, maxPrev);
+
           const updated = await prisma.pinjamanPeriode.updateMany({
             where: {
               periodeId: activePeriode.id,
