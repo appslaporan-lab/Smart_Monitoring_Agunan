@@ -29,20 +29,27 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Tidak ada periode Collecting yang aktif.' }, { status: 400 });
     }
 
+    // Pre-fetch all norek in active period to cross-reference
+    const allPinjaman = await prisma.pinjamanPeriode.findMany({
+      where: { periodeId: activePeriode.id },
+      select: { norek: true }
+    });
+    const activeNoreks = new Set(allPinjaman.map(p => p.norek));
+
     let updatedCount = 0;
     const errors: string[] = [];
 
     for (const row of allRows) {
-      // Stringify row to easily search for keywords
       const rowStr = JSON.stringify(row).toLowerCase();
       
-      // Look for "bayar angsuran" and "norek"
-      if (rowStr.includes('bayar') && rowStr.includes('angsuran') && rowStr.includes('norek')) {
-        // Find norek using regex. Norek format is typically 10 digits
-        const norekMatch = rowStr.match(/norek.*?(\d{10})/i);
-        if (norekMatch) {
-          const norek = norekMatch[1];
-          
+      // Look for ANY 10-digit number in the row
+      const norekMatches = rowStr.match(/\\b\\d{10}\\b/g);
+      
+      if (norekMatches) {
+        // Find the first 10-digit number that is an actual active Norek
+        const validNorek = norekMatches.find(n => activeNoreks.has(n));
+        
+        if (validNorek) {
           // Extract nominal: usually in 'Kredit' or 'Mutasi Kredit' column
           // We will find the largest number in this row's values
           let nominal = 0;
@@ -51,8 +58,9 @@ export async function POST(req: Request) {
             if (typeof val === 'number' && val > nominal) {
               nominal = val;
             } else if (typeof val === 'string') {
-              const num = parseFloat(val.replace(/[^\d.-]/g, ''));
-              if (!isNaN(num) && num > nominal) {
+              const num = parseFloat(val.replace(/[^\\d.-]/g, ''));
+              if (!isNaN(num) && num > nominal && num !== parseInt(validNorek)) {
+                // ignore if the number is exactly the norek
                 nominal = num;
               }
             }
@@ -62,7 +70,7 @@ export async function POST(req: Request) {
           const updated = await prisma.pinjamanPeriode.updateMany({
             where: {
               periodeId: activePeriode.id,
-              norek: norek
+              norek: validNorek
             },
             data: {
               sudahBayar: true,
@@ -72,8 +80,6 @@ export async function POST(req: Request) {
 
           if (updated.count > 0) {
             updatedCount++;
-          } else {
-            errors.push(`Norek ${norek} tidak ditemukan di Data Nominatif aktif.`);
           }
         }
       }
