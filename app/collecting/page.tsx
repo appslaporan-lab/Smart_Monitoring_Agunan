@@ -102,6 +102,8 @@ export default async function CollectingDashboardPage({ searchParams }: { search
       })(),
       kolBulanIni: p.kdKolektibilitas,
       kolBulanLalu: prevKolMap.get(p.norek) || null,
+    sudahBayar: p.sudahBayar,
+      nominalBayarHariIni: p.nominalBayarHariIni,
     };
   }).sort((a, b) => b.hariTunggakan - a.hariTunggakan);
 

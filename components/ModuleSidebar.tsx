@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
-  LogOut, Trophy, Shield, LayoutDashboard, PlusCircle, Users, ClipboardCheck,
+  LogOut, Trophy, Shield, LayoutDashboard, PlusCircle, FileSpreadsheet, Users, ClipboardCheck,
   FileText, ShieldCheck, Archive, FileSignature, PackageOpen, CheckCircle2,
   UserCog, Wallet, TrendingUp, BarChart3, Settings, Activity
 } from 'lucide-react';
@@ -45,6 +45,7 @@ const MENU_CONFIG: MenuItem[] = [
 
   { href: '/collecting', label: 'Dashboard Collecting', roles: ["MARKETING","AO","KEPALA_KAS","KASUBAG_KREDIT","KASUBAG_KREDIT_PUSAT_1","KASUBAG_KREDIT_PUSAT_2","KASUBAG_KREDIT_CABANG","KABAG_MARKETING","KABAG_MARKETING_PUSAT_1","KABAG_MARKETING_PUSAT_2","PIMPINAN_CABANG","DIREKSI","DIREKTUR","SUPERADMIN"], icon: LayoutDashboard, module: 'collecting' },
   { href: '/collecting/upload', label: 'Upload Nominatif', roles: ['SUPERADMIN'], icon: PlusCircle, module: 'collecting' },
+  { href: '/collecting/upload-teller', label: 'Upload Data Teller', roles: ['SUPERADMIN'], icon: FileSpreadsheet, module: 'collecting' },
 
   { href: '/kpi', label: 'Dashboard KPI', roles: ["TELLER","MARKETING","AO","ADM_KREDIT","CS","KEPALA_KAS","KASUBAG_OPERASIONAL","KASUBAG_PUSAT","KASUBAG_CABANG","KASUBAG_KREDIT","KASUBAG_KREDIT_PUSAT_1","KASUBAG_KREDIT_PUSAT_2","KASUBAG_KREDIT_CABANG","KABAG_OPERASIONAL","KABAG_MARKETING","KABAG_MARKETING_PUSAT_1","KABAG_MARKETING_PUSAT_2","PIMPINAN_CABANG","DIREKSI","DIREKTUR","SUPERADMIN"], icon: LayoutDashboard, module: 'kpi' },
   { href: '/kpi/teller/transaksi-harian', label: 'Teller (Transaksi Harian)', roles: ["TELLER","KEPALA_KAS","KASUBAG_OPERASIONAL","KASUBAG_PUSAT","KASUBAG_CABANG","KABAG_OPERASIONAL","PIMPINAN_CABANG","DIREKSI","DIREKTUR","SUPERADMIN"], icon: FileText, module: 'kpi' },

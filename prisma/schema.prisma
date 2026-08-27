@@ -63,6 +63,8 @@ model PinjamanPeriode {
   jangkaBulan         Int?
   kdKolektibilitas    String?
   kdKolektibilitasLalu String?
+  sudahBayar          Boolean  @default(false)
+  nominalBayarHariIni Float?   @default(0)
   produkKredit        String?
   sektorEkonomi       String?
   jarakKantorKm       Float?

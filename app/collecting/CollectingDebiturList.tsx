@@ -16,6 +16,8 @@ type EwsItem = {
   ews: { status: string; label: string; colorClass: string; wajibKunjungan: boolean };
   kolBulanIni: string | null;
   kolBulanLalu: string | null;
+  sudahBayar: boolean;
+  nominalBayarHariIni: number | null;
 };
 
 const FILTER_OPTIONS: { key: string; label: string; match: (item: EwsItem) => boolean }[] = [
@@ -25,7 +27,8 @@ const FILTER_OPTIONS: { key: string; label: string; match: (item: EwsItem) => bo
   { key: 'KUNJUNGAN_MO', label: 'Kunjungan MO', match: (i) => i.ews.status === 'KUNJUNGAN_MO' },
   { key: 'SURAT_TAGIHAN', label: 'Surat Tagihan', match: (i) => i.ews.status.startsWith('SURAT_TAGIHAN') },
   { key: 'SP', label: 'Surat Peringatan', match: (i) => i.ews.status.startsWith('SP_') },
-  { key: 'BELUM_DIKUNJUNGI', label: 'Belum Dikunjungi', match: (i) => i.ews.wajibKunjungan && i.kunjunganCount === 0 },
+  { key: 'SUDAH_BAYAR', label: 'Sudah Bayar', match: (i) => i.sudahBayar },
+  { key: 'BELUM_DIKUNJUNGI', label: 'Belum Dikunjungi', match: (i) => i.ews.wajibKunjungan && i.kunjunganCount === 0 && !i.sudahBayar },
 ];
 
 export default function CollectingDebiturList({ items }: { items: EwsItem[] }) {
@@ -56,6 +59,7 @@ export default function CollectingDebiturList({ items }: { items: EwsItem[] }) {
     SURAT_TAGIHAN: '#f87171',
     SP: '#dc2626',
     BELUM_DIKUNJUNGI: '#94a3b8',
+    SUDAH_BAYAR: '#22c55e',
   };
 
   
@@ -78,6 +82,7 @@ export default function CollectingDebiturList({ items }: { items: EwsItem[] }) {
     SURAT_TAGIHAN: 'Surat Tagihan',
     SP: 'Surat Peringatan',
     BELUM_DIKUNJUNGI: 'Belum Dikunjungi',
+    SUDAH_BAYAR: 'Sudah Bayar',
   };
 
   return (
