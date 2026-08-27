@@ -64,6 +64,7 @@ model PinjamanPeriode {
   kdKolektibilitas    String?
   kdKolektibilitasLalu String?
   sudahBayar          Boolean  @default(false)
+  isLunas             Boolean  @default(false)
   nominalBayarHariIni Float?   @default(0)
   produkKredit        String?
   sektorEkonomi       String?

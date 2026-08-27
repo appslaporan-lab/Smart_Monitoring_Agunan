@@ -32,9 +32,15 @@ export async function POST(req: Request) {
 
     const allPinjaman = await prisma.pinjamanPeriode.findMany({
       where: { periodeId: activePeriode.id },
-      select: { norek: true }
+      select: { norek: true, namaNasabahExcel: true }
     });
     const activeNoreks = new Set(allPinjaman.map(p => p.norek));
+    
+    // For fallback name matching (lowercase name -> norek)
+    const activeNamesMap = new Map<string, string>();
+    allPinjaman.forEach(p => {
+      activeNamesMap.set(p.namaNasabahExcel.toLowerCase().trim(), p.norek);
+    });
 
     let updatedCount = 0;
     const errors: string[] = [];
@@ -45,53 +51,66 @@ export async function POST(req: Request) {
       if (!row || row.length === 0) continue;
       
       const rowStr = row.join(' ').toLowerCase();
-      const norekMatches = rowStr.match(/\b\d{10}\b/g);
       
-      if (norekMatches) {
-        const validNorek = norekMatches.find(n => activeNoreks.has(n));
-        
-        if (validNorek) {
-          // Extract nominal: look in current row AND previous row 
-          // because CBS often splits descriptions and amounts across two visual rows
-          let nominal = 0;
-          
-          const extractMaxNum = (r: any[]) => {
-            let max = 0;
-            for (const val of r) {
-              if (typeof val === 'number' && val > max) max = val;
-              else if (typeof val === 'string') {
-                const numStr = val.replace(/[^\\d.-]/g, '');
-                const num = parseFloat(numStr);
-                if (!isNaN(num) && num > max && num !== parseInt(validNorek)) {
-                  max = num;
-                }
+      // Determine if it's Lunas
+      const isLunasRow = rowStr.includes('pelunasan') || rowStr.includes('lunas');
+      
+      const norekMatches = rowStr.match(/\b\d{10}\b/g);
+      let validNorek = norekMatches ? norekMatches.find(n => activeNoreks.has(n)) : null;
+      
+      // Fallback: If no Norek found but it's a Pelunasan row, try matching by Name
+      if (!validNorek && isLunasRow) {
+        // Find if any exact name is present in the row elements
+        for (const cell of row) {
+          if (typeof cell === 'string') {
+            const cellClean = cell.toLowerCase().trim();
+            if (activeNamesMap.has(cellClean)) {
+              validNorek = activeNamesMap.get(cellClean)!;
+              break;
+            }
+          }
+        }
+      }
+      
+      if (validNorek) {
+        // Extract nominal
+        const extractMaxNum = (r: any[]) => {
+          let max = 0;
+          for (const val of r) {
+            if (typeof val === 'number' && val > max) max = val;
+            else if (typeof val === 'string') {
+              const numStr = val.replace(/[^\\d.-]/g, '');
+              const num = parseFloat(numStr);
+              if (!isNaN(num) && num > max && num !== parseInt(validNorek!)) {
+                max = num;
               }
             }
-            return max;
-          };
-
-          const maxCurrent = extractMaxNum(row);
-          let maxPrev = 0;
-          if (i > 0 && allRows[i-1]) {
-            maxPrev = extractMaxNum(allRows[i-1]);
           }
+          return max;
+        };
 
-          nominal = Math.max(maxCurrent, maxPrev);
+        const maxCurrent = extractMaxNum(row);
+        let maxPrev = 0;
+        if (i > 0 && allRows[i-1]) {
+          maxPrev = extractMaxNum(allRows[i-1]);
+        }
 
-          const updated = await prisma.pinjamanPeriode.updateMany({
-            where: {
-              periodeId: activePeriode.id,
-              norek: validNorek
-            },
-            data: {
-              sudahBayar: true,
-              nominalBayarHariIni: nominal
-            }
-          });
+        const nominal = Math.max(maxCurrent, maxPrev);
 
-          if (updated.count > 0) {
-            updatedCount++;
+        const updated = await prisma.pinjamanPeriode.updateMany({
+          where: {
+            periodeId: activePeriode.id,
+            norek: validNorek
+          },
+          data: {
+            sudahBayar: true,
+            isLunas: isLunasRow,
+            nominalBayarHariIni: nominal
           }
+        });
+
+        if (updated.count > 0) {
+          updatedCount++;
         }
       }
     }
