@@ -12,7 +12,12 @@ export const KANTOR_LABEL: Record<string, string> = {
 
 const normalizeSubKantor = (subKantor: string | null | undefined) => {
   if (!subKantor) return null;
-  return subKantor.trim().padStart(2, '0');
+  const str = subKantor.trim().toUpperCase();
+  const tokens = str.match(/\b\d{2}\b/g);
+  if (tokens) {
+    return tokens[tokens.length - 1];
+  }
+  return str.padStart(2, '0');
 };
 
 
