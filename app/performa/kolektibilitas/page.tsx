@@ -3,7 +3,7 @@ import { redirect } from 'next/navigation';
 import { prisma } from '@/lib/prisma';
 import Link from 'next/link';
 import PrintButton from '@/components/PrintButton';
-import { getKantorGroup } from '@/lib/kantor';
+import { getKantorGroup, canAccessKantorData } from '@/lib/kantor';
 import { estimateJarakKantor } from '@/lib/mappingUtils';
 import { COLLECTING_REPORT_CONFIG, classifyByRange } from '@/lib/collecting-report-config';
 
@@ -158,10 +158,13 @@ export default async function PerformaKolektibilitasPage({ searchParams }: { sea
   const allAOs = await prisma.masterAo.findMany();
   const aoMap = new Map(allAOs.map(a => [a.rawName, a.mappedName]));
 
-  const rows = await prisma.pinjamanPeriode.findMany({
+  let rows = await prisma.pinjamanPeriode.findMany({
+
     where: { periodeId: periodeAktif.id },
     orderBy: { id: 'asc' },
   });
+
+  rows = rows.filter(r => canAccessKantorData(user.role, user.kantor, user.subKantor, r.subKantor));
 
   const matrixRadiusRanges = [
     { label: '1-10 KM', min: 0, max: 10 },

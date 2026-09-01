@@ -122,11 +122,15 @@ export function canAccessKantorData(
   if (normalizedRole === 'KEPALA_CABANG' || normalizedRole === 'PIMPINAN_CABANG') {
     return getKantorGroup(itemSubKantor) === 'CABANG';
   }
-  if (normalizedRole === 'TELLER' || normalizedRole === 'MO') {
+  if (normalizedRole === 'TELLER' || normalizedRole === 'MO' || normalizedRole === 'KEPALA_KAS' || (normalizedRole && normalizedRole.includes('KASUBAG'))) {
     const normalizedUserSub = normalizeSubKantor(userSubKantor);
-    const normalizedItemSub = normalizeSubKantor(itemSubKantor);
-    if (!normalizedUserSub || !normalizedItemSub) return false;
-    return normalizedUserSub === normalizedItemSub;
+    if (normalizedUserSub) {
+      const normalizedItemSub = normalizeSubKantor(itemSubKantor);
+      if (!normalizedItemSub) return false;
+      return normalizedUserSub === normalizedItemSub;
+    }
+    // Jika role KASUBAG tidak memiliki subKantor spesifik, biarkan jatuh ke logika grup di bawah (misal untuk CABANG)
+    if (normalizedRole === 'KEPALA_KAS') return false; 
   }
   if (normalizedRole === 'KASUBAG_KREDIT_PUSAT_1' || normalizedRole === 'KABAG_MARKETING_PUSAT_1') {
     return getKantorGroup(itemSubKantor) === 'PUSAT_1';
