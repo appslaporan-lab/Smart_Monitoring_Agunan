@@ -124,7 +124,7 @@ export default async function CollectingDashboardPage({ searchParams }: { search
               <button type="submit" className="button" style={{ padding: '6px 12px' }}>Tampilkan</button>
             </form>
           </div>
-          <p style={{ marginTop: 8 }}>Total {pinjamans.length} debitur (Data +{daysToAdd} Hari)</p>
+          <p style={{ marginTop: 8 }}>Total {visiblePinjamans.length} debitur (Data +{daysToAdd} Hari)</p>
         </div>
         {user.role === 'SUPERADMIN' && (
           <Link href="/collecting/upload" className="button secondary">Kelola Upload Nominatif</Link>
