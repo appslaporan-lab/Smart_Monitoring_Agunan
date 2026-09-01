@@ -744,9 +744,9 @@ export default async function PerformaKolektibilitasPage({ searchParams }: { sea
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              {currentStats.total.os > prevStats.total.os && (
+              {currentStats.total.os < prevStats.total.os && (
                 <div style={{ padding: 12, backgroundColor: '#fef2f2', borderLeft: '4px solid #dc2626', color: '#991b1b', borderRadius: '4px' }}>
-                  <strong>⚠️ Peringatan!</strong> Total OS secara keseluruhan mengalami <strong>kenaikan</strong> dibandingkan bulan sebelumnya.
+                  <strong>⚠️ Peringatan!</strong> Total OS secara keseluruhan mengalami <strong>penurunan</strong> dibandingkan bulan sebelumnya. Pastikan target ekspansi kredit tercapai.
                 </div>
               )}
               {(currentStats.k2.os > prevStats.k2.os || currentStats.k2.noa > prevStats.k2.noa) && (
