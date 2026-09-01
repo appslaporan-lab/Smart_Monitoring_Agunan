@@ -13,6 +13,9 @@ export async function POST(request: Request) {
   if (!pinjamanPeriodeId || !tanggalKunjungan || !jenisKontak || !hasil) {
     return NextResponse.json({ error: 'Data tidak lengkap.' }, { status: 400 });
   }
+  if (!fotoDataUrl) {
+    return NextResponse.json({ error: 'Foto dokumentasi wajib dilampirkan.' }, { status: 400 });
+  }
 
   try {
     const pinjaman = await prisma.pinjamanPeriode.findUnique({ where: { id: Number(pinjamanPeriodeId) } });

@@ -41,6 +41,10 @@ export default function KunjunganForm({ pinjamanPeriodeId }: { pinjamanPeriodeId
       setStatusMessage('Pilih hasil kunjungan terlebih dahulu.');
       return;
     }
+    if (!fotoDataUrl) {
+      setStatusMessage('Foto dokumentasi wajib diunggah untuk menyimpan laporan.');
+      return;
+    }
     setLoading(true);
     setStatusMessage(null);
 
@@ -118,8 +122,8 @@ export default function KunjunganForm({ pinjamanPeriodeId }: { pinjamanPeriodeId
           <input className="inputField" type="date" value={tanggalJanjiBayar} onChange={(e) => setTanggalJanjiBayar(e.target.value)} />
         </div>
         <div>
-          <label className="label">Foto Dokumentasi (opsional)</label>
-          <input className="inputField" type="file" accept="image/*" capture="environment" onChange={handlePhotoChange} />
+          <label className="label">Foto Dokumentasi (Wajib)</label>
+          <input className="inputField" type="file" accept="image/*" capture="environment" required onChange={handlePhotoChange} />
         </div>
       </div>
 
