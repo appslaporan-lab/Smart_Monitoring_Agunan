@@ -183,6 +183,29 @@ export default function CollectingDebiturList({ items }: { items: EwsItem[] }) {
               </article>
             ))
           )}
+          {filtered.length > 50 && (
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 16 }}>
+              <button 
+                type="button" 
+                className="button secondary" 
+                disabled={currentPage === 1}
+                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+              >
+                Sebelumnya
+              </button>
+              <span style={{ fontSize: '0.85rem', color: '#64748b' }}>
+                Halaman {currentPage} dari {Math.ceil(filtered.length / 50)}
+              </span>
+              <button 
+                type="button" 
+                className="button secondary"
+                disabled={currentPage === Math.ceil(filtered.length / 50)}
+                onClick={() => setCurrentPage(p => p + 1)}
+              >
+                Selanjutnya
+              </button>
+            </div>
+          )}
         </div>
       </section>
     </>
