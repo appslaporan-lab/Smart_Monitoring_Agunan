@@ -2,6 +2,7 @@ import { getCurrentUser } from '@/lib/session';
 import { redirect } from 'next/navigation';
 import { prisma } from '@/lib/prisma';
 import Link from 'next/link';
+import PrintButton from '@/components/PrintButton';
 import { getKantorGroup } from '@/lib/kantor';
 import { estimateJarakKantor } from '@/lib/mappingUtils';
 import { COLLECTING_REPORT_CONFIG, classifyByRange } from '@/lib/collecting-report-config';
@@ -128,6 +129,19 @@ export default async function PerformaKolektibilitasPage({ searchParams }: { sea
   if (!periodeAktif) {
     return (
       <main className="container">
+        <style dangerouslySetInnerHTML={{__html: `
+          @media print {
+            @page { size: 330mm 215mm landscape; margin: 10mm; }
+            body { zoom: 0.9; }
+            .card { border: none !important; box-shadow: none !important; }
+            table { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            table th[colspan="2"] { background-color: #86efac !important; }
+            table th[colspan="2"] + th[colspan="2"] { background-color: #fca5a5 !important; }
+            table th[colspan="2"] + th[colspan="2"] + th[colspan="2"] { background-color: #e2e8f0 !important; }
+            table th[rowspan="2"]:last-child { background-color: #fef08a !important; }
+          }
+        `}} />
+  
         <section style={{ marginBottom: 24 }}>
           <h1>Laporan Kolektibilitas</h1>
           <p>Belum ada data nominatif yang diupload.</p>
@@ -526,7 +540,10 @@ export default async function PerformaKolektibilitasPage({ searchParams }: { sea
           </div>
         </div>
         <div>
-          <Link href="/admin/upload-nominatif?type=performa" className="button secondary">Kelola Data Laporan</Link>
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <PrintButton />
+            <Link href="/admin/upload-nominatif?type=performa" className="button secondary no-print">Kelola Data Laporan</Link>
+          </div>
         </div>
       </section>
 
