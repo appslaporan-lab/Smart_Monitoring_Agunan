@@ -36,6 +36,7 @@ const FILTER_OPTIONS: { key: string; label: string; match: (item: EwsItem) => bo
 export default function CollectingDebiturList({ items }: { items: EwsItem[] }) {
   const [query, setQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState('ALL');
+  const [currentPage, setCurrentPage] = useState(1);
 
   const summaryCounts = useMemo(() => {
     return FILTER_OPTIONS.reduce((acc, f) => {
@@ -125,7 +126,7 @@ export default function CollectingDebiturList({ items }: { items: EwsItem[] }) {
             type="search"
             placeholder="Cari nama nasabah atau nomor rekening..."
             value={query}
-            onChange={(e) => setQuery(e.target.value)}
+            onChange={(e) => { setQuery(e.target.value); setCurrentPage(1); }}
             style={{ maxWidth: 320 }}
           />
         </div>
@@ -142,7 +143,7 @@ export default function CollectingDebiturList({ items }: { items: EwsItem[] }) {
           {filtered.length === 0 ? (
             <p>Tidak ada data yang cocok.</p>
           ) : (
-            filtered.map((item) => (
+            filtered.slice((currentPage - 1) * 50, currentPage * 50).map((item) => (
               <article key={item.id} className="card" style={{ padding: 16 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
                   <div>

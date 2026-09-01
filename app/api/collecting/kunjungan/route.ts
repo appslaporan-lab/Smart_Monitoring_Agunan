@@ -8,7 +8,7 @@ export async function POST(request: Request) {
   if (!user) return NextResponse.json({ error: 'Anda harus login.' }, { status: 401 });
 
   const body = await request.json();
-  const { pinjamanPeriodeId, tanggalKunjungan, jenisKontak, hasil, nominalDibayar, tanggalJanjiBayar, catatan, fotoDataUrl } = body;
+  const { pinjamanPeriodeId, tanggalKunjungan, jenisKontak, hasil, nominalDibayar, tanggalJanjiBayar, catatan, fotoDataUrl, penerimaSurat } = body;
 
   if (!pinjamanPeriodeId || !tanggalKunjungan || !jenisKontak || !hasil) {
     return NextResponse.json({ error: 'Data tidak lengkap.' }, { status: 400 });
@@ -29,6 +29,7 @@ export async function POST(request: Request) {
         tanggalJanjiBayar: tanggalJanjiBayar ? new Date(tanggalJanjiBayar) : null,
         catatan: catatan || null,
         fotoDataUrl: fotoDataUrl || null,
+        penerimaSurat: penerimaSurat || null,
       },
     });
 

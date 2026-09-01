@@ -19,6 +19,7 @@ export default function KunjunganForm({ pinjamanPeriodeId }: { pinjamanPeriodeId
   const [nominalDibayar, setNominalDibayar] = useState('');
   const [tanggalJanjiBayar, setTanggalJanjiBayar] = useState('');
   const [catatan, setCatatan] = useState('');
+  const [penerimaSurat, setPenerimaSurat] = useState('');
   const [fotoDataUrl, setFotoDataUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
@@ -86,8 +87,19 @@ export default function KunjunganForm({ pinjamanPeriodeId }: { pinjamanPeriodeId
           <select className="inputField" value={jenisKontak} onChange={(e) => setJenisKontak(e.target.value)}>
             <option value="KUNJUNGAN">Kunjungan Langsung</option>
             <option value="TELEPON">Telepon</option>
+            <option value="SURAT_TAGIHAN_1">Kirim Surat Tagihan 1</option>
+            <option value="SURAT_TAGIHAN_2">Kirim Surat Tagihan 2</option>
+            <option value="SP_1">Kirim Surat Peringatan 1</option>
+            <option value="SP_2">Kirim Surat Peringatan 2</option>
+            <option value="SP_3">Kirim Surat Peringatan 3</option>
           </select>
         </div>
+        { (jenisKontak.includes('SURAT') || jenisKontak.includes('SP')) && (
+          <div>
+            <label className="label">Diterima Oleh (Nama / Hubungan)</label>
+            <input className="inputField" type="text" value={penerimaSurat} onChange={(e) => setPenerimaSurat(e.target.value)} placeholder="Contoh: Istri (Ibu Budi)" required />
+          </div>
+        ) }
         <div>
           <label className="label">Hasil</label>
           <select className="inputField" value={hasil} onChange={(e) => setHasil(e.target.value)} required>

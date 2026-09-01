@@ -109,7 +109,8 @@ export default async function PinjamanDetailPage({ params }: { params: { id: str
                 <p style={{ margin: '4px 0' }}>Hasil: <strong>{k.hasil.replace(/_/g, ' ')}</strong></p>
                 {k.nominalDibayar && <p style={{ margin: '4px 0' }}>Nominal Dibayar: {formatRupiah(k.nominalDibayar)}</p>}
                 {k.tanggalJanjiBayar && <p style={{ margin: '4px 0' }}>Janji Bayar: {formatDate(k.tanggalJanjiBayar)}</p>}
-                {k.catatan && <p style={{ margin: '4px 0' }}>Catatan: {k.catatan}</p>}
+                {k.penerimaSurat && <p style={{ margin: '4px 0' }}>Diterima Oleh: <strong>{k.penerimaSurat}</strong></p>}
+                  {k.catatan && <p style={{ margin: '4px 0' }}>Catatan: {k.catatan}</p>}
                 {k.fotoDataUrl && (
                   <img src={k.fotoDataUrl} alt="Dokumentasi" style={{ maxHeight: 120, marginTop: 8, borderRadius: 8 }} />
                 )}

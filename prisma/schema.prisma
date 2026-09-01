@@ -91,6 +91,7 @@ model KunjunganPenagihan {
   nominalDibayar    Float?
   tanggalJanjiBayar DateTime?
   catatan           String?
+  penerimaSurat     String?
   fotoDataUrl       String?
   createdAt         DateTime        @default(now())
 
