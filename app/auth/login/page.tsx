@@ -1,6 +1,8 @@
 import Link from 'next/link';
 import { Shield } from 'lucide-react';
 import { generateCaptcha } from '@/lib/captcha';
+import PasswordInput from './PasswordInput';
+
 
 type LoginPageProps = {
   searchParams?: { error?: string; success?: string };
@@ -39,7 +41,7 @@ export default function LoginPage({ searchParams }: LoginPageProps) {
 
             <div className="login-form-group">
               <label className="label">Password</label>
-              <input type="password" name="password" className="inputField" placeholder="Masukkan password" required />
+              <PasswordInput />
             </div>
 
             <div className="login-form-group">
