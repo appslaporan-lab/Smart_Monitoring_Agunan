@@ -43,7 +43,7 @@ const MENU_CONFIG: MenuItem[] = [
   { href: '/reports', label: 'Laporan', roles: ['KASUBAG_PUSAT', 'KASUBAG_CABANG', 'KABAG_OPERASIONAL', 'PIMPINAN_CABANG', 'DIREKTUR', 'DIREKSI', 'SPI'], icon: FileText, module: 'agunan' },
   { href: '/audit', label: 'Audit', roles: ['KABAG_OPERASIONAL', 'PIMPINAN_CABANG', 'DIREKTUR', 'DIREKSI', 'SPI'], icon: ShieldCheck, module: 'agunan' },
 
-  { href: '/collecting', label: 'Dashboard Collecting', roles: ["MARKETING","AO","KEPALA_KAS","KASUBAG_KREDIT","KASUBAG_KREDIT_PUSAT_1","KASUBAG_KREDIT_PUSAT_2","KASUBAG_KREDIT_CABANG","KABAG_MARKETING","KABAG_MARKETING_PUSAT_1","KABAG_MARKETING_PUSAT_2","PIMPINAN_CABANG","DIREKSI","DIREKTUR","SUPERADMIN"], icon: LayoutDashboard, module: 'collecting' },
+  { href: '/collecting', label: 'Dashboard Collecting', roles: ["TELLER","MARKETING","AO","KEPALA_KAS","KASUBAG_KREDIT","KASUBAG_KREDIT_PUSAT_1","KASUBAG_KREDIT_PUSAT_2","KASUBAG_KREDIT_CABANG","KABAG_MARKETING","KABAG_MARKETING_PUSAT_1","KABAG_MARKETING_PUSAT_2","PIMPINAN_CABANG","DIREKSI","DIREKTUR","SUPERADMIN"], icon: LayoutDashboard, module: 'collecting' },
   { href: '/collecting/upload', label: 'Upload Nominatif', roles: ['SUPERADMIN'], icon: PlusCircle, module: 'collecting' },
   { href: '/collecting/upload-teller', label: 'Upload Data Teller', roles: ['SUPERADMIN'], icon: FileSpreadsheet, module: 'collecting' },
 
