@@ -268,7 +268,7 @@ export default async function PerformaKolektibilitasPage({ searchParams }: { sea
         }
         return (aoMap.get(raw) || raw).toUpperCase();
       })(),
-      productBucket: row.produkKredit || '(blank)',
+      productBucket: (row.produkKredit?.trim() === '19.3' ? 'Kredit Sindikasi' : row.produkKredit) || '(blank)',
       sektorBucket: row.sektorEkonomi || 'LAIN-LAIN',
       interestRateBucket: classifyByRange(row.sukuBunga, bungaPdfRanges),
       tenorBucket: classifyByRange(row.jangkaBulan, tenorPdfRanges),
