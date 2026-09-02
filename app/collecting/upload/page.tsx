@@ -9,7 +9,7 @@ export const dynamic = 'force-dynamic';
 export default async function UploadNominatifPage() {
   const user = getCurrentUser();
   if (!user) redirect('/auth/login');
-  if (user.role !== 'SUPERADMIN' && user.role !== 'KASUBAG_REMEDIAL') redirect('/collecting');
+  if (user.role !== 'SUPERADMIN') redirect('/collecting');
 
   const periodes = await prisma.periodeNominatif.findMany({
     orderBy: [{ tahun: 'desc' }, { bulan: 'desc' }],

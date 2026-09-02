@@ -35,8 +35,8 @@ export default async function CollectingDashboardPage({ searchParams }: { search
         <EmptyState 
           title="Belum ada data nominatif" 
           description="Silakan upload data nominatif collecting terlebih dahulu untuk melihat dashboard pemantauan debitur."
-          actionLabel={(user.role === 'SUPERADMIN' || user.role === 'KASUBAG_REMEDIAL') ? "Upload Nominatif Sekarang" : undefined}
-          actionHref={(user.role === 'SUPERADMIN' || user.role === 'KASUBAG_REMEDIAL') ? "/collecting/upload" : undefined}
+          actionLabel={user.role === 'SUPERADMIN' ? "Upload Nominatif Sekarang" : undefined}
+          actionHref={user.role === 'SUPERADMIN' ? "/collecting/upload" : undefined}
         />
       </main>
     );
