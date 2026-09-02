@@ -30,7 +30,7 @@ const FILTER_OPTIONS: { key: string; label: string; match: (item: EwsItem) => bo
   { key: 'SURAT_TAGIHAN', label: 'Surat Tagihan', match: (i) => i.ews.status.startsWith('SURAT_TAGIHAN') },
   { key: 'SP', label: 'Surat Peringatan', match: (i) => i.ews.status.startsWith('SP_') },
   { key: 'LUNAS', label: 'Lunas', match: (i) => i.isLunas },
-    { key: 'SUDAH_BAYAR', label: 'Sudah Bayar', match: (i) => i.sudahBayar },
+    { key: 'SUDAH_BAYAR', label: 'Sudah Bayar', match: (i) => i.sudahBayar && !i.isLunas },
   { key: 'BELUM_DIKUNJUNGI', label: 'Belum Dikunjungi', match: (i) => i.ews.wajibKunjungan && i.kunjunganCount === 0 && !i.sudahBayar && !i.isLunas },
 ];
 

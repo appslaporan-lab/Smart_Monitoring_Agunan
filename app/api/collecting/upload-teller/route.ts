@@ -55,11 +55,14 @@ export async function POST(req: Request) {
       // Determine if it's Lunas
       const isLunasRow = rowStr.includes('pelunasan') || rowStr.includes('lunas');
       
-      const norekMatches = rowStr.match(/\b\d{10}\b/g);
-      let validNorek = norekMatches ? norekMatches.find(n => activeNoreks.has(n)) : null;
+      const isKreditRow = rowStr.includes('angsuran') || rowStr.includes('pinjaman') || rowStr.includes('pelunasan') || rowStr.includes('lunas') || rowStr.includes('kredit') || rowStr.includes('pokok') || rowStr.includes('bunga');
       
-      // Fallback: If no Norek found but it's a Pelunasan row, try matching by Name
-      if (!validNorek && isLunasRow) {
+      const norekMatches = rowStr.match(/\b\d{3}[-.\s]?\d{3}[-.\s]?\d{4}\b/g);
+      const cleanedMatches = norekMatches ? norekMatches.map(n => n.replace(/[-.\s]/g, '')) : [];
+      let validNorek = cleanedMatches.find(n => activeNoreks.has(n)) || null;
+      
+      // Fallback: If no Norek found but it's a Kredit row, try matching by Name
+      if (!validNorek && (isLunasRow || isKreditRow)) {
         // Find if any exact name is present in the row elements
         for (const cell of row) {
           if (typeof cell === 'string') {
