@@ -123,7 +123,7 @@ export default function KunjunganForm({ pinjamanPeriodeId }: { pinjamanPeriodeId
         </div>
         <div>
           <label className="label">Foto Dokumentasi (Wajib)</label>
-          <input className="inputField" type="file" accept="image/*" capture="environment" required onChange={handlePhotoChange} />
+          <input className="inputField" type="file" accept="image/*" required onChange={handlePhotoChange} />
         </div>
       </div>
 
