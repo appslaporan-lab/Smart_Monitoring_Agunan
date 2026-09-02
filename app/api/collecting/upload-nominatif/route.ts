@@ -7,7 +7,7 @@ import { appendAuditLog } from '@/lib/audit';
 export async function POST(request: Request) {
   const user = getCurrentUser();
   if (!user) return NextResponse.json({ error: 'Anda harus login.' }, { status: 401 });
-  if (user.role !== 'SUPERADMIN') {
+  if (user.role !== 'SUPERADMIN' && user.role !== 'KASUBAG_REMEDIAL') {
     return NextResponse.json({ error: 'Hanya Superadmin yang boleh upload nominatif.' }, { status: 403 });
   }
 

@@ -6,7 +6,7 @@ import * as XLSX from 'xlsx';
 export async function POST(req: Request) {
   try {
     const user = getCurrentUser();
-    if (!user || user.role !== 'SUPERADMIN') {
+    if (!user || (user.role !== 'SUPERADMIN' && user.role !== 'KASUBAG_REMEDIAL')) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 

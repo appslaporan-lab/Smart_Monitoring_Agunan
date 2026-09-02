@@ -7,7 +7,7 @@ export const dynamic = 'force-dynamic';
 
 export default async function AOMappingPage() {
   const user = getCurrentUser();
-  if (!user || user.role !== 'SUPERADMIN') redirect('/');
+  if (!user || (user.role !== 'SUPERADMIN' && user.role !== 'KASUBAG_REMEDIAL')) redirect('/');
 
   const aoList = await prisma.masterAo.findMany({
     orderBy: { rawName: 'asc' }
