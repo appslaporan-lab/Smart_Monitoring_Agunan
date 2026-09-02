@@ -20,6 +20,23 @@ export default async function TellerKesalahanPage({ searchParams }: { searchPara
   const endDate = new Date(tahun, bulan, 0, 23, 59, 59, 999);
 
   // Fetch all error records in this month
+  // Fetch total harian from performa
+  const performaData = await prisma.performaKaryawan.findMany({
+    where: {
+      tanggal: {
+        gte: startDate,
+        lte: endDate,
+      }
+    }
+  });
+
+  const performaTotals: Record<string, number> = {};
+  for (const p of performaData) {
+    const key = `${p.userId}-${new Date(p.tanggal).toISOString()}`;
+    if (!performaTotals[key]) performaTotals[key] = 0;
+    performaTotals[key] += p.jumlahKegiatan;
+  }
+
   const records = await prisma.rekapKesalahanTeller.findMany({
     where: {
       tanggal: {
@@ -109,12 +126,18 @@ export default async function TellerKesalahanPage({ searchParams }: { searchPara
               </tr>
             </thead>
             <tbody>
-              {records.map(r => (
+              {records.map(r => {
+                const key = `${r.userId}-${new Date(r.tanggal).toISOString()}`;
+                const totalHarian = performaTotals[key] || 0;
+                return (
                 <tr key={r.id}>
                   <td style={{ borderBottom: '1px solid #f1f5f9', padding: '12px 16px' }}>
                     {new Date(r.tanggal).toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
                   </td>
                   <td style={{ borderBottom: '1px solid #f1f5f9', padding: '12px 16px', fontWeight: 500 }}>{r.user.nama}</td>
+                  <td style={{ borderBottom: '1px solid #f1f5f9', padding: '12px 16px', textAlign: 'center' }}>
+                    <span style={{ fontWeight: 600, color: '#3b82f6', background: '#eff6ff', padding: '4px 8px', borderRadius: 12, fontSize: 13 }}>{totalHarian}</span>
+                  </td>
                   <td style={{ borderBottom: '1px solid #f1f5f9', padding: '12px 16px' }}>
                     {r.jumlah > 0 ? (
                       <span style={{ color: '#e11d48', fontWeight: 600 }}>{r.jumlah} Kesalahan</span>
@@ -129,9 +152,9 @@ export default async function TellerKesalahanPage({ searchParams }: { searchPara
                       <span className="badge badge-success" style={{ background: '#dcfce7', color: '#166534', padding: '4px 8px', borderRadius: 12, fontSize: 12 }}>Baik</span>
                     )}
                   </td>
-                </tr>
-              ))}
-            </tbody>
+                  </tr>
+                )})}
+              </tbody>
           </table>
         )}
       </section>

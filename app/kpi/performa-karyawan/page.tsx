@@ -28,13 +28,7 @@ export default async function PerformaKaryawanPage() {
     return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(val);
   };
 
-  // Calculate daily totals for each user
-  const dailyTotals: Record<string, number> = {};
-  records.forEach(r => {
-    const key = `${r.userId}-${new Date(r.tanggal).toISOString()}`;
-    if (!dailyTotals[key]) dailyTotals[key] = 0;
-    dailyTotals[key] += r.jumlahKegiatan;
-  });
+
 
   return (
     <main className="container">
@@ -63,16 +57,12 @@ export default async function PerformaKaryawanPage() {
                   <th style={{ borderBottom: '2px solid #e2e8f0', padding: '12px 16px', whiteSpace: 'nowrap' }}>Jabatan</th>
                   <th style={{ borderBottom: '2px solid #e2e8f0', padding: '12px 16px' }}>Kegiatan</th>
                   <th style={{ borderBottom: '2px solid #e2e8f0', padding: '12px 16px', textAlign: 'center' }}>Jml Kegiatan</th>
-                  <th style={{ borderBottom: '2px solid #e2e8f0', padding: '12px 16px', textAlign: 'center' }}>Total Harian</th>
                   <th style={{ borderBottom: '2px solid #e2e8f0', padding: '12px 16px', textAlign: 'right' }}>Nominal</th>
                   <th style={{ borderBottom: '2px solid #e2e8f0', padding: '12px 16px', textAlign: 'center' }}>Kesalahan</th>
                 </tr>
               </thead>
               <tbody>
-                {records.map(r => {
-                  const key = `${r.userId}-${new Date(r.tanggal).toISOString()}`;
-                  const totalHarian = dailyTotals[key] || 0;
-                  return (
+                {records.map(r => (
                   <tr key={r.id}>
                     <td style={{ borderBottom: '1px solid #f1f5f9', padding: '12px 16px', whiteSpace: 'nowrap', verticalAlign: 'top' }}>
                       {new Date(r.tanggal).toLocaleDateString('id-ID', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' })}
@@ -104,9 +94,6 @@ export default async function PerformaKaryawanPage() {
                     <td style={{ borderBottom: '1px solid #f1f5f9', padding: '12px 16px', verticalAlign: 'top', textAlign: 'center' }}>
                       <span style={{ fontWeight: 600, color: '#0f172a' }}>{r.jumlahKegiatan}</span>
                     </td>
-                    <td style={{ borderBottom: '1px solid #f1f5f9', padding: '12px 16px', verticalAlign: 'top', textAlign: 'center' }}>
-                      <span style={{ fontWeight: 600, color: '#3b82f6', background: '#eff6ff', padding: '4px 8px', borderRadius: 12, fontSize: 13 }}>{totalHarian}</span>
-                    </td>
                     <td style={{ borderBottom: '1px solid #f1f5f9', padding: '12px 16px', verticalAlign: 'top', textAlign: 'right', whiteSpace: 'nowrap' }}>
                       <span style={{ fontWeight: 600, color: '#16a34a' }}>{formatCurrency(r.nominal)}</span>
                     </td>
@@ -124,8 +111,7 @@ export default async function PerformaKaryawanPage() {
                       )}
                     </td>
                   </tr>
-                );
-                })}
+                ))}
               </tbody>
             </table>
           </div>
