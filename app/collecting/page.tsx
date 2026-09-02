@@ -79,7 +79,7 @@ export default async function CollectingDashboardPage({ searchParams }: { search
   const daysToAdd = Math.max(0, diffDays);
 
   const ewsData = visiblePinjamans.map((p) => {
-    const dynamicHariTunggakan = p.hariTunggakan + daysToAdd;
+    const dynamicHariTunggakan = p.hariTunggakan > 0 ? p.hariTunggakan + daysToAdd : 0;
     return {
       id: p.id,
       norek: p.norek,
