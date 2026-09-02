@@ -121,7 +121,8 @@ export default async function TellerKesalahanPage({ searchParams }: { searchPara
               <tr>
                 <th style={{ borderBottom: '2px solid #e2e8f0', padding: '12px 16px' }}>Tanggal Laporan</th>
                 <th style={{ borderBottom: '2px solid #e2e8f0', padding: '12px 16px' }}>Nama Teller</th>
-                <th style={{ borderBottom: '2px solid #e2e8f0', padding: '12px 16px' }}>Jumlah Transaksi Minus</th>
+                <th style={{ borderBottom: '2px solid #e2e8f0', padding: '12px 16px', textAlign: 'center' }}>Total Harian</th>
+                <th style={{ borderBottom: '2px solid #e2e8f0', padding: '12px 16px', textAlign: 'center' }}>Minus</th>
                 <th style={{ borderBottom: '2px solid #e2e8f0', padding: '12px 16px' }}>Status</th>
               </tr>
             </thead>
@@ -138,14 +139,14 @@ export default async function TellerKesalahanPage({ searchParams }: { searchPara
                   <td style={{ borderBottom: '1px solid #f1f5f9', padding: '12px 16px', textAlign: 'center' }}>
                     <span style={{ fontWeight: 600, color: '#3b82f6', background: '#eff6ff', padding: '4px 8px', borderRadius: 12, fontSize: 13 }}>{totalHarian}</span>
                   </td>
-                  <td style={{ borderBottom: '1px solid #f1f5f9', padding: '12px 16px' }}>
+                  <td style={{ borderBottom: '1px solid #f1f5f9', padding: '12px 16px', textAlign: 'center' }}>
                     {r.jumlah > 0 ? (
                       <span style={{ color: '#e11d48', fontWeight: 600 }}>{r.jumlah} Kesalahan</span>
                     ) : (
                       <span style={{ color: '#16a34a' }}>Bersih (0 Kesalahan)</span>
                     )}
                   </td>
-                  <td style={{ borderBottom: '1px solid #f1f5f9', padding: '12px 16px' }}>
+                  <td style={{ borderBottom: '1px solid #f1f5f9', padding: '12px 16px', textAlign: 'center' }}>
                     {r.jumlah > 0 ? (
                       <span className="badge badge-danger" style={{ background: '#fee2e2', color: '#991b1b', padding: '4px 8px', borderRadius: 12, fontSize: 12 }}>Perlu Perhatian</span>
                     ) : (
