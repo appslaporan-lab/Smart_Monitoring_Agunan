@@ -28,7 +28,7 @@ export default async function MORankingPage({ searchParams }: { searchParams: { 
   let whereMO: any = { tanggal: { gte: startDate, lte: endDate } };
   let whereTeller: any = { tanggal: { gte: startDate, lte: endDate }, kegiatan: 'Pencairan Pinjaman' };
 
-  if (user.role === 'SUPERADMIN' || user.role === 'DIREKSI') {
+  if (user.role === 'SUPERADMIN' || user.role === 'DIREKSI' || user.role === 'DIREKTUR') {
     // see all
   } else if (user.role.includes('MARKETING') || user.role === 'AO') {
     whereMO.userId = user.id;
