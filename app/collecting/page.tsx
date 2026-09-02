@@ -126,7 +126,7 @@ export default async function CollectingDashboardPage({ searchParams }: { search
           </div>
           <p style={{ marginTop: 8 }}>Total {visiblePinjamans.length} debitur (Data +{daysToAdd} Hari)</p>
         </div>
-        {(user.role === 'SUPERADMIN' || user.role === 'KASUBAG_REMEDIAL') && (
+        {user.role === 'SUPERADMIN' && (
           <Link href="/collecting/upload" className="button secondary">Kelola Upload Nominatif</Link>
         )}
       </section>
