@@ -8,6 +8,7 @@ import EmptyState from '@/components/EmptyState';
 import ExportExcelButton from '@/components/ExportExcelButton';
 import TableSearch from '@/components/TableSearch';
 import SuperadminManageRealisasi from '@/components/SuperadminManageRealisasi';
+import { canAccessKantorData } from '@/lib/kantor';
 
 export const dynamic = 'force-dynamic';
 
@@ -24,33 +25,24 @@ export default async function MORankingPage({ searchParams }: { searchParams: { 
   const startDate = new Date(tahun, bulan - 1, 1);
   const endDate = new Date(tahun, bulan, 0, 23, 59, 59, 999);
 
-
-  let whereMO: any = { tanggal: { gte: startDate, lte: endDate } };
-  let whereTeller: any = { tanggal: { gte: startDate, lte: endDate }, kegiatan: 'Pencairan Pinjaman' };
-
-  if (user.role === 'SUPERADMIN' || user.role === 'DIREKSI' || user.role === 'DIREKTUR') {
-    // see all
-  } else if (user.role.includes('MARKETING') || user.role === 'AO') {
-    whereMO.userId = user.id;
-    whereTeller.user = { subKantor: user.subKantor || 'Pusat' };
-  } else {
-    // KEPALA KAS, KASUBAG KREDIT, dll see their branch
-    whereMO.user = { subKantor: user.subKantor || 'Pusat' };
-    whereTeller.user = { subKantor: user.subKantor || 'Pusat' };
-  }
-
-  // 1. Fetch MO Manual Inputs
-  const moRecords = await prisma.realisasiHarianMO.findMany({
-    where: whereMO,
-
+  // 1. Fetch MO Manual Inputs (ALL for month)
+  const moRecordsAll = await prisma.realisasiHarianMO.findMany({
+    where: { tanggal: { gte: startDate, lte: endDate } },
     include: { user: { select: { nama: true, subKantor: true } } }
   });
 
-  // 2. Fetch Teller "Pencairan Pinjaman"
-  const tellerRecords = await prisma.performaKaryawan.findMany({
-    where: whereTeller,
+  // 2. Fetch Teller "Pencairan Pinjaman" (ALL for month)
+  const tellerRecordsAll = await prisma.performaKaryawan.findMany({
+    where: { tanggal: { gte: startDate, lte: endDate }, kegiatan: 'Pencairan Pinjaman' },
     include: { user: { select: { subKantor: true } } }
   });
+
+  // 3. Filter in memory using robust Kantor logic
+  const moRecords = user.role.includes('MARKETING') || user.role === 'AO' 
+    ? moRecordsAll.filter(r => r.userId === user.id)
+    : moRecordsAll.filter(r => canAccessKantorData(user.role, user.kantor, user.subKantor, r.user.subKantor));
+
+  const tellerRecords = tellerRecordsAll.filter(r => canAccessKantorData(user.role, user.kantor, user.subKantor, r.user.subKantor));
 
   // Calculate MO Ranking
   const moStats: Record<number, { nama: string; total: number; count: number; subKantor: string }> = {};
