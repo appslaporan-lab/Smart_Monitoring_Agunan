@@ -86,8 +86,23 @@ export default async function CollectingDashboardPage({ searchParams }: { search
   const ewsData = visiblePinjamans.map((p) => {
     const dynamicHariTunggakan = (() => {
       if (p.isLunas || p.sudahBayar) return p.hariTunggakan;
+      if (p.hariTunggakan === 0) return 0;
       return daysToAdd > 0 ? p.hariTunggakan + daysToAdd : p.hariTunggakan;
     })();
+
+    let tglJanji: Date | null = null;
+    let janjiPetugas: string | null = null;
+    let janjiCatatan: string | null = null;
+
+    if (p.kunjunganPenagihan && p.kunjunganPenagihan.length > 0) {
+      const janji = p.kunjunganPenagihan.filter((k: any) => k.hasil === 'JANJI_BAYAR' && k.tanggalJanjiBayar);
+      if (janji.length > 0) {
+        janji.sort((a: any, b: any) => new Date(b.tanggalKunjungan).getTime() - new Date(a.tanggalKunjungan).getTime());
+        tglJanji = janji[0].tanggalJanjiBayar;
+        janjiPetugas = userMap.get(janji[0].petugasId) || null;
+        janjiCatatan = janji[0].catatan;
+      }
+    }
 
     return {
       id: p.id,
@@ -98,17 +113,7 @@ export default async function CollectingDashboardPage({ searchParams }: { search
       hariTunggakan: dynamicHariTunggakan,
       kantorLabel: getKantorLabel(p.subKantor),
       kunjunganCount: p.kunjunganPenagihan.length,
-      ews: (() => {
-        let tglJanji: Date | null = null;
-        if (p.kunjunganPenagihan && p.kunjunganPenagihan.length > 0) {
-          const janji = p.kunjunganPenagihan.filter((k: any) => k.hasil === 'JANJI_BAYAR' && k.tanggalJanjiBayar);
-          if (janji.length > 0) {
-            janji.sort((a: any, b: any) => new Date(b.tanggalKunjungan).getTime() - new Date(a.tanggalKunjungan).getTime());
-            tglJanji = janji[0].tanggalJanjiBayar;
-          }
-        }
-        return determineEWS(dynamicHariTunggakan, p.tglJatuhTempo, p.tglRealisasi, tglJanji);
-      })(),
+      ews: determineEWS(dynamicHariTunggakan, p.tglJatuhTempo, p.tglRealisasi, tglJanji),
       kolBulanIni: p.kdKolektibilitas,
       kolBulanLalu: prevKolMap.get(p.norek) || null,
       sudahBayar: p.sudahBayar,
@@ -121,9 +126,9 @@ export default async function CollectingDashboardPage({ searchParams }: { search
       lastKunjungan: p.kunjunganPenagihan && p.kunjunganPenagihan.length > 0 ? {
         tanggalKunjungan: p.kunjunganPenagihan[0].tanggalKunjungan,
         hasil: p.kunjunganPenagihan[0].hasil,
-        tanggalJanjiBayar: p.kunjunganPenagihan[0].tanggalJanjiBayar,
-        catatan: p.kunjunganPenagihan[0].catatan,
-        petugasNama: userMap.get(p.kunjunganPenagihan[0].petugasId) || 'Petugas'
+        tanggalJanjiBayar: tglJanji || p.kunjunganPenagihan[0].tanggalJanjiBayar,
+        catatan: p.kunjunganPenagihan[0].hasil === 'JANJI_BAYAR' ? p.kunjunganPenagihan[0].catatan : (janjiCatatan || p.kunjunganPenagihan[0].catatan),
+        petugasNama: p.kunjunganPenagihan[0].hasil === 'JANJI_BAYAR' ? (userMap.get(p.kunjunganPenagihan[0].petugasId) || 'Petugas') : (janjiPetugas || userMap.get(p.kunjunganPenagihan[0].petugasId) || 'Petugas')
       } : null,
     };
   }).sort((a, b) => b.hariTunggakan - a.hariTunggakan);
