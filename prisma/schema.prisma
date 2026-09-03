@@ -63,6 +63,8 @@ model PinjamanPeriode {
   jangkaBulan         Int?
   kdKolektibilitas    String?
   kdKolektibilitasLalu String?
+  norekTabungan       String?
+  saldoTabungan       Float?
   sudahBayar          Boolean  @default(false)
   isLunas             Boolean  @default(false)
   nominalBayarHariIni Float?   @default(0)
