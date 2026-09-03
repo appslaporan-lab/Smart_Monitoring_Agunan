@@ -23,6 +23,12 @@ type EwsItem = {
   saldoTabungan: number | null;
   tunggakanPokok: number | null;
   tunggakanBunga: number | null;
+  lastKunjungan?: {
+    tanggalKunjungan: Date | string;
+    hasil: string;
+    tanggalJanjiBayar: Date | string | null;
+    catatan: string | null;
+  } | null;
 };
 
 const FILTER_OPTIONS: { key: string; label: string; match: (item: EwsItem) => boolean }[] = [
@@ -186,6 +192,23 @@ export default function CollectingDebiturList({ items }: { items: EwsItem[] }) {
                           }}>
                             ({Number(item.kolBulanIni) > Number(item.kolBulanLalu) ? 'Memburuk dari ' : 'Membaik dari '} {item.kolBulanLalu})
                           </span>
+                        )}
+                      </div>
+                    )}
+
+                    {item.lastKunjungan && (
+                      <div style={{ textAlign: 'right', fontSize: '0.8rem', color: '#475569', marginTop: 4, background: '#f8fafc', padding: '6px 10px', borderRadius: 6, border: '1px solid #e2e8f0', minWidth: '220px' }}>
+                        <div style={{ fontWeight: 600, color: '#334155', marginBottom: 2 }}>Info Kunjungan Terakhir:</div>
+                        <div>Status: <strong>{item.lastKunjungan.hasil.replace(/_/g, ' ')}</strong></div>
+                        {item.lastKunjungan.tanggalJanjiBayar && (
+                          <div style={{ color: '#047857', fontWeight: 600 }}>
+                            Janji Bayar: {new Date(item.lastKunjungan.tanggalJanjiBayar).toLocaleDateString('id-ID')}
+                          </div>
+                        )}
+                        {item.lastKunjungan.catatan && (
+                          <div style={{ fontStyle: 'italic', marginTop: 2, maxWidth: '200px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                            "{item.lastKunjungan.catatan}"
+                          </div>
                         )}
                       </div>
                     )}

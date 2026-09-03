@@ -109,6 +109,12 @@ export default async function CollectingDashboardPage({ searchParams }: { search
       saldoTabungan: p.saldoTabungan,
       tunggakanPokok: p.tunggakanPokok,
       tunggakanBunga: p.tunggakanBunga,
+      lastKunjungan: p.kunjunganPenagihan && p.kunjunganPenagihan.length > 0 ? {
+        tanggalKunjungan: p.kunjunganPenagihan[0].tanggalKunjungan,
+        hasil: p.kunjunganPenagihan[0].hasil,
+        tanggalJanjiBayar: p.kunjunganPenagihan[0].tanggalJanjiBayar,
+        catatan: p.kunjunganPenagihan[0].catatan
+      } : null,
     };
   }).sort((a, b) => b.hariTunggakan - a.hariTunggakan);
 
