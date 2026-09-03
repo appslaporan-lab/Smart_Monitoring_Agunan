@@ -39,7 +39,7 @@ export async function POST(req: Request) {
     // For fallback name matching (lowercase name -> norek)
     const activeNamesMap = new Map<string, string>();
     allPinjaman.forEach(p => {
-      activeNamesMap.set(p.namaNasabahExcel.toLowerCase().trim(), p.norek);
+      activeNamesMap.set(p.namaNasabahExcel.toLowerCase().trim().replace(/\s+/g, ' '), p.norek);
     });
 
     let updatedCount = 0;
@@ -63,13 +63,20 @@ export async function POST(req: Request) {
       
       // Fallback: If no Norek found but it's a Kredit row, try matching by Name
       if (!validNorek && (isLunasRow || isKreditRow)) {
-        // Find if any exact name is present in the row elements
         for (const cell of row) {
           if (typeof cell === 'string') {
-            const cellClean = cell.toLowerCase().trim();
+            const cellClean = cell.toLowerCase().trim().replace(/\s+/g, ' ');
             if (activeNamesMap.has(cellClean)) {
               validNorek = activeNamesMap.get(cellClean)!;
               break;
+            } else if (cellClean.length > 5) {
+              for (const [dbName, dbNorek] of activeNamesMap.entries()) {
+                if (dbName === cellClean || dbName.includes(cellClean) || cellClean.includes(dbName)) {
+                  validNorek = dbNorek;
+                  break;
+                }
+              }
+              if (validNorek) break;
             }
           }
         }
@@ -82,7 +89,7 @@ export async function POST(req: Request) {
           for (const val of r) {
             if (typeof val === 'number' && val > max) max = val;
             else if (typeof val === 'string') {
-              const numStr = val.replace(/[^\\d.-]/g, '');
+              const numStr = val.replace(/[^\d.-]/g, '');
               const num = parseFloat(numStr);
               if (!isNaN(num) && num > max && num !== parseInt(validNorek!)) {
                 max = num;
@@ -93,12 +100,10 @@ export async function POST(req: Request) {
         };
 
         const maxCurrent = extractMaxNum(row);
-        let maxPrev = 0;
-        if (i > 0 && allRows[i-1]) {
-          maxPrev = extractMaxNum(allRows[i-1]);
+        let nominal = maxCurrent;
+        if (nominal === 0 && i > 0 && allRows[i-1]) {
+          nominal = extractMaxNum(allRows[i-1]);
         }
-
-        const nominal = Math.max(maxCurrent, maxPrev);
 
         const updated = await prisma.pinjamanPeriode.updateMany({
           where: {
