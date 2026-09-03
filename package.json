@@ -23,6 +23,7 @@
     "date-fns": "2.30.0",
     "html2canvas": "^1.4.1",
     "iconv-lite": "^0.7.3",
+    "idb-keyval": "^6.3.0",
     "json2csv": "^5.0.7",
     "jspdf": "^2.5.1",
     "lucide-react": "^0.478.0",
