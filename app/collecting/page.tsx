@@ -44,7 +44,34 @@ export default async function CollectingDashboardPage({ searchParams }: { search
 
   const pinjamans = await prisma.pinjamanPeriode.findMany({
     where: { periodeId: periodeAktif.id },
-    include: { nasabah: true, kunjunganPenagihan: { orderBy: { createdAt: 'desc' } } },
+    select: {
+      id: true,
+      norek: true,
+      namaNasabahExcel: true,
+      subKantor: true,
+      namaAO: true,
+      hariTunggakan: true,
+      tglJatuhTempo: true,
+      tglRealisasi: true,
+      kdKolektibilitas: true,
+      sudahBayar: true,
+      isLunas: true,
+      nominalBayarHariIni: true,
+      norekTabungan: true,
+      saldoTabungan: true,
+      tunggakanPokok: true,
+      tunggakanBunga: true,
+      kunjunganPenagihan: { 
+        orderBy: { createdAt: 'desc' },
+        select: {
+           tanggalKunjungan: true,
+           hasil: true,
+           tanggalJanjiBayar: true,
+           catatan: true,
+           petugasId: true
+        }
+      }
+    }
   });
 
   const allUsers = await prisma.user.findMany({ select: { id: true, nama: true } });
