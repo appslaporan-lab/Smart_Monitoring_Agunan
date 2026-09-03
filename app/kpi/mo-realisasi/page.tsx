@@ -162,9 +162,10 @@ export default async function MORankingPage({ searchParams }: { searchParams: { 
                 {rankingArray.map((mo, idx) => {
                   const selisih = mo.total - TARGET_MO;
                   const isHit = selisih >= 0;
+                  const persen = (mo.total / TARGET_MO) * 100;
                   
                   let rankBadge = null;
-                  if (idx === 0) rankBadge = <span style={{ background: '#fef08a', color: '#854d0e', padding: '4px 8px', borderRadius: 4, fontWeight: 'bold' }}>👑 #1</span>;
+                  if (idx === 0) rankBadge = <span style={{ background: '#fef08a', color: '#854d0e', padding: '4px 8px', borderRadius: 4, fontWeight: 'bold' }}>🏆 #1</span>;
                   else if (idx === 1) rankBadge = <span style={{ background: '#e2e8f0', color: '#475569', padding: '4px 8px', borderRadius: 4, fontWeight: 'bold' }}>🥈 #2</span>;
                   else if (idx === 2) rankBadge = <span style={{ background: '#ffedd5', color: '#9a3412', padding: '4px 8px', borderRadius: 4, fontWeight: 'bold' }}>🥉 #3</span>;
                   else rankBadge = <span style={{ color: '#64748b', fontWeight: 600 }}>#{idx + 1}</span>;
@@ -173,9 +174,27 @@ export default async function MORankingPage({ searchParams }: { searchParams: { 
                   let predikatColor = "";
                   let predikatBg = "";
                   
-                  if (idx === 0) { predikat = "Luar Biasa"; predikatColor = "#15803d"; predikatBg = "#dcfce7"; }
-                  else if (isHit) { predikat = "Lulus Target"; predikatColor = "#16a34a"; predikatBg = "#f0fdf4"; }
-                  else { predikat = "Belum Lulus"; predikatColor = "#dc2626"; predikatBg = "#fef2f2"; }
+                  if (persen > 100) {
+                    predikat = "Luar Biasa 🚀";
+                    predikatColor = "#15803d";
+                    predikatBg = "#dcfce7";
+                  } else if (persen === 100) {
+                    predikat = "Mantap 🎯";
+                    predikatColor = "#0369a1";
+                    predikatBg = "#e0f2fe";
+                  } else if (persen >= 75) {
+                    predikat = "Sedikit Lagi 🔥";
+                    predikatColor = "#b45309";
+                    predikatBg = "#fef3c7";
+                  } else if (persen >= 50) {
+                    predikat = "Terus Berjuang 💪";
+                    predikatColor = "#c2410c";
+                    predikatBg = "#ffedd5";
+                  } else {
+                    predikat = "Tetap Semangat ✨";
+                    predikatColor = "#be123c";
+                    predikatBg = "#ffe4e6";
+                  }
 
                   return (
                     <tr key={mo.nama}>
