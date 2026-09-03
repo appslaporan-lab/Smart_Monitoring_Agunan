@@ -47,6 +47,9 @@ export default async function CollectingDashboardPage({ searchParams }: { search
     include: { nasabah: true, kunjunganPenagihan: { orderBy: { createdAt: 'desc' } } },
   });
 
+  const allUsers = await prisma.user.findMany({ select: { id: true, nama: true } });
+  const userMap = new Map(allUsers.map(u => [u.id, u.nama]));
+
   const periodeSebelumnya = await prisma.periodeNominatif.findFirst({
     where: { 
       jenisUpload: 'COLLECTING',
@@ -61,25 +64,31 @@ export default async function CollectingDashboardPage({ searchParams }: { search
       where: { periodeId: periodeSebelumnya.id },
       select: { norek: true, kdKolektibilitas: true }
     });
-    for (const pp of prevPinjamans) {
-      if (pp.kdKolektibilitas) {
-        prevKolMap.set(pp.norek, pp.kdKolektibilitas);
+    prevPinjamans.forEach(p => {
+      if (p.kdKolektibilitas) {
+        prevKolMap.set(p.norek, p.kdKolektibilitas);
       }
-    }
+    });
   }
 
   const visiblePinjamans = pinjamans.filter((p) => {
     return canAccessKantorData(user.role, user.kantor, user.subKantor, p.subKantor);
   });
 
-  // Calculate dynamic days: days passed since the file was uploaded
   const now = new Date();
-  const diffTime = now.getTime() - periodeAktif.createdAt.getTime();
+  now.setHours(0,0,0,0);
+  const uploadDate = new Date(periodeAktif.createdAt);
+  uploadDate.setHours(0,0,0,0);
+  const diffTime = now.getTime() - uploadDate.getTime();
   const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
   const daysToAdd = Math.max(0, diffDays);
 
   const ewsData = visiblePinjamans.map((p) => {
-    const dynamicHariTunggakan = p.hariTunggakan > 0 ? p.hariTunggakan + daysToAdd : 0;
+    const dynamicHariTunggakan = (() => {
+      if (p.isLunas || p.sudahBayar) return p.hariTunggakan;
+      return daysToAdd > 0 ? p.hariTunggakan + daysToAdd : p.hariTunggakan;
+    })();
+
     return {
       id: p.id,
       norek: p.norek,
@@ -113,7 +122,8 @@ export default async function CollectingDashboardPage({ searchParams }: { search
         tanggalKunjungan: p.kunjunganPenagihan[0].tanggalKunjungan,
         hasil: p.kunjunganPenagihan[0].hasil,
         tanggalJanjiBayar: p.kunjunganPenagihan[0].tanggalJanjiBayar,
-        catatan: p.kunjunganPenagihan[0].catatan
+        catatan: p.kunjunganPenagihan[0].catatan,
+        petugasNama: userMap.get(p.kunjunganPenagihan[0].petugasId) || 'Petugas'
       } : null,
     };
   }).sort((a, b) => b.hariTunggakan - a.hariTunggakan);
