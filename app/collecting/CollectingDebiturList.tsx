@@ -32,13 +32,14 @@ type EwsItem = {
 };
 
 const FILTER_OPTIONS: { key: string; label: string; match: (item: EwsItem) => boolean }[] = [
-  { key: 'AMAN', label: 'Aman (Lancar)', match: (i) => i.ews.status === 'AMAN' && !i.isLunas && !i.sudahBayar },
+  { key: 'AMAN', label: 'Aman (Lancar)', match: (i) => i.ews.status === 'AMAN' && !i.isLunas && !i.sudahBayar && i.kunjunganCount === 0 },
   { key: 'JANJI_BAYAR_DEKAT', label: 'Mendekati Janji Bayar', match: (i) => i.ews.status === 'JANJI_BAYAR_DEKAT' && !i.isLunas && !i.sudahBayar },
   { key: 'ALL', label: 'Semua', match: () => true },
-  { key: 'H7_DESK_CALL', label: 'H-7 Desk Call', match: (i) => i.ews.status === 'H7_DESK_CALL' && !i.isLunas && !i.sudahBayar },
-  { key: 'KUNJUNGAN_MO', label: 'Kunjungan MO', match: (i) => i.ews.status === 'KUNJUNGAN_MO' && !i.isLunas && !i.sudahBayar },
-  { key: 'SURAT_TAGIHAN', label: 'Surat Tagihan', match: (i) => i.ews.status.startsWith('SURAT_TAGIHAN') && !i.isLunas && !i.sudahBayar },
-  { key: 'SP', label: 'Surat Peringatan', match: (i) => i.ews.status.startsWith('SP_') && !i.isLunas && !i.sudahBayar },
+  { key: 'H7_DESK_CALL', label: 'H-7 Desk Call', match: (i) => i.ews.status === 'H7_DESK_CALL' && !i.isLunas && !i.sudahBayar && i.kunjunganCount === 0 },
+  { key: 'KUNJUNGAN_MO', label: 'Kunjungan MO', match: (i) => i.ews.status === 'KUNJUNGAN_MO' && !i.isLunas && !i.sudahBayar && i.kunjunganCount === 0 },
+  { key: 'SURAT_TAGIHAN', label: 'Surat Tagihan', match: (i) => i.ews.status.startsWith('SURAT_TAGIHAN') && !i.isLunas && !i.sudahBayar && i.kunjunganCount === 0 },
+  { key: 'SP', label: 'Surat Peringatan', match: (i) => i.ews.status.startsWith('SP_') && !i.isLunas && !i.sudahBayar && i.kunjunganCount === 0 },
+  { key: 'SUDAH_DIKUNJUNGI', label: 'Sudah Dikunjungi', match: (i) => i.kunjunganCount > 0 && !i.sudahBayar && !i.isLunas && i.ews.status !== 'JANJI_BAYAR_DEKAT' },
   { key: 'LUNAS', label: 'Lunas', match: (i) => i.isLunas },
   { key: 'SUDAH_BAYAR', label: 'Sudah Bayar', match: (i) => i.sudahBayar && !i.isLunas },
   { key: 'BELUM_DIKUNJUNGI', label: 'Belum Dikunjungi', match: (i) => i.ews.wajibKunjungan && i.kunjunganCount === 0 && !i.sudahBayar && !i.isLunas },
@@ -73,6 +74,7 @@ export default function CollectingDebiturList({ items }: { items: EwsItem[] }) {
     KUNJUNGAN_MO: '#fb923c',
     SURAT_TAGIHAN: '#f87171',
     SP: '#dc2626',
+    SUDAH_DIKUNJUNGI: '#8b5cf6',
     BELUM_DIKUNJUNGI: '#94a3b8',
     SUDAH_BAYAR: '#22c55e',
     LUNAS: '#3b82f6',
@@ -80,14 +82,14 @@ export default function CollectingDebiturList({ items }: { items: EwsItem[] }) {
 
   
   const excelData = filtered.map(item => ({
+    'No. Rekening': item.norek,
     'Nama Nasabah': item.namaNasabahExcel,
-    'No Rekening': item.norek,
     'Kantor': item.kantorLabel,
-    'Nama AO': item.namaAO,
+    'Nama AO': item.namaAO || '-',
+    'Status EWS': item.ews.label,
     'Hari Tunggakan': item.hariTunggakan,
-    'Status EWS': item.ews,
-    'Kol Bulan Ini': item.kolBulanIni || '-',
-    'Kol Bulan Lalu': item.kolBulanLalu || '-',
+    'Kolektibilitas': item.kolBulanIni || '-',
+    'Status Pembayaran': item.isLunas ? 'Lunas' : item.sudahBayar ? `Sudah Bayar (Rp ${item.nominalBayarHariIni})` : 'Belum Bayar',
     'Jml Kunjungan': item.kunjunganCount
   }));
   
@@ -98,6 +100,7 @@ export default function CollectingDebiturList({ items }: { items: EwsItem[] }) {
     KUNJUNGAN_MO: 'Kunjungan MO',
     SURAT_TAGIHAN: 'Surat Tagihan',
     SP: 'Surat Peringatan',
+    SUDAH_DIKUNJUNGI: 'Sudah Dikunjungi',
     BELUM_DIKUNJUNGI: 'Belum Dikunjungi',
     SUDAH_BAYAR: 'Sudah Bayar',
     LUNAS: 'Lunas',
