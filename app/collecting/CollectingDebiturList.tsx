@@ -19,18 +19,22 @@ type EwsItem = {
   sudahBayar: boolean;
   isLunas: boolean;
   nominalBayarHariIni: number | null;
+  norekTabungan: string | null;
+  saldoTabungan: number | null;
+  tunggakanPokok: number | null;
+  tunggakanBunga: number | null;
 };
 
 const FILTER_OPTIONS: { key: string; label: string; match: (item: EwsItem) => boolean }[] = [
-    { key: 'AMAN', label: 'Aman (Lancar)', match: (i) => i.ews.status === 'AMAN' && !i.isLunas && !i.sudahBayar },
-    { key: 'JANJI_BAYAR_DEKAT', label: 'Mendekati Janji Bayar', match: (i) => i.ews.status === 'JANJI_BAYAR_DEKAT' },
+  { key: 'AMAN', label: 'Aman (Lancar)', match: (i) => i.ews.status === 'AMAN' && !i.isLunas && !i.sudahBayar },
+  { key: 'JANJI_BAYAR_DEKAT', label: 'Mendekati Janji Bayar', match: (i) => i.ews.status === 'JANJI_BAYAR_DEKAT' && !i.isLunas && !i.sudahBayar },
   { key: 'ALL', label: 'Semua', match: () => true },
   { key: 'H7_DESK_CALL', label: 'H-7 Desk Call', match: (i) => i.ews.status === 'H7_DESK_CALL' && !i.isLunas && !i.sudahBayar },
-  { key: 'KUNJUNGAN_MO', label: 'Kunjungan MO', match: (i) => i.ews.status === 'KUNJUNGAN_MO' },
-  { key: 'SURAT_TAGIHAN', label: 'Surat Tagihan', match: (i) => i.ews.status.startsWith('SURAT_TAGIHAN') },
-  { key: 'SP', label: 'Surat Peringatan', match: (i) => i.ews.status.startsWith('SP_') },
+  { key: 'KUNJUNGAN_MO', label: 'Kunjungan MO', match: (i) => i.ews.status === 'KUNJUNGAN_MO' && !i.isLunas && !i.sudahBayar },
+  { key: 'SURAT_TAGIHAN', label: 'Surat Tagihan', match: (i) => i.ews.status.startsWith('SURAT_TAGIHAN') && !i.isLunas && !i.sudahBayar },
+  { key: 'SP', label: 'Surat Peringatan', match: (i) => i.ews.status.startsWith('SP_') && !i.isLunas && !i.sudahBayar },
   { key: 'LUNAS', label: 'Lunas', match: (i) => i.isLunas },
-    { key: 'SUDAH_BAYAR', label: 'Sudah Bayar', match: (i) => i.sudahBayar && !i.isLunas },
+  { key: 'SUDAH_BAYAR', label: 'Sudah Bayar', match: (i) => i.sudahBayar && !i.isLunas },
   { key: 'BELUM_DIKUNJUNGI', label: 'Belum Dikunjungi', match: (i) => i.ews.wajibKunjungan && i.kunjunganCount === 0 && !i.sudahBayar && !i.isLunas },
 ];
 
@@ -154,6 +158,17 @@ export default function CollectingDebiturList({ items }: { items: EwsItem[] }) {
                     <p style={{ margin: '4px 0', fontSize: '0.85rem', color: '#64748b' }}>
                       Kantor: {item.kantorLabel} | Tunggakan: {item.hariTunggakan} hari | AO: {item.namaAO || '-'}
                     </p>
+                    <p style={{ margin: '4px 0', fontSize: '0.85rem', color: '#334155' }}>
+                      Rek. Tabungan: <strong>{item.norekTabungan || '-'}</strong> (Saldo: {item.saldoTabungan != null ? 'Rp ' + item.saldoTabungan.toLocaleString('id-ID') : '-'})
+                    </p>
+                    <p style={{ margin: '4px 0', fontSize: '0.85rem', color: '#b91c1c' }}>
+                      Nominal Tunggakan: <strong>Rp {((item.tunggakanPokok || 0) + (item.tunggakanBunga || 0)).toLocaleString('id-ID')}</strong>
+                    </p>
+                    {item.sudahBayar && (
+                      <p style={{ margin: '4px 0', fontSize: '0.85rem', color: '#15803d', fontWeight: 600 }}>
+                        ✓ Sudah Bayar: Rp {(item.nominalBayarHariIni || 0).toLocaleString('id-ID')}
+                      </p>
+                    )}
                     {item.ews.wajibKunjungan && item.kunjunganCount === 0 && (
                       <p style={{ margin: 0, fontSize: '0.8rem', color: '#dc2626', fontWeight: 600 }}>Belum ada kunjungan tercatat bulan ini</p>
                     )}

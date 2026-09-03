@@ -102,9 +102,13 @@ export default async function CollectingDashboardPage({ searchParams }: { search
       })(),
       kolBulanIni: p.kdKolektibilitas,
       kolBulanLalu: prevKolMap.get(p.norek) || null,
-    sudahBayar: p.sudahBayar,
+      sudahBayar: p.sudahBayar,
       isLunas: p.isLunas,
       nominalBayarHariIni: p.nominalBayarHariIni,
+      norekTabungan: p.norekTabungan,
+      saldoTabungan: p.saldoTabungan,
+      tunggakanPokok: p.tunggakanPokok,
+      tunggakanBunga: p.tunggakanBunga,
     };
   }).sort((a, b) => b.hariTunggakan - a.hariTunggakan);
 

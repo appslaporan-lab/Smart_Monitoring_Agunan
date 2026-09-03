@@ -64,6 +64,8 @@ export type ParsedRow = {
   jangkaBulan: number | null;
   kdKolektibilitas: string | null;
   kdKolektibilitasLalu: string | null;
+  norekTabungan: string | null;
+  saldoTabungan: number | null;
   produkKredit: string | null;
   sektorEkonomi?: string | null;
   jarakKantorKm?: number | null;
@@ -140,6 +142,8 @@ export function parseNominatifExcel(buffer: Buffer, uploadType: string = 'COLLEC
       jangkaBulan: toNumber(row['AE']),
       kdKolektibilitas: row['P'] ? String(row['P']).trim() : null,
       kdKolektibilitasLalu: row['Q'] ? String(row['Q']).trim() : null,
+      norekTabungan: row['BC'] ? String(row['BC']).trim() : null,
+      saldoTabungan: toNumber(row['BD']),
       jenisJaminan: mapJenisJaminan(rawJaminan),
       produkKredit: mapProdukKredit(kdProduct),
       sektorEkonomi: mapSektorEkonomi(kdProduct),
