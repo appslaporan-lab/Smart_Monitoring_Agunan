@@ -55,22 +55,22 @@ export default async function MORankingPage({ searchParams }: { searchParams: { 
   const rankingArray = Object.values(moStats).sort((a, b) => b.total - a.total);
 
   // Calculate Reconciliation per Sub Kantor
-  const rekonStats: Record<string, { moTotal: number; tellerTotal: number; moCount: number; tellerCount: number }> = {};
+  const rekonStats: Record<string, { moPlafond: number; moNet: number; tellerTotal: number; moCount: number }> = {};
   
   // Aggregate MO per Sub Kantor
   for (const r of moRecords) {
     const sk = r.user.subKantor || 'Pusat';
-    if (!rekonStats[sk]) rekonStats[sk] = { moTotal: 0, tellerTotal: 0, moCount: 0, tellerCount: 0 };
-    rekonStats[sk].moTotal += r.nominal;
-    rekonStats[sk].moCount += 1;
+    if (!rekonStats[sk]) rekonStats[sk] = { moPlafond: 0, moNet: 0, tellerTotal: 0, moCount: 0 };
+      rekonStats[sk].moPlafond += (r.nominalAsli || r.nominal);
+      rekonStats[sk].moNet += r.nominal;
+      rekonStats[sk].moCount += 1;
   }
 
   // Aggregate Teller per Sub Kantor
   for (const r of tellerRecords) {
     const sk = r.user.subKantor || 'Pusat';
-    if (!rekonStats[sk]) rekonStats[sk] = { moTotal: 0, tellerTotal: 0, moCount: 0, tellerCount: 0 };
-    rekonStats[sk].tellerTotal += r.nominal;
-    rekonStats[sk].tellerCount += 1;
+    if (!rekonStats[sk]) rekonStats[sk] = { moPlafond: 0, moNet: 0, tellerTotal: 0, moCount: 0 };
+      rekonStats[sk].tellerTotal += r.nominal;
   }
 
   const formatCurrency = (val: number) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(val);
@@ -88,14 +88,14 @@ export default async function MORankingPage({ searchParams }: { searchParams: { 
   }));
 
   const excelDataRecon = Object.entries(rekonStats).map(([sk, data]) => ({
-    'Kantor Kas': sk,
-    'Total Input MO': data.moTotal,
-    'Jml Nasabah MO': data.moCount,
-      'Jml Nasabah Teller': data.tellerCount,
+      'Kantor Kas': sk,
+      'Jml Nasabah MO': data.moCount,
+      'Total Input MO (Plafond)': data.moPlafond,
       'Total Laporan Teller': data.tellerTotal,
-    'Selisih': data.moTotal - data.tellerTotal,
-    'Status': data.moTotal === data.tellerTotal ? 'Cocok' : 'Selisih'
-  }));
+      'Selisih (MO - Teller)': data.moPlafond - data.tellerTotal,
+      'Total Pencairan Net (KPI)': data.moNet,
+      'Status': data.moPlafond === data.tellerTotal ? 'Cocok' : 'Selisih'
+    }));
 
   return (
     <main className="container">
@@ -238,43 +238,38 @@ export default async function MORankingPage({ searchParams }: { searchParams: { 
               <thead>
                 <tr>
                   <th style={{ borderBottom: '2px solid #e2e8f0', padding: '12px' }}>Kantor Kas</th>
-                  <th style={{ borderBottom: '2px solid #e2e8f0', padding: '12px' }}>Jml Nasabah MO</th>
-                  <th style={{ borderBottom: '2px solid #e2e8f0', padding: '12px' }}>Jml Nasabah Teller</th>
-                  <th style={{ borderBottom: '2px solid #e2e8f0', padding: '12px' }}>Total Input MO</th>
-                  <th style={{ borderBottom: '2px solid #e2e8f0', padding: '12px' }}>Total Laporan Teller</th>
-                  <th style={{ borderBottom: '2px solid #e2e8f0', padding: '12px' }}>Selisih (MO - Teller)</th>
-                  <th style={{ borderBottom: '2px solid #e2e8f0', padding: '12px' }}>Status Rekonsiliasi</th>
+                    <th style={{ borderBottom: '2px solid #e2e8f0', padding: '12px' }}>Jml Nasabah MO</th>
+                    <th style={{ borderBottom: '2px solid #e2e8f0', padding: '12px' }}>Total Input MO (Plafond)</th>
+                    <th style={{ borderBottom: '2px solid #e2e8f0', padding: '12px' }}>Total Laporan Teller</th>
+                    <th style={{ borderBottom: '2px solid #e2e8f0', padding: '12px' }}>Selisih (MO - Teller)</th>
+                    <th style={{ borderBottom: '2px solid #e2e8f0', padding: '12px' }}>Total Pencairan Net (KPI)</th>
+                    <th style={{ borderBottom: '2px solid #e2e8f0', padding: '12px' }}>Status Rekonsiliasi</th>
                 </tr>
               </thead>
               <tbody>
                 {Object.entries(rekonStats).map(([sk, data]) => {
-                  const selisih = data.moTotal - data.tellerTotal;
-                  const isMatch = selisih === 0;
-
-                  return (
-                    <tr key={sk}>
-                      <td style={{ borderBottom: '1px solid #f1f5f9', padding: '12px', fontWeight: 600 }}>{sk}</td>
-                      <td style={{ borderBottom: '1px solid #f1f5f9', padding: '12px' }}>{data.moCount}</td>
-                      <td style={{ borderBottom: '1px solid #f1f5f9', padding: '12px' }}>{data.tellerCount}</td>
-                      <td style={{ borderBottom: '1px solid #f1f5f9', padding: '12px', color: '#2563eb', fontWeight: 600 }}>{formatCurrency(data.moTotal)}</td>
-                      <td style={{ borderBottom: '1px solid #f1f5f9', padding: '12px', color: '#9333ea', fontWeight: 600 }}>{formatCurrency(data.tellerTotal)}</td>
-                      <td style={{ borderBottom: '1px solid #f1f5f9', padding: '12px', fontWeight: 'bold', color: isMatch ? '#16a34a' : '#dc2626' }}>
-                        {formatCurrency(selisih)}
-                      </td>
-                      <td style={{ borderBottom: '1px solid #f1f5f9', padding: '12px' }}>
-                        {isMatch ? (
-                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, color: '#16a34a', fontWeight: 600 }}>
-                            <CheckCircle size={16} /> Cocok (Sesuai)
+                    const selisih = data.moPlafond - data.tellerTotal;
+                    const isMatch = selisih === 0;
+  
+                    return (
+                      <tr key={sk}>
+                        <td style={{ borderBottom: '1px solid #f1f5f9', padding: '12px', fontWeight: 600 }}>{sk}</td>
+                        <td style={{ borderBottom: '1px solid #f1f5f9', padding: '12px' }}>{data.moCount}</td>
+                        <td style={{ borderBottom: '1px solid #f1f5f9', padding: '12px', color: '#2563eb', fontWeight: 600 }}>{formatCurrency(data.moPlafond)}</td>
+                        <td style={{ borderBottom: '1px solid #f1f5f9', padding: '12px', color: '#9333ea', fontWeight: 600 }}>{formatCurrency(data.tellerTotal)}</td>
+                        <td style={{ borderBottom: '1px solid #f1f5f9', padding: '12px', color: isMatch ? '#16a34a' : '#ef4444', fontWeight: 600 }}>
+                          {selisih === 0 ? 'Rp 0' : (selisih > 0 ? `+${formatCurrency(selisih)}` : formatCurrency(selisih))}
+                        </td>
+                        <td style={{ borderBottom: '1px solid #f1f5f9', padding: '12px', color: '#0ea5e9', fontWeight: 600 }}>{formatCurrency(data.moNet)}</td>
+                        <td style={{ borderBottom: '1px solid #f1f5f9', padding: '12px' }}>
+                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: isMatch ? '#16a34a' : '#ef4444', fontSize: '13px', fontWeight: 'bold' }}>
+                            {isMatch ? <CheckCircle size={14} /> : <AlertTriangle size={14} />}
+                            {isMatch ? 'Cocok (Sesuai)' : 'Ada Selisih'}
                           </span>
-                        ) : (
-                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, color: '#dc2626', fontWeight: 600 }}>
-                            <AlertTriangle size={16} /> Ada Selisih
-                          </span>
-                        )}
-                      </td>
-                    </tr>
-                  );
-                })}
+                        </td>
+                      </tr>
+                    );
+                  })}
               </tbody>
             </table>
           </div>
