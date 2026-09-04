@@ -55,20 +55,22 @@ export default async function MORankingPage({ searchParams }: { searchParams: { 
   const rankingArray = Object.values(moStats).sort((a, b) => b.total - a.total);
 
   // Calculate Reconciliation per Sub Kantor
-  const rekonStats: Record<string, { moTotal: number; tellerTotal: number }> = {};
+  const rekonStats: Record<string, { moTotal: number; tellerTotal: number; moCount: number; tellerCount: number }> = {};
   
   // Aggregate MO per Sub Kantor
   for (const r of moRecords) {
     const sk = r.user.subKantor || 'Pusat';
-    if (!rekonStats[sk]) rekonStats[sk] = { moTotal: 0, tellerTotal: 0 };
+    if (!rekonStats[sk]) rekonStats[sk] = { moTotal: 0, tellerTotal: 0, moCount: 0, tellerCount: 0 };
     rekonStats[sk].moTotal += r.nominal;
+    rekonStats[sk].moCount += 1;
   }
 
   // Aggregate Teller per Sub Kantor
   for (const r of tellerRecords) {
     const sk = r.user.subKantor || 'Pusat';
-    if (!rekonStats[sk]) rekonStats[sk] = { moTotal: 0, tellerTotal: 0 };
+    if (!rekonStats[sk]) rekonStats[sk] = { moTotal: 0, tellerTotal: 0, moCount: 0, tellerCount: 0 };
     rekonStats[sk].tellerTotal += r.nominal;
+    rekonStats[sk].tellerCount += 1;
   }
 
   const formatCurrency = (val: number) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(val);
@@ -88,7 +90,9 @@ export default async function MORankingPage({ searchParams }: { searchParams: { 
   const excelDataRecon = Object.entries(rekonStats).map(([sk, data]) => ({
     'Kantor Kas': sk,
     'Total Input MO': data.moTotal,
-    'Total Laporan Teller': data.tellerTotal,
+    'Jml Nasabah MO': data.moCount,
+      'Jml Nasabah Teller': data.tellerCount,
+      'Total Laporan Teller': data.tellerTotal,
     'Selisih': data.moTotal - data.tellerTotal,
     'Status': data.moTotal === data.tellerTotal ? 'Cocok' : 'Selisih'
   }));
@@ -234,6 +238,8 @@ export default async function MORankingPage({ searchParams }: { searchParams: { 
               <thead>
                 <tr>
                   <th style={{ borderBottom: '2px solid #e2e8f0', padding: '12px' }}>Kantor Kas</th>
+                  <th style={{ borderBottom: '2px solid #e2e8f0', padding: '12px' }}>Jml Nasabah MO</th>
+                  <th style={{ borderBottom: '2px solid #e2e8f0', padding: '12px' }}>Jml Nasabah Teller</th>
                   <th style={{ borderBottom: '2px solid #e2e8f0', padding: '12px' }}>Total Input MO</th>
                   <th style={{ borderBottom: '2px solid #e2e8f0', padding: '12px' }}>Total Laporan Teller</th>
                   <th style={{ borderBottom: '2px solid #e2e8f0', padding: '12px' }}>Selisih (MO - Teller)</th>
@@ -248,6 +254,8 @@ export default async function MORankingPage({ searchParams }: { searchParams: { 
                   return (
                     <tr key={sk}>
                       <td style={{ borderBottom: '1px solid #f1f5f9', padding: '12px', fontWeight: 600 }}>{sk}</td>
+                      <td style={{ borderBottom: '1px solid #f1f5f9', padding: '12px' }}>{data.moCount}</td>
+                      <td style={{ borderBottom: '1px solid #f1f5f9', padding: '12px' }}>{data.tellerCount}</td>
                       <td style={{ borderBottom: '1px solid #f1f5f9', padding: '12px', color: '#2563eb', fontWeight: 600 }}>{formatCurrency(data.moTotal)}</td>
                       <td style={{ borderBottom: '1px solid #f1f5f9', padding: '12px', color: '#9333ea', fontWeight: 600 }}>{formatCurrency(data.tellerTotal)}</td>
                       <td style={{ borderBottom: '1px solid #f1f5f9', padding: '12px', fontWeight: 'bold', color: isMatch ? '#16a34a' : '#dc2626' }}>
