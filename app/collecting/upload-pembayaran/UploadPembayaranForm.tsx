@@ -30,7 +30,25 @@ export default function UploadPembayaranForm() {
       // Flexible Parser
       const extractedData: { norek: string; totalBayar: number; isLunas: boolean }[] = [];
 
+      let currentSection = '';
+
       for (const row of jsonData) {
+        if (!Array.isArray(row) || row.length === 0) continue;
+
+        const rowStr = row.join(' ').toLowerCase();
+
+        if (rowStr.includes('pencairan') && !rowStr.includes('total')) {
+          currentSection = 'PENCAIRAN';
+          continue;
+        } else if (rowStr.includes('pelunasan') && !rowStr.includes('total')) {
+          currentSection = 'PELUNASAN';
+          continue;
+        } else if (rowStr.includes('pembayaran angsuran') && !rowStr.includes('total')) {
+          currentSection = 'PEMBAYARAN';
+          continue;
+        }
+
+        if (jenisUpload === 'TUNAI' && currentSection === 'PENCAIRAN') continue;
         if (!Array.isArray(row) || row.length === 0) continue;
 
         let norek = '';
@@ -58,14 +76,19 @@ export default function UploadPembayaranForm() {
           .filter((v) => v > 0);
 
         if (numbersInRow.length > 0) {
-          // Asumsi: nilai numerik terbesar di baris tersebut atau nilai terakhir adalah Total
-          totalBayar = Math.max(...numbersInRow);
+          // Filter norek dari array angka agar tidak ikut terjumlah/terhitung
+          const amounts = numbersInRow.filter(n => String(n) !== norek && n > 1000);
+          if (amounts.length > 0) {
+            if (jenisUpload === 'TUNAI') {
+              totalBayar = amounts.reduce((a, b) => a + b, 0);
+            } else {
+              totalBayar = Math.max(...amounts);
+            }
+          }
         }
-        
-        // Cek Indikator Lunas (untuk tunai)
+
         if (jenisUpload === 'TUNAI') {
-          const rowStr = row.join(' ').toLowerCase();
-          if (rowStr.includes('lunas') || rowStr.includes('pelunasan')) {
+          if (currentSection === 'PELUNASAN' || rowStr.includes('lunas') || rowStr.includes('pelunasan')) {
             isLunasIndicator = true;
           }
         }
