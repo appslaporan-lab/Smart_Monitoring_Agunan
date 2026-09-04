@@ -133,8 +133,8 @@ export default function UploadPembayaranForm() {
           onChange={e => setJenisUpload(e.target.value as any)}
           disabled={isUploading}
         >
-          <option value="NON_TUNAI">Pembayaran Angsuran Non-Tunai</option>
-          <option value="TUNAI">Pembayaran Angsuran Tunai (Fitur Pelunasan)</option>
+          <option value="NON_TUNAI">Pembayaran Non Tunai - 05511</option>
+          <option value="TUNAI">Pembayaran Tunai - 05595</option>
         </select>
         {jenisUpload === 'NON_TUNAI' && (
           <p style={{ fontSize: '0.85rem', color: '#64748b', marginTop: 4 }}>
