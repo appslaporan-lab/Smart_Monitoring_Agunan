@@ -1074,8 +1074,9 @@ button, input, select, textarea {
   text-transform: uppercase;
 }
 .login-form-group .inputField,
-input[type="password"],
-input[type="email"] {
+  input[name="username"],
+  input[type="password"],
+  input[type="email"] {
   text-transform: none !important;
 }
 
