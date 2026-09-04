@@ -7,7 +7,7 @@ export const dynamic = 'force-dynamic';
 export default async function UploadPembayaranPage() {
   const user = getCurrentUser();
   if (!user) redirect('/auth/login');
-  if (user.role !== 'SUPERADMIN') redirect('/collecting');
+  if (user.role !== 'SUPERADMIN' && user.role !== 'TELLER') redirect('/collecting');
 
   return (
     <main className="container">

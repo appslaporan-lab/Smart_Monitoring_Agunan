@@ -4,7 +4,7 @@ import { getCurrentUser } from '@/lib/session';
 
 export async function POST(request: Request) {
   const user = getCurrentUser();
-  if (!user || user.role !== 'SUPERADMIN') {
+  if (!user || (user.role !== 'SUPERADMIN' && user.role !== 'TELLER')) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 

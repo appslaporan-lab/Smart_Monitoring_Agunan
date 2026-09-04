@@ -46,7 +46,7 @@ const MENU_CONFIG: MenuItem[] = [
   { href: '/collecting', label: 'Dashboard Collecting', roles: ["TELLER","MARKETING","AO","MO","KEPALA_KAS","KASUBAG_KREDIT","KASUBAG_KREDIT_PUSAT_1","KASUBAG_KREDIT_PUSAT_2","KASUBAG_KREDIT_CABANG","KABAG_MARKETING","KABAG_MARKETING_PUSAT_1","KABAG_MARKETING_PUSAT_2","PIMPINAN_CABANG","DIREKSI","DIREKTUR","SUPERADMIN","KASUBAG_REMEDIAL"], icon: LayoutDashboard, module: 'collecting' },
   { href: '/collecting/lapangan', label: 'Mode Lapangan (Offline)', roles: ["MARKETING","AO","MO","SUPERADMIN"], icon: Activity, module: 'collecting' },
   { href: '/collecting/upload', label: 'Upload Nominatif', roles: ['SUPERADMIN'], icon: PlusCircle, module: 'collecting' },
-  { href: '/collecting/upload-pembayaran', label: 'Upload Pembayaran', roles: ['SUPERADMIN'], icon: FileSpreadsheet, module: 'collecting' },
+  { href: '/collecting/upload-pembayaran', label: 'Upload Pembayaran', roles: ['SUPERADMIN', 'TELLER'], icon: FileSpreadsheet, module: 'collecting' },
   { href: '/collecting/upload-teller', label: 'Upload Data Teller', roles: ['SUPERADMIN'], icon: FileSpreadsheet, module: 'collecting' },
 
   { href: '/kpi/mo-realisasi', label: 'MO (Realisasi) - Ranking', roles: ["MARKETING","AO","MO","KEPALA_KAS","KASUBAG_KREDIT","KASUBAG_KREDIT_PUSAT_1","KASUBAG_KREDIT_PUSAT_2","KASUBAG_KREDIT_CABANG","KABAG_MARKETING","PIMPINAN_CABANG","DIREKSI","DIREKTUR","SUPERADMIN"], icon: Trophy, module: 'kpi' },
