@@ -87,7 +87,9 @@ export default async function MORankingPage({ searchParams }: { searchParams: { 
     'Status': mo.total >= TARGET_MO ? 'Lulus Target' : 'Belum Lulus'
   }));
 
-  const excelDataRecon = Object.entries(rekonStats).map(([sk, data]) => ({
+  const rekonArray = Object.entries(rekonStats).sort((a, b) => b[1].moNet - a[1].moNet);
+  const excelDataRecon = rekonArray.map(([sk, data], idx) => ({
+      'Rank': idx + 1,
       'Kantor Kas': sk,
       'Jml Nasabah MO': data.moCount,
       'Total Input MO (Plafond)': data.moPlafond,
@@ -237,7 +239,8 @@ export default async function MORankingPage({ searchParams }: { searchParams: { 
             <table id="table-recon-mo" className="table" style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
               <thead>
                 <tr>
-                  <th style={{ borderBottom: '2px solid #e2e8f0', padding: '12px' }}>Kantor Kas</th>
+                  <th style={{ borderBottom: '2px solid #e2e8f0', padding: '12px', width: 60 }}>Rank</th>
+                    <th style={{ borderBottom: '2px solid #e2e8f0', padding: '12px' }}>Kantor Kas</th>
                     <th style={{ borderBottom: '2px solid #e2e8f0', padding: '12px' }}>Jml Nasabah MO</th>
                     <th style={{ borderBottom: '2px solid #e2e8f0', padding: '12px' }}>Total Input MO (Plafond)</th>
                     <th style={{ borderBottom: '2px solid #e2e8f0', padding: '12px' }}>Total Laporan Teller</th>
@@ -247,13 +250,20 @@ export default async function MORankingPage({ searchParams }: { searchParams: { 
                 </tr>
               </thead>
               <tbody>
-                {Object.entries(rekonStats).map(([sk, data]) => {
-                    const selisih = data.moPlafond - data.tellerTotal;
-                    const isMatch = selisih === 0;
-  
-                    return (
-                      <tr key={sk}>
-                        <td style={{ borderBottom: '1px solid #f1f5f9', padding: '12px', fontWeight: 600 }}>{sk}</td>
+                {rekonArray.map(([sk, data], idx) => {
+                      const selisih = data.moPlafond - data.tellerTotal;
+                      const isMatch = selisih === 0;
+                      
+                      let rankBadge = null;
+                      if (idx === 0) rankBadge = <span style={{ background: '#fef08a', color: '#854d0e', padding: '4px 8px', borderRadius: 4, fontWeight: 'bold' }}>👑 #1</span>;
+                      else if (idx === 1) rankBadge = <span style={{ background: '#e2e8f0', color: '#475569', padding: '4px 8px', borderRadius: 4, fontWeight: 'bold' }}>🥈 #2</span>;
+                      else if (idx === 2) rankBadge = <span style={{ background: '#ffedd5', color: '#9a3412', padding: '4px 8px', borderRadius: 4, fontWeight: 'bold' }}>🥉 #3</span>;
+                      else rankBadge = <span style={{ color: '#64748b', fontWeight: 600 }}>#{idx + 1}</span>;
+    
+                      return (
+                        <tr key={sk}>
+                          <td style={{ borderBottom: '1px solid #f1f5f9', padding: '12px' }}>{rankBadge}</td>
+                          <td style={{ borderBottom: '1px solid #f1f5f9', padding: '12px', fontWeight: 600 }}>{sk}</td>
                         <td style={{ borderBottom: '1px solid #f1f5f9', padding: '12px' }}>{data.moCount}</td>
                         <td style={{ borderBottom: '1px solid #f1f5f9', padding: '12px', color: '#2563eb', fontWeight: 600 }}>{formatCurrency(data.moPlafond)}</td>
                         <td style={{ borderBottom: '1px solid #f1f5f9', padding: '12px', color: '#9333ea', fontWeight: 600 }}>{formatCurrency(data.tellerTotal)}</td>
