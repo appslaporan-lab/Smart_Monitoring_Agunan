@@ -721,6 +721,37 @@ export default async function PerformaKolektibilitasPage({ searchParams }: { sea
                      const p = (prevStats as any)[key];
                      const diffNOA = c.noa - p.noa;
                      const diffOS = c.os - p.os;
+                       
+                       let inflows: any[] = [];
+                       let outflows: any[] = [];
+                       
+                       if (k !== 'total') {
+                         inflows = rows.filter(r => r.kdKolektibilitas === k && prevRows.find(pr => pr.norek === r.norek)?.kdKolektibilitas !== k)
+                           .map(r => {
+                             const pr = prevRows.find(p => p.norek === r.norek);
+                             return {
+                               norek: r.norek,
+                               nama: r.namaNasabahExcel,
+                               kolLalu: pr ? pr.kdKolektibilitas : null,
+                               kolKini: r.kdKolektibilitas,
+                               osLalu: pr ? (pr.outstanding || 0) : 0,
+                               osKini: r.outstanding || 0
+                             };
+                           });
+                           
+                         outflows = prevRows.filter(r => r.kdKolektibilitas === k && rows.find(cr => cr.norek === r.norek)?.kdKolektibilitas !== k)
+                           .map(r => {
+                             const cr = rows.find(c => c.norek === r.norek);
+                             return {
+                               norek: r.norek,
+                               nama: r.namaNasabahExcel,
+                               kolLalu: r.kdKolektibilitas,
+                               kolKini: cr ? cr.kdKolektibilitas : null,
+                               osLalu: r.outstanding || 0,
+                               osKini: cr ? (cr.outstanding || 0) : 0
+                             };
+                           });
+                       }
 
                      return (
                        <tr key={k} style={{ backgroundColor: key === 'total' ? '#f8fafc' : 'white', fontWeight: key === 'total' ? 'bold' : 'normal' }}>
@@ -731,9 +762,20 @@ export default async function PerformaKolektibilitasPage({ searchParams }: { sea
                          <td style={{ padding: '8px', border: '1px solid #cbd5e1' }}>{formatRupiah(p.os)}</td>
                          <td style={{ padding: '8px', border: '1px solid #cbd5e1' }}>{c.noa}</td>
                          <td style={{ padding: '8px', border: '1px solid #cbd5e1' }}>{formatRupiah(c.os)}</td>
-                         <td style={{ padding: '8px', border: '1px solid #cbd5e1', color: diffNOA > 0 ? '#dc2626' : diffNOA < 0 ? '#16a34a' : 'inherit' }}>
-                           {diffNOA > 0 ? '+' : ''}{diffNOA}
-                         </td>
+                         <td style={{ padding: '8px', border: '1px solid #cbd5e1', textAlign: 'center' }}>
+                             {key === 'total' ? (
+                               <span style={{ color: diffNOA > 0 ? '#dc2626' : diffNOA < 0 ? '#16a34a' : 'inherit' }}>
+                                 {diffNOA > 0 ? '+' : ''}{diffNOA}
+                               </span>
+                             ) : (
+                               <SelisihNoaClickable 
+                                 kolektibilitas={k} 
+                                 diffNOA={diffNOA} 
+                                 inflows={inflows} 
+                                 outflows={outflows} 
+                               />
+                             )}
+                           </td>
                          <td style={{ padding: '8px', border: '1px solid #cbd5e1', color: diffOS > 0 ? '#dc2626' : diffOS < 0 ? '#16a34a' : 'inherit' }}>
                            {diffOS > 0 ? '+' : ''}{formatRupiah(diffOS)}
                          </td>
