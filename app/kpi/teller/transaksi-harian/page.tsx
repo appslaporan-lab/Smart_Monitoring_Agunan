@@ -89,7 +89,7 @@ export default function TellerTransaksiHarianPage() {
           <ArrowLeft size={16} />
           Kembali ke Dashboard KPI
         </Link>
-        <h1>Kalkulator Performa Teller</h1>
+        <h1>Kalkulator Akhir Hari Tabungan - 03532</h1>
         <p>Unggah Laporan Akhir Hari (format Excel/CSV) untuk menghitung transaksi harian teller (Setoran, Penarikan, Angsuran, dan Pencairan).</p>
       </div>
 
