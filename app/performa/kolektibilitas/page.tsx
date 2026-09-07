@@ -1,3 +1,4 @@
+import SelisihNoaClickable from './SelisihNoaClickable';
 import { getCurrentUser } from '@/lib/session';
 import { redirect } from 'next/navigation';
 import { prisma } from '@/lib/prisma';
