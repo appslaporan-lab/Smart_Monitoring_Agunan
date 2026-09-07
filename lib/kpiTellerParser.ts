@@ -92,7 +92,7 @@ export function parseTellerExcel(buffer: Buffer, currentUserName: string): Telle
     } else if (ket.startsWith('TARIKAN')) {
       penarikan.count++; penarikan.total += nilaiDb;
       if (isError) penarikan.errors++;
-    } else if (ket.includes('DEPOSITO') && (ket.startsWith('PENCAIRAN') || ket.startsWith('TARIKAN'))) {
+    } else if (ket.includes('DEPOSITO')) {
       pencairanDeposito.count++; pencairanDeposito.total += (nilaiDb > 0 ? nilaiDb : nilaiCr);
       if (isError) pencairanDeposito.errors++;
     } else if (ket.startsWith('PENCAIRAN')) {

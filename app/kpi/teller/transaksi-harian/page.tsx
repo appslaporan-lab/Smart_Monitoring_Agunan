@@ -278,6 +278,21 @@ export default function TellerTransaksiHarianPage() {
               </div>
             </div>
 
+            {/* Deposito */}
+            <div className="metric-card" style={{ background: '#fef3c7', borderColor: '#fde68a' }}>
+              <div className="metric-accent" style={{ background: '#d97706' }} />
+              <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+                <div style={{ background: '#fef08a', padding: 12, borderRadius: '50%', color: '#d97706' }}>
+                  <Banknote size={32} />
+                </div>
+                <div>
+                  <div style={{ fontSize: 14, color: '#d97706', fontWeight: 600, textTransform: 'uppercase', marginBottom: 4 }}>Transaksi Deposito</div>
+                  <div style={{ fontSize: 24, fontWeight: 'bold', color: '#0f172a' }}>{formatCurrency(result.pencairanDeposito.total)}</div>
+                  <div style={{ fontSize: 14, color: '#64748b', marginTop: 4 }}>{result.pencairanDeposito.count} Transaksi</div>
+                </div>
+              </div>
+            </div>
+
             {/* Kesalahan */}
             <div className="metric-card" style={{ background: '#fff1f2', borderColor: '#fecdd3' }}>
               <div className="metric-accent" style={{ background: '#e11d48' }} />
