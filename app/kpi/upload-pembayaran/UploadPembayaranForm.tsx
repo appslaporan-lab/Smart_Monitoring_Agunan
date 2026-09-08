@@ -78,7 +78,8 @@ export default function UploadPembayaranForm() {
 
         if (numbersInRow.length > 0) {
           // Filter norek dari array angka agar tidak ikut terjumlah/terhitung
-          const amounts = numbersInRow.filter(n => String(n) !== norek && n > 1000);
+          const numNorek = Number(norek);
+          const amounts = numbersInRow.filter(n => String(n) !== norek && n !== numNorek && n > 1000);
           if (amounts.length > 0) {
             totalBayar = Math.max(...amounts);
           }
