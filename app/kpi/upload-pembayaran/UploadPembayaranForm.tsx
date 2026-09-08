@@ -79,11 +79,7 @@ export default function UploadPembayaranForm() {
           // Filter norek dari array angka agar tidak ikut terjumlah/terhitung
           const amounts = numbersInRow.filter(n => String(n) !== norek && n > 1000);
           if (amounts.length > 0) {
-            if (jenisUpload === 'TUNAI') {
-              totalBayar = amounts.reduce((a, b) => a + b, 0);
-            } else {
-              totalBayar = Math.max(...amounts);
-            }
+            totalBayar = Math.max(...amounts);
           }
         }
 
