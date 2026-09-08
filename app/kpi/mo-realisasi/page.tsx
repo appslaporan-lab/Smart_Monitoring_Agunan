@@ -285,7 +285,7 @@ export default async function MORankingPage({ searchParams }: { searchParams: { 
           </div>
         )}
       </section>
-      {user.role === 'SUPERADMIN' && <SuperadminManageRealisasi records={moRecords as any} />}
+      {(user.role === 'SUPERADMIN' || user.role === 'DIREKTUR') && <SuperadminManageRealisasi records={moRecords as any} userRole={user.role} />}
     </main>
   );
 }

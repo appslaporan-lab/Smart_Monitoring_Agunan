@@ -18,7 +18,7 @@ type RealisasiRecord = {
   };
 };
 
-export default function SuperadminManageRealisasi({ records }: { records: RealisasiRecord[] }) {
+export default function SuperadminManageRealisasi({ records, userRole = 'SUPERADMIN' }: { records: RealisasiRecord[], userRole?: string }) {
   const router = useRouter();
   const [editingId, setEditingId] = useState<number | null>(null);
   
@@ -105,11 +105,17 @@ export default function SuperadminManageRealisasi({ records }: { records: Realis
     <section className="card" style={{ padding: 24, marginTop: 32, border: '2px solid #f87171' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
         <AlertTriangle size={24} color="#ef4444" />
-        <h2 style={{ margin: 0, color: '#ef4444' }}>Akses Khusus Superadmin: Edit & Hapus Transaksi</h2>
+        {userRole === 'SUPERADMIN' ? (
+          <h2 style={{ margin: 0, color: '#ef4444' }}>Akses Khusus Superadmin: Edit & Hapus Transaksi</h2>
+        ) : (
+          <h2 style={{ margin: 0, color: '#ef4444' }}>Daftar Transaksi Realisasi MO</h2>
+        )}
       </div>
-      <p style={{ color: '#64748b', marginBottom: 20, fontSize: 14 }}>
-        Gunakan tabel di bawah ini untuk mengoreksi atau membatalkan input MO yang salah. Perubahan akan langsung merevisi Ranking dan Rekonsiliasi.
-      </p>
+      {userRole === 'SUPERADMIN' && (
+        <p style={{ color: '#64748b', marginBottom: 20, fontSize: 14 }}>
+          Gunakan tabel di bawah ini untuk mengoreksi atau membatalkan input MO yang salah. Perubahan akan langsung merevisi Ranking dan Rekonsiliasi.
+        </p>
+      )}
 
       <div style={{ overflowX: 'auto' }}>
         <table className="table" style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: 14 }}>
@@ -121,7 +127,7 @@ export default function SuperadminManageRealisasi({ records }: { records: Realis
               <th style={{ borderBottom: '2px solid #e2e8f0', padding: '12px' }}>Plafon Baru</th>
               <th style={{ borderBottom: '2px solid #e2e8f0', padding: '12px' }}>Saldo Lama</th>
               <th style={{ borderBottom: '2px solid #e2e8f0', padding: '12px' }}>Net KPI</th>
-              <th style={{ borderBottom: '2px solid #e2e8f0', padding: '12px' }}>Aksi</th>
+              {userRole === 'SUPERADMIN' && <th style={{ borderBottom: '2px solid #e2e8f0', padding: '12px' }}>Aksi</th>}
             </tr>
           </thead>
           <tbody>
@@ -170,27 +176,29 @@ export default function SuperadminManageRealisasi({ records }: { records: Realis
                     </>
                   )}
 
-                  <td style={{ borderBottom: '1px solid #f1f5f9', padding: '12px' }}>
-                    {isEditing ? (
-                      <div style={{ display: 'flex', gap: 8 }}>
-                        <button onClick={() => saveEdit(rec.id)} disabled={isProcessing} style={{ background: '#16a34a', color: '#fff', border: 'none', padding: '6px', borderRadius: 4, cursor: 'pointer' }}>
-                          <Save size={16} />
-                        </button>
-                        <button onClick={cancelEdit} disabled={isProcessing} style={{ background: '#94a3b8', color: '#fff', border: 'none', padding: '6px', borderRadius: 4, cursor: 'pointer' }}>
-                          <X size={16} />
-                        </button>
-                      </div>
-                    ) : (
-                      <div style={{ display: 'flex', gap: 8 }}>
-                        <button onClick={() => startEdit(rec)} disabled={isProcessing} style={{ background: '#3b82f6', color: '#fff', border: 'none', padding: '6px', borderRadius: 4, cursor: 'pointer' }}>
-                          <Edit2 size={16} />
-                        </button>
-                        <button onClick={() => deleteRecord(rec.id)} disabled={isProcessing} style={{ background: '#ef4444', color: '#fff', border: 'none', padding: '6px', borderRadius: 4, cursor: 'pointer' }}>
-                          <Trash2 size={16} />
-                        </button>
-                      </div>
-                    )}
-                  </td>
+                  {userRole === 'SUPERADMIN' && (
+                    <td style={{ borderBottom: '1px solid #f1f5f9', padding: '12px' }}>
+                      {isEditing ? (
+                        <div style={{ display: 'flex', gap: 8 }}>
+                          <button onClick={() => saveEdit(rec.id)} disabled={isProcessing} style={{ background: '#16a34a', color: '#fff', border: 'none', padding: '6px', borderRadius: 4, cursor: 'pointer' }}>
+                            <Save size={16} />
+                          </button>
+                          <button onClick={cancelEdit} disabled={isProcessing} style={{ background: '#94a3b8', color: '#fff', border: 'none', padding: '6px', borderRadius: 4, cursor: 'pointer' }}>
+                            <X size={16} />
+                          </button>
+                        </div>
+                      ) : (
+                        <div style={{ display: 'flex', gap: 8 }}>
+                          <button onClick={() => startEdit(rec)} disabled={isProcessing} style={{ background: '#3b82f6', color: '#fff', border: 'none', padding: '6px', borderRadius: 4, cursor: 'pointer' }}>
+                            <Edit2 size={16} />
+                          </button>
+                          <button onClick={() => deleteRecord(rec.id)} disabled={isProcessing} style={{ background: '#ef4444', color: '#fff', border: 'none', padding: '6px', borderRadius: 4, cursor: 'pointer' }}>
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
+                      )}
+                    </td>
+                  )}
                 </tr>
               );
             })}
