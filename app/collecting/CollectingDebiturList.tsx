@@ -19,6 +19,7 @@ type EwsItem = {
   sudahBayar: boolean;
   isLunas: boolean;
   nominalBayarHariIni: number | null;
+  tglBayar: Date | null;
   norekTabungan: string | null;
   saldoTabungan: number | null;
   tunggakanPokok: number | null;
@@ -81,16 +82,16 @@ export default function CollectingDebiturList({ items }: { items: EwsItem[] }) {
     LUNAS: '#3b82f6',
   };
 
-  
   const excelData = filtered.map(item => ({
     'No. Rekening': item.norek,
-    'Nama Nasabah': item.namaNasabahExcel,
+    'Nama Debitur': item.namaNasabahExcel,
     'Kantor': item.kantorLabel,
-    'Nama AO': item.namaAO || '-',
+    'AO': item.namaAO || '-',
     'Status EWS': item.ews.label,
     'Hari Tunggakan': item.hariTunggakan,
     'Kolektibilitas': item.kolBulanIni || '-',
     'Status Pembayaran': item.isLunas ? 'Lunas' : item.sudahBayar ? `Sudah Bayar (Rp ${item.nominalBayarHariIni})` : 'Belum Bayar',
+    'Tanggal Bayar': item.tglBayar ? new Date(item.tglBayar).toLocaleDateString('id-ID') : '-',
     'Jml Kunjungan': item.kunjunganCount
   }));
   
@@ -174,11 +175,11 @@ export default function CollectingDebiturList({ items }: { items: EwsItem[] }) {
                     <p style={{ margin: '4px 0', fontSize: '0.85rem', color: '#b91c1c' }}>
                       Nominal Tunggakan: <strong>Rp {((item.tunggakanPokok || 0) + (item.tunggakanBunga || 0)).toLocaleString('id-ID')}</strong>
                     </p>
-                    {item.sudahBayar && (
-                      <p style={{ margin: '4px 0', fontSize: '0.85rem', color: '#15803d', fontWeight: 600 }}>
-                        ✓ Sudah Bayar: Rp {(item.nominalBayarHariIni || 0).toLocaleString('id-ID')}
-                      </p>
-                    )}
+                      {item.sudahBayar && (
+                        <p style={{ margin: '4px 0', fontSize: '0.85rem', color: '#15803d', fontWeight: 600 }}>
+                          ✅ Sudah Bayar: Rp {(item.nominalBayarHariIni || 0).toLocaleString('id-ID')} {item.tglBayar && `(Tgl: ${new Date(item.tglBayar).toLocaleDateString('id-ID')})`}
+                        </p>
+                      )}
                     {item.ews.wajibKunjungan && item.kunjunganCount === 0 && (
                       <p style={{ margin: 0, fontSize: '0.8rem', color: '#dc2626', fontWeight: 600 }}>Belum ada kunjungan tercatat bulan ini</p>
                     )}

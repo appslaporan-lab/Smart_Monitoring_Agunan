@@ -7,6 +7,7 @@ import * as XLSX from 'xlsx';
 export default function UploadPembayaranForm() {
   const [file, setFile] = useState<File | null>(null);
   const [jenisUpload, setJenisUpload] = useState<'NON_TUNAI' | 'TUNAI'>('NON_TUNAI');
+  const [tanggalBayar, setTanggalBayar] = useState<string>(new Date().toISOString().split('T')[0]);
   const [isUploading, setIsUploading] = useState(false);
   const [message, setMessage] = useState('');
 
@@ -103,7 +104,7 @@ export default function UploadPembayaranForm() {
       const res = await fetch('/api/collecting/upload-pembayaran', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ jenisUpload, data: extractedData }),
+        body: JSON.stringify({ jenisUpload, tanggalBayar, data: extractedData }),
       });
 
       const responseData = await res.json();
@@ -144,6 +145,20 @@ export default function UploadPembayaranForm() {
             Sistem akan otomatis mendeteksi kata "Lunas" atau "Pelunasan" di kolom Excel untuk memasukkan nasabah ke bucket <strong>Lunas</strong>.
           </p>
         )}
+      </div>
+
+      <div className="formGroup">
+        <label>Tanggal Pembayaran</label>
+        <input 
+          type="date" 
+          value={tanggalBayar}
+          onChange={(e) => setTanggalBayar(e.target.value)}
+          className="inputField"
+          disabled={isUploading}
+        />
+        <p style={{ fontSize: '0.85rem', color: '#64748b', marginTop: 4 }}>
+          Tanggal ini akan ditampilkan di laporan dan detail nasabah.
+        </p>
       </div>
 
       <div className="formGroup">

@@ -68,6 +68,7 @@ model PinjamanPeriode {
   sudahBayar          Boolean  @default(false)
   isLunas             Boolean  @default(false)
   nominalBayarHariIni Float?   @default(0)
+  tglBayar            DateTime?
   produkKredit        String?
   sektorEkonomi       String?
   jarakKantorKm       Float?

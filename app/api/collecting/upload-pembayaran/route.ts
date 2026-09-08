@@ -9,7 +9,7 @@ export async function POST(request: Request) {
   }
 
   try {
-    const { jenisUpload, data } = await request.json();
+    const { jenisUpload, tanggalBayar, data } = await request.json();
 
     if (!Array.isArray(data) || data.length === 0) {
       return NextResponse.json({ error: 'Tidak ada data valid yang diterima.' }, { status: 400 });
@@ -41,6 +41,7 @@ export async function POST(request: Request) {
     });
 
     const updatePromises = [];
+    const tglParsed = tanggalBayar ? new Date(tanggalBayar) : null;
 
     for (const p of pinjamansToUpdate) {
       const match = data.find(d => d.norek === p.norek);
@@ -51,7 +52,8 @@ export async function POST(request: Request) {
             data: {
               sudahBayar: true,
               isLunas: match.isLunas,
-              nominalBayarHariIni: match.totalBayar
+              nominalBayarHariIni: match.totalBayar,
+              tglBayar: tglParsed
             }
           })
         );
