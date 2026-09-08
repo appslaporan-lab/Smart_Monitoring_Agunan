@@ -1,14 +1,15 @@
 'use client';
 
+import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import {
+import { 
   LogOut, Trophy, Shield, LayoutDashboard, PlusCircle, FileSpreadsheet, Users, ClipboardCheck,
   FileText, ShieldCheck, Archive, FileSignature, PackageOpen, CheckCircle2,
   UserCog, Wallet, TrendingUp, BarChart3, Settings, Activity
-} from 'lucide-react';
+, ChevronDown, ChevronRight } from 'lucide-react';
 
-type MenuItem = { href: string; label: string; roles: string[] | 'all'; icon: any; module: string };
+type MenuItem = { href: string; label: string; roles: string[] | 'all'; icon: any; module: string; submenu?: string };
 type ModuleDef = { key: string; label: string; icon: any; pathPrefix: string };
 
 const AGUNAN_ROLES = [
@@ -49,10 +50,10 @@ const MENU_CONFIG: MenuItem[] = [
 
   { href: '/kpi/mo-realisasi', label: 'MO (Realisasi) - Ranking', roles: ["MARKETING","AO","MO","KEPALA_KAS","KASUBAG_KREDIT","KASUBAG_KREDIT_PUSAT_1","KASUBAG_KREDIT_PUSAT_2","KASUBAG_KREDIT_CABANG","KABAG_MARKETING","PIMPINAN_CABANG","DIREKSI","DIREKTUR","SUPERADMIN"], icon: Trophy, module: 'kpi' },
   { href: '/kpi', label: 'Dashboard KPI', roles: ["TELLER","MARKETING","AO","MO","ADM_KREDIT","CS","KEPALA_KAS","KASUBAG_OPERASIONAL","KASUBAG_PUSAT","KASUBAG_CABANG","KASUBAG_KREDIT","KASUBAG_KREDIT_PUSAT_1","KASUBAG_KREDIT_PUSAT_2","KASUBAG_KREDIT_CABANG","KABAG_OPERASIONAL","KABAG_MARKETING","KABAG_MARKETING_PUSAT_1","KABAG_MARKETING_PUSAT_2","PIMPINAN_CABANG","DIREKSI","DIREKTUR","SUPERADMIN"], icon: LayoutDashboard, module: 'kpi' },
-  { href: '/kpi/teller/transaksi-harian', label: 'Teller (Transaksi Harian)', roles: ["TELLER","KEPALA_KAS","KASUBAG_OPERASIONAL","KASUBAG_PUSAT","KASUBAG_CABANG","KABAG_OPERASIONAL","PIMPINAN_CABANG","DIREKSI","DIREKTUR","SUPERADMIN"], icon: FileText, module: 'kpi' },
-  { href: '/kpi/upload-pembayaran', label: 'Upload Pembayaran Collecting', roles: ['SUPERADMIN', 'TELLER'], icon: FileSpreadsheet, module: 'kpi' },
-  { href: '/kpi/teller/kesalahan', label: 'Daftar Kesalahan', roles: ["TELLER","KEPALA_KAS","KASUBAG_OPERASIONAL","KASUBAG_PUSAT","KASUBAG_CABANG","KABAG_OPERASIONAL","PIMPINAN_CABANG","DIREKSI","DIREKTUR","SUPERADMIN"], icon: ShieldCheck, module: 'kpi' },
-  { href: '/kpi/performa-karyawan', label: 'Performa Karyawan', roles: ["TELLER","MARKETING","AO","MO","ADM_KREDIT","CS","KEPALA_KAS","KASUBAG_OPERASIONAL","KASUBAG_PUSAT","KASUBAG_CABANG","KASUBAG_KREDIT","KASUBAG_KREDIT_PUSAT_1","KASUBAG_KREDIT_PUSAT_2","KASUBAG_KREDIT_CABANG","KABAG_OPERASIONAL","KABAG_MARKETING","KABAG_MARKETING_PUSAT_1","KABAG_MARKETING_PUSAT_2","PIMPINAN_CABANG","DIREKSI","DIREKTUR","SUPERADMIN"], icon: Users, module: 'kpi' },
+  { href: '/kpi/teller/transaksi-harian', label: 'Teller (Transaksi Harian)', roles: ["TELLER","KEPALA_KAS","KASUBAG_OPERASIONAL","KASUBAG_PUSAT","KASUBAG_CABANG","KABAG_OPERASIONAL","PIMPINAN_CABANG","DIREKSI","DIREKTUR","SUPERADMIN"], icon: FileText, module: 'kpi', submenu: 'Teller' },
+  { href: '/kpi/upload-pembayaran', label: 'Upload Pembayaran Collecting', roles: ['SUPERADMIN', 'TELLER'], icon: FileSpreadsheet, module: 'kpi', submenu: 'Teller' },
+  { href: '/kpi/teller/kesalahan', label: 'Daftar Kesalahan', roles: ["TELLER","KEPALA_KAS","KASUBAG_OPERASIONAL","KASUBAG_PUSAT","KASUBAG_CABANG","KABAG_OPERASIONAL","PIMPINAN_CABANG","DIREKSI","DIREKTUR","SUPERADMIN"], icon: ShieldCheck, module: 'kpi', submenu: 'Teller' },
+  { href: '/kpi/performa-karyawan', label: 'Performa Karyawan', roles: ["TELLER","MARKETING","AO","MO","ADM_KREDIT","CS","KEPALA_KAS","KASUBAG_OPERASIONAL","KASUBAG_PUSAT","KASUBAG_CABANG","KASUBAG_KREDIT","KASUBAG_KREDIT_PUSAT_1","KASUBAG_KREDIT_PUSAT_2","KASUBAG_KREDIT_CABANG","KABAG_OPERASIONAL","KABAG_MARKETING","KABAG_MARKETING_PUSAT_1","KABAG_MARKETING_PUSAT_2","PIMPINAN_CABANG","DIREKSI","DIREKTUR","SUPERADMIN"], icon: Users, module: 'kpi', submenu: 'Teller' },
 
   { href: '/performa/kolektibilitas', label: 'Laporan Kolektibilitas', roles: ['SUPERADMIN', 'KASUBAG_KREDIT_PUSAT_1', 'KASUBAG_KREDIT_PUSAT_2', 'KASUBAG_KREDIT_CABANG', 'KABAG_MARKETING_PUSAT_1', 'KABAG_MARKETING_PUSAT_2', 'PIMPINAN_CABANG', 'DIREKTUR', 'DIREKSI', 'KABAG_OPERASIONAL', 'KEPALA_KAS', 'KASUBAG_PUSAT', 'KASUBAG_CABANG',"KASUBAG_REMEDIAL"], icon: FileText, module: 'performa' },
   { href: '/performa', label: 'Dashboard Performa', roles: ["KEPALA_KAS","KASUBAG_KREDIT","KASUBAG_KREDIT_PUSAT_1","KASUBAG_KREDIT_PUSAT_2","KASUBAG_KREDIT_CABANG","KABAG_MARKETING","KABAG_MARKETING_PUSAT_1","KABAG_MARKETING_PUSAT_2","KABAG_OPERASIONAL","PIMPINAN_CABANG","DIREKSI","DIREKTUR","SUPERADMIN","KASUBAG_REMEDIAL"], icon: LayoutDashboard, module: 'performa' },
@@ -68,6 +69,8 @@ export default function ModuleSidebar({
   userRole: string;
 }) {
   const pathname = usePathname();
+  const [openSubmenus, setOpenSubmenus] = React.useState<Record<string, boolean>>({ Teller: true });
+  const toggleSubmenu = (name: string) => setOpenSubmenus(prev => ({ ...prev, [name]: !prev[name] }));
 
   const visibleMenuAll = MENU_CONFIG.filter((item) => item.roles === 'all' || item.roles.includes(userRole) || userRole === 'SUPERADMIN');
 
@@ -113,18 +116,71 @@ export default function ModuleSidebar({
         })}
       </div>
 
+      
       <nav className="app-sidebar-nav">
-        {visibleMenu.map((item) => {
-          const Icon = item.icon;
-          const isActive = pathname === item.href;
+        {(() => {
+          const grouped: { [key: string]: typeof visibleMenu } = {};
+          const standalone: typeof visibleMenu = [];
+          
+          visibleMenu.forEach(item => {
+            if ((item as any).submenu) {
+              const sm = (item as any).submenu;
+              if (!grouped[sm]) grouped[sm] = [];
+              grouped[sm].push(item);
+            } else {
+              standalone.push(item);
+            }
+          });
+
           return (
-            <Link key={item.href} href={item.href} className={`sidebar-link ${isActive ? 'active' : ''}`}>
-              <Icon />
-              {item.label}
-            </Link>
+             <>
+                {standalone.map((item) => {
+                  const Icon = item.icon;
+                  const isActive = pathname === item.href;
+                  return (
+                    <Link key={item.href} href={item.href} className={`sidebar-link ${isActive ? 'active' : ''}`}>
+                      <Icon />
+                      {item.label}
+                    </Link>
+                  );
+                })}
+                {Object.keys(grouped).map(groupName => {
+                   const isOpen = openSubmenus[groupName];
+                   return (
+                     <div key={groupName} style={{ marginTop: 12 }}>
+                        <button 
+                          onClick={() => toggleSubmenu(groupName)}
+                          style={{ 
+                            width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', 
+                            padding: '8px 12px', background: 'transparent', border: 'none', cursor: 'pointer',
+                            color: '#64748b', fontWeight: 600, fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.05em'
+                          }}
+                        >
+                          {groupName}
+                          {isOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+                        </button>
+                        {isOpen && (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginTop: 4, paddingLeft: 12, borderLeft: '2px solid #e2e8f0', marginLeft: 16 }}>
+                            {grouped[groupName].map((item) => {
+                              const Icon = item.icon;
+                              const isActive = pathname === item.href;
+                              return (
+                                <Link key={item.href} href={item.href} className={`sidebar-link ${isActive ? 'active' : ''}`} style={{ padding: '8px 12px', fontSize: '0.9rem' }}>
+                                  <Icon size={16} />
+                                  {item.label}
+                                </Link>
+                              );
+                            })}
+                          </div>
+                        )}
+                     </div>
+                   );
+                })}
+             </>
           );
-        })}
+        })()}
       </nav>
+
 
       <div className="app-sidebar-footer">
         <div className="user-profile-widget">
