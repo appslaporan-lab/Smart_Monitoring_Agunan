@@ -53,7 +53,7 @@ export async function POST(request: Request) {
               sudahBayar: true,
               isLunas: match.isLunas,
               nominalBayarHariIni: match.totalBayar,
-              tglBayar: tglParsed
+              tglBayar: match.tglBayar ? new Date(match.tglBayar) : tglParsed
             }
           })
         );

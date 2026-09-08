@@ -24,12 +24,12 @@ export default function UploadPembayaranForm() {
       const data = await file.arrayBuffer();
       const workbook = XLSX.read(data, { type: 'array' });
       const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-      const jsonData = XLSX.utils.sheet_to_json(firstSheet, { header: 1 }) as any[][];
+      const jsonData = XLSX.utils.sheet_to_json(firstSheet, { header: 1, raw: false }) as any[][];
 
       setMessage(`Menganalisa ${jsonData.length} baris data...`);
 
       // Flexible Parser
-      const extractedData: { norek: string; totalBayar: number; isLunas: boolean }[] = [];
+      const extractedData: { norek: string; totalBayar: number; isLunas: boolean; tglBayar?: string }[] = [];
 
       let currentSection = '';
 
@@ -55,13 +55,20 @@ export default function UploadPembayaranForm() {
         let norek = '';
         let totalBayar = 0;
         let isLunasIndicator = false;
+        let rowTglBayar: string | undefined = undefined;
 
-        // Mencari Norek (kolom yang isinya string/angka panjang min 10 digit dan dimulai dari 0)
+        // Mencari Norek dan Tgl Bayar
         for (let i = 0; i < row.length; i++) {
           const cell = String(row[i] || '').trim();
-          if (cell.match(/^\d{10,}$/)) {
-            norek = cell;
-            break;
+          if (!norek && cell.replace(/[\.\-]/g, '').match(/^\d{10,}$/)) {
+            norek = cell.replace(/[\.\-]/g, '');
+          }
+          const dateMatch = cell.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
+          if (dateMatch) {
+            const day = dateMatch[1].padStart(2, '0');
+            const month = dateMatch[2].padStart(2, '0');
+            const year = dateMatch[3];
+            rowTglBayar = `${year}-${month}-${day}`;
           }
         }
 
@@ -92,7 +99,7 @@ export default function UploadPembayaranForm() {
         }
 
         if (totalBayar > 0) {
-          extractedData.push({ norek, totalBayar, isLunas: isLunasIndicator });
+          extractedData.push({ norek, totalBayar, isLunas: isLunasIndicator, tglBayar: rowTglBayar });
         }
       }
 
