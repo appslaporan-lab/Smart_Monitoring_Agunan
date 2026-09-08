@@ -90,7 +90,7 @@ export default function CollectingDebiturList({ items }: { items: EwsItem[] }) {
     'Status EWS': item.ews.label,
     'Hari Tunggakan': item.hariTunggakan,
     'Kolektibilitas': item.kolBulanIni || '-',
-    'Status Pembayaran': item.isLunas ? 'Lunas' : item.sudahBayar ? `Sudah Bayar (Rp ${item.nominalBayarHariIni})` : 'Belum Bayar',
+    'Status Pembayaran': item.isLunas ? `Lunas (Rp ${item.nominalBayarHariIni})` : item.sudahBayar ? `Sudah Bayar (Rp ${item.nominalBayarHariIni})` : 'Belum Bayar',
     'Tanggal Bayar': item.tglBayar ? new Date(item.tglBayar).toLocaleDateString('id-ID') : '-',
     'Jml Kunjungan': item.kunjunganCount
   }));
@@ -176,8 +176,8 @@ export default function CollectingDebiturList({ items }: { items: EwsItem[] }) {
                       Nominal Tunggakan: <strong>Rp {((item.tunggakanPokok || 0) + (item.tunggakanBunga || 0)).toLocaleString('id-ID')}</strong>
                     </p>
                       {item.sudahBayar && (
-                        <p style={{ margin: '4px 0', fontSize: '0.85rem', color: '#15803d', fontWeight: 600 }}>
-                          ✅ Sudah Bayar: Rp {(item.nominalBayarHariIni || 0).toLocaleString('id-ID')} {item.tglBayar && `(Tgl: ${new Date(item.tglBayar).toLocaleDateString('id-ID')})`}
+                        <p style={{ margin: '4px 0', fontSize: '0.85rem', color: item.isLunas ? '#2563eb' : '#15803d', fontWeight: 600 }}>
+                          ✅ {item.isLunas ? 'Lunas' : 'Sudah Bayar'}: Rp {(item.nominalBayarHariIni || 0).toLocaleString('id-ID')} {item.tglBayar && `(Tgl: ${new Date(item.tglBayar).toLocaleDateString('id-ID')})`}
                         </p>
                       )}
                     {item.ews.wajibKunjungan && item.kunjunganCount === 0 && (
