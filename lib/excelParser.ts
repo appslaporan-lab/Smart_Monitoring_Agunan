@@ -135,7 +135,7 @@ export function parseNominatifExcel(buffer: Buffer, uploadType: string = 'COLLEC
       outstanding: toNumber(row['R']),
       tunggakanPokok: toNumber(row['W']), // Sesuai pemetaan dari kolom W
       tunggakanBunga: toNumber(row['X']), // Sesuai pemetaan dari kolom X
-      angsuranPerBulan: toNumber(row['Z']) + (toNumber(row['AJ']) || 0), // Pokok + Bunga
+      angsuranPerBulan: (toNumber(row['Z']) || 0) + (toNumber(row['AJ']) || 0), // Pokok + Bunga
       sukuBunga: toNumber(row['T']),
       tglRealisasi: toDate(row['AC']),
       tglJatuhTempo: toDate(row['AD']),
