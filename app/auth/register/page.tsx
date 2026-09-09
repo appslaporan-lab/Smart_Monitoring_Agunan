@@ -64,6 +64,7 @@ export default function RegisterPage({ searchParams }: RegisterPageProps) {
   const [selectedRole, setSelectedRole] = useState('');
 
   const isAllOfficeRole = ALL_OFFICE_ROLES.includes(selectedRole);
+  const isAllSubOfficeRole = isAllOfficeRole || selectedRole.includes('KASUBAG');
 
   return (
     <main className="container">
@@ -134,7 +135,7 @@ export default function RegisterPage({ searchParams }: RegisterPageProps) {
             </div>
             <div>
               <label className="label">Sub Kantor</label>
-              {isAllOfficeRole ? (
+              {isAllSubOfficeRole ? (
                 <>
                   <input type="hidden" name="subKantor" value="SEMUA_KANTOR" />
                   <select className="inputField" disabled value="SEMUA_KANTOR">
