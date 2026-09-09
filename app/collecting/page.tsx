@@ -194,7 +194,7 @@ export default async function CollectingDashboardPage({ searchParams }: { search
         )}
       </section>
 
-      <CollectingDebiturList items={ewsData as any} />
+      <CollectingDebiturList items={ewsData as any} userRole={user.role} />
     </main>
   );
 }

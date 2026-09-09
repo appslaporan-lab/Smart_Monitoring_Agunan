@@ -47,27 +47,46 @@ const FILTER_OPTIONS: { key: string; label: string; match: (item: EwsItem) => bo
   { key: 'BELUM_DIKUNJUNGI', label: 'Belum Dikunjungi', match: (i) => i.ews.wajibKunjungan && i.kunjunganCount === 0 && !i.sudahBayar && !i.isLunas },
 ];
 
-export default function CollectingDebiturList({ items }: { items: EwsItem[] }) {
+export default function CollectingDebiturList({ items, userRole }: { items: EwsItem[], userRole?: string }) {
   const [query, setQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState('ALL');
+  const [activeSubKantor, setActiveSubKantor] = useState('ALL');
   const [currentPage, setCurrentPage] = useState(1);
+
+  
+  const showSubKantorFilter = userRole && (
+    userRole.includes('KASUBAG') || 
+    userRole.includes('KABAG') || 
+    userRole === 'PIMPINAN_CABANG' || 
+    userRole === 'SPI' || 
+    userRole === 'DIREKTUR' || 
+    userRole === 'DIREKSI' || 
+    userRole === 'SUPERADMIN'
+  );
+
+  const subKantorList = useMemo(() => {
+    const set = new Set<string>();
+    items.forEach(i => i.subKantor && set.add(i.subKantor));
+    return Array.from(set).sort();
+  }, [items]);
 
   const summaryCounts = useMemo(() => {
     return FILTER_OPTIONS.reduce((acc, f) => {
-      acc[f.key] = items.filter(f.match).length;
+      acc[f.key] = items.filter(i => f.match(i) && (activeSubKantor === 'ALL' || i.subKantor === activeSubKantor)).length;
       return acc;
     }, {} as Record<string, number>);
-  }, [items]);
+  }, [items, activeSubKantor]);
 
   const filtered = useMemo(() => {
     const filterFn = FILTER_OPTIONS.find((f) => f.key === activeFilter)?.match || (() => true);
     const q = query.trim().toLowerCase();
     return items.filter((item) => {
       if (!filterFn(item)) return false;
+      if (activeSubKantor !== 'ALL' && item.subKantor !== activeSubKantor) return false;
       if (!q) return true;
       return item.namaNasabahExcel.toLowerCase().includes(q) || item.norek.toLowerCase().includes(q);
     });
-  }, [items, activeFilter, query]);
+  }, [items, activeFilter, query, activeSubKantor]);
 
   const cardColors: Record<string, string> = {
     AMAN: '#10b981',
@@ -110,6 +129,22 @@ export default function CollectingDebiturList({ items }: { items: EwsItem[] }) {
 
   return (
     <>
+      {showSubKantorFilter && subKantorList.length > 0 && (
+        <div style={{ marginBottom: 16 }}>
+          <label style={{ marginRight: 8, fontWeight: 500, fontSize: '0.9rem' }}>Filter Sub Kantor:</label>
+          <select 
+            className="inputField" 
+            style={{ width: 'auto', padding: '6px 12px' }}
+            value={activeSubKantor}
+            onChange={(e) => setActiveSubKantor(e.target.value)}
+          >
+            <option value="ALL">Semua Sub Kantor</option>
+            {subKantorList.map(sk => (
+              <option key={sk} value={sk}>{sk}</option>
+            ))}
+          </select>
+        </div>
+      )}
       <section className="grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', marginBottom: 24 }}>
         {Object.keys(cardLabels).map((key) => (
           <button
