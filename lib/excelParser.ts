@@ -133,9 +133,9 @@ export function parseNominatifExcel(buffer: Buffer, uploadType: string = 'COLLEC
       namaKategoriDebitur: row['D'] ? String(row['D']).trim() : null,
       plafon: toNumber(row['S']),
       outstanding: toNumber(row['R']),
-      tunggakanPokok: toNumber(row['Z']),
+      tunggakanPokok: toNumber(row['W']), // Sesuai pemetaan dari kolom W
       tunggakanBunga: toNumber(row['X']), // Sesuai pemetaan dari kolom X
-      angsuranPerBulan: toNumber(row['AA']),
+      angsuranPerBulan: toNumber(row['Z']) + (toNumber(row['AJ']) || 0), // Pokok + Bunga
       sukuBunga: toNumber(row['T']),
       tglRealisasi: toDate(row['AC']),
       tglJatuhTempo: toDate(row['AD']),
