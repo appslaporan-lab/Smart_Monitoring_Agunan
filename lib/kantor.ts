@@ -119,19 +119,12 @@ export function canAccessKantorData(
 ): boolean {
   const normalizedRole = role?.toUpperCase();
   if (FULL_ACCESS_ROLES.includes(normalizedRole)) return true;
+  
   if (normalizedRole === 'KEPALA_CABANG' || normalizedRole === 'PIMPINAN_CABANG') {
     return getKantorGroup(itemSubKantor) === 'CABANG';
   }
-  if (normalizedRole === 'TELLER' || normalizedRole === 'MO' || normalizedRole === 'KEPALA_KAS' || (normalizedRole && normalizedRole.includes('KASUBAG'))) {
-    const normalizedUserSub = normalizeSubKantor(userSubKantor);
-    if (normalizedUserSub) {
-      const normalizedItemSub = normalizeSubKantor(itemSubKantor);
-      if (!normalizedItemSub) return false;
-      return normalizedUserSub === normalizedItemSub;
-    }
-    // Jika role KASUBAG tidak memiliki subKantor spesifik, biarkan jatuh ke logika grup di bawah (misal untuk CABANG)
-    if (normalizedRole === 'KEPALA_KAS') return false; 
-  }
+  
+  // Specific KASUBAG KREDIT roles checking entire groups FIRST
   if (normalizedRole === 'KASUBAG_KREDIT_PUSAT_1' || normalizedRole === 'KABAG_MARKETING_PUSAT_1') {
     return getKantorGroup(itemSubKantor) === 'PUSAT_1';
   }
@@ -141,5 +134,17 @@ export function canAccessKantorData(
   if (normalizedRole === 'KASUBAG_KREDIT_CABANG' || normalizedRole === 'KABAG_MARKETING_CABANG') {
     return getKantorGroup(itemSubKantor) === 'CABANG';
   }
+
+  // Then general branch-level or sub-branch level access
+  if (normalizedRole === 'TELLER' || normalizedRole === 'MO' || normalizedRole === 'KEPALA_KAS' || (normalizedRole && normalizedRole.includes('KASUBAG'))) {
+    const normalizedUserSub = normalizeSubKantor(userSubKantor);
+    if (normalizedUserSub) {
+      const normalizedItemSub = normalizeSubKantor(itemSubKantor);
+      if (!normalizedItemSub) return false;
+      return normalizedUserSub === normalizedItemSub;
+    }
+    if (normalizedRole === 'KEPALA_KAS') return false; 
+  }
+  
   return canAccessKantorGroup(role, getKantorGroupFromName(userKantor));
 }
