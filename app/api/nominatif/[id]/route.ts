@@ -5,7 +5,7 @@ import { getCurrentUser } from '@/lib/session';
 export async function DELETE(req: Request, { params }: { params: { id: string } }) {
   try {
     const user = getCurrentUser();
-    if (!user || user.role !== 'SUPERADMIN') {
+    if (!user || (user.role !== 'SUPERADMIN' && !user.role.includes('KASUBAG_KREDIT'))) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
