@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { get, set } from 'idb-keyval';
+import { toast } from 'react-hot-toast';
 import { Wifi, WifiOff, RefreshCw, UploadCloud, ChevronDown, ChevronUp, Save, Search, CheckCircle2, CloudLightning } from 'lucide-react';
 
 export default function ModeLapanganPage() {
@@ -58,7 +59,7 @@ export default function ModeLapanganPage() {
 
   const downloadData = async () => {
     if (!isOnline) {
-      alert();
+      
       return;
     }
     
@@ -70,9 +71,10 @@ export default function ModeLapanganPage() {
       
       await set('lapangan_debtors', data);
       setDebtors(data);
-      alert();
-    } catch (e) {
-      alert();
+      
+          toast.success('Data berhasil diunduh');
+    } catch (e: any) {
+      toast.error('Gagal mengunduh: ' + e.message);
     }
   };
 
@@ -92,12 +94,12 @@ export default function ModeLapanganPage() {
       // Clear outbox
       await set('lapangan_outbox', []);
       setOutbox([]);
-      alert();
+      toast.success('Sinkronisasi berhasil!');
       
       // Refresh list to clear submitted ones
       downloadData();
-    } catch (e) {
-      alert();
+    } catch (e: any) {
+      toast.error('Sinkronisasi gagal: ' + e.message);
     } finally {
       setIsSyncing(false);
     }
@@ -116,11 +118,11 @@ export default function ModeLapanganPage() {
 
   const submitKunjungan = async (pinjamanPeriodeId: number) => {
     if (!hasil) {
-      alert();
+      toast.error('Pilih hasil kunjungan');
       return;
     }
     if ((hasil === 'JANJI_BAYAR' && !tanggalJanjiBayar) || (hasil === 'BAYAR_SEBAGIAN' && !nominalDibayar)) {
-      alert();
+      toast.error('Isi form dengan lengkap');
       return;
     }
 
@@ -145,8 +147,7 @@ export default function ModeLapanganPage() {
     const newDebtors = debtors.filter(d => d.id !== pinjamanPeriodeId);
     await set('lapangan_debtors', newDebtors);
     setDebtors(newDebtors);
-    
-    alert();
+    toast.success('Disimpan ke draft offline');
     
     // Reset form
     setExpandedId(null);

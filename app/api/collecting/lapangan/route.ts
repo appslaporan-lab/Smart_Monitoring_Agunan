@@ -29,11 +29,16 @@ export async function GET(request: Request) {
       isLunas: true,
       tunggakanPokok: true,
       tunggakanBunga: true,
+      kunjunganPenagihan: {
+        select: { id: true },
+        take: 1
+      }
     }
   });
 
   const visiblePinjamans = pinjamans.filter((p) => {
     if (p.sudahBayar || p.isLunas) return false;
+    if (p.kunjunganPenagihan && p.kunjunganPenagihan.length > 0) return false;
     return canAccessKantorData(user.role, user.kantor, user.subKantor, p.subKantor);
   });
 
