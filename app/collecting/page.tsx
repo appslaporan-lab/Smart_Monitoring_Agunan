@@ -123,12 +123,15 @@ export default async function CollectingDashboardPage({ searchParams }: { search
     let janjiCatatan: string | null = null;
 
     if (p.kunjunganPenagihan && p.kunjunganPenagihan.length > 0) {
-      const janji = p.kunjunganPenagihan.filter((k: any) => k.hasil === 'JANJI_BAYAR' && k.tanggalJanjiBayar);
-      if (janji.length > 0) {
-        janji.sort((a: any, b: any) => new Date(b.tanggalKunjungan).getTime() - new Date(a.tanggalKunjungan).getTime());
-        tglJanji = janji[0].tanggalJanjiBayar;
-        janjiPetugas = userMap.get(janji[0].petugasId) || null;
-        janjiCatatan = janji[0].catatan;
+      const latestHasil = p.kunjunganPenagihan[0].hasil;
+      if (latestHasil !== 'LUNAS' && latestHasil !== 'BAYAR_SEBAGIAN') {
+        const janji = p.kunjunganPenagihan.filter((k: any) => k.hasil === 'JANJI_BAYAR' && k.tanggalJanjiBayar);
+        if (janji.length > 0) {
+          janji.sort((a: any, b: any) => new Date(b.tanggalKunjungan).getTime() - new Date(a.tanggalKunjungan).getTime());
+          tglJanji = janji[0].tanggalJanjiBayar;
+          janjiPetugas = userMap.get(janji[0].petugasId) || null;
+          janjiCatatan = janji[0].catatan;
+        }
       }
     }
 

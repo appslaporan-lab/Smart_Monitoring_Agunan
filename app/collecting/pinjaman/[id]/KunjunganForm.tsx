@@ -105,7 +105,7 @@ export default function KunjunganForm({
   };
 
   const isWaOrTelepon = jenisKontak === 'TELEPON' || jenisKontak === 'WHATSAPP';
-  const tagihanMessage = `Yth Nasabah Bank Tulungagung. Diinformasikan bahwa tagihan Pinjaman Bapak/Ibu akan segera Jatuh Tempo pada ${bulanTagihan ? getMonthName(bulanTagihan) : ''} ${tahunTagihan || ''} (sesuai periode tagihan) dengan keterangan sebagai berikut :
+  const tagihanMessage = `Yth Nasabah Bank Tulungagung. Diinformasikan bahwa tagihan Pinjaman Bapak/Ibu akan segera Jatuh Tempo pada ${bulanTagihan ? getMonthName(bulanTagihan) : ''} ${tahunTagihan || ''} dengan keterangan sebagai berikut :
 Nama Debitur : ${namaDebitur || '-'}
 Jumlah angsuran : Rp ${(angsuran || 0).toLocaleString('id-ID')}
 Sisa Pinjaman : Rp ${(outstanding || 0).toLocaleString('id-ID')}
