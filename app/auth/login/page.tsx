@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { Shield } from 'lucide-react';
 import { generateCaptcha } from '@/lib/captcha';
 import PasswordInput from './PasswordInput';
+import CaptchaField from './CaptchaField';
 
 
 type LoginPageProps = {
@@ -33,7 +34,7 @@ export default function LoginPage({ searchParams }: LoginPageProps) {
           {searchParams?.error && <div className="alert alert-danger">{searchParams.error}</div>}
           {searchParams?.success && <div className="alert alert-info">{searchParams.success}</div>}
 
-          <form method="post" action="/auth/login/api">
+          <form action="/auth/login/api" method="POST">
             <div className="login-form-group">
               <label className="label">Username</label>
               <input type="text" name="username" className="inputField" placeholder="Masukkan username" required />
@@ -44,11 +45,7 @@ export default function LoginPage({ searchParams }: LoginPageProps) {
               <PasswordInput />
             </div>
 
-            <div className="login-form-group">
-              <label className="label">Verifikasi: Berapa {captcha.question} ?</label>
-              <input type="text" name="captchaAnswer" className="inputField" placeholder="Jawaban" required inputMode="numeric" />
-              <input type="hidden" name="captchaToken" value={captcha.token} />
-            </div>
+            <CaptchaField initialCaptcha={captcha} />
 
             <button type="submit" className="button" style={{ width: '100%', marginTop: '8px' }}>
               Masuk
