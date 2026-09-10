@@ -12,7 +12,7 @@ const HASIL_OPTIONS = [
   { value: 'MENOLAK', label: 'Menolak Bayar' },
 ];
 
-const getMonthName = (month) => {
+const getMonthName = (month: number) => {
   const months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
   return months[month - 1] || month;
 };
