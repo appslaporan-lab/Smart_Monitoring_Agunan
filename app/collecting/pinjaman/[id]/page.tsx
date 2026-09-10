@@ -87,10 +87,17 @@ export default async function PinjamanDetailPage({ params }: { params: { id: str
         </div>
       </div>
 
-      <div className="card" style={{ padding: 24, marginBottom: 24 }}>
-        <h2>Catat Kunjungan / Kontak Baru</h2>
-        <KunjunganForm pinjamanPeriodeId={pinjaman.id} />
-      </div>
+        <div className="card" style={{ padding: 24, marginBottom: 24 }}>
+          <h2>Catat Kunjungan / Kontak Baru</h2>
+          <KunjunganForm 
+            pinjamanPeriodeId={pinjaman.id}
+            namaDebitur={pinjaman.namaNasabahExcel || pinjaman.nasabah.nama}
+            angsuran={pinjaman.angsuranPerBulan || 0}
+            outstanding={pinjaman.outstanding || 0}
+            bulanTagihan={pinjaman.periode.bulan}
+            tahunTagihan={pinjaman.periode.tahun}
+          />
+        </div>
 
       <div className="card" style={{ padding: 24 }}>
         <h2>Riwayat Kunjungan/Kontak</h2>

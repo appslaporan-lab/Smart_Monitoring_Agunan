@@ -22,6 +22,11 @@ export default function ModeLapanganPage() {
   const [catatan, setCatatan] = useState('');
   const [fotoDataUrl, setFotoDataUrl] = useState<string | null>(null);
 
+  const handleNominalChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const rawValue = e.target.value.replace(/\D/g, '');
+    setNominalDibayar(rawValue);
+  };
+
   useEffect(() => {
     setIsOnline(navigator.onLine);
     
@@ -259,7 +264,7 @@ export default function ModeLapanganPage() {
                   {['BAYAR_SEBAGIAN', 'JANJI_BAYAR'].includes(hasil) && (
                     <div className="formGroup">
                       <label>Nominal (Rp)</label>
-                      <input type="number" className="inputField" placeholder="1500000" value={nominalDibayar} onChange={e => setNominalDibayar(e.target.value)} />
+                      <input type="text" className="inputField" placeholder="Misal: 1.500.000" value={nominalDibayar ? Number(nominalDibayar).toLocaleString('id-ID') : ''} onChange={handleNominalChange} />
                     </div>
                   )}
 
