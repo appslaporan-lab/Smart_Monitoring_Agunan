@@ -91,7 +91,7 @@ export default async function PinjamanDetailPage({ params }: { params: { id: str
           <h2>Catat Kunjungan / Kontak Baru</h2>
           <KunjunganForm 
             pinjamanPeriodeId={pinjaman.id}
-            namaDebitur={pinjaman.namaNasabahExcel || pinjaman.nasabah.nama}
+            namaDebitur={pinjaman.namaNasabahExcel || pinjaman.nasabah?.nama}
             angsuran={pinjaman.angsuranPerBulan || 0}
             outstanding={pinjaman.outstanding || 0}
             bulanTagihan={pinjaman.periode.bulan}
