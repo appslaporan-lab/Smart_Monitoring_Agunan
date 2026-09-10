@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { get, set } from 'idb-keyval';
 import { toast } from 'react-hot-toast';
-import { Wifi, WifiOff, RefreshCw, UploadCloud, ChevronDown, ChevronUp, Save, Search, CheckCircle2, CloudLightning } from 'lucide-react';
+import { Wifi, WifiOff, RefreshCw, UploadCloud, ChevronDown, ChevronUp, Save, Search, CheckCircle2, CloudLightning, AlertTriangle } from 'lucide-react';
 
 export default function ModeLapanganPage() {
   const [isOnline, setIsOnline] = useState(true);
@@ -234,6 +234,11 @@ export default function ModeLapanganPage() {
               >
                 <div>
                   <div style={{ fontWeight: 600, fontSize: '1.05rem', color: '#1e293b' }}>{d.namaNasabahExcel}</div>
+                  {(d as any).isOverduePromise && (
+                      <div style={{ fontSize: '0.8rem', color: '#b91c1c', fontWeight: 600, marginTop: 4, display: 'flex', alignItems: 'center', gap: 4 }}>
+                        <AlertTriangle size={14} /> Janji Bayar Terlewat! Segera Kunjungi Ulang
+                      </div>
+                    )}
                   <div style={{ fontSize: '0.85rem', color: '#64748b', marginTop: 4 }}>Norek: {d.norek} | Tgk: {d.hariTunggakan} hari</div>
                   {d.alamatExcel && <div style={{ fontSize: '0.8rem', color: '#94a3b8', marginTop: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '80vw' }}>{d.alamatExcel}</div>}
                 </div>

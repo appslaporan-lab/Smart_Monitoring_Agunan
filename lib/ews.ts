@@ -13,6 +13,9 @@ export function determineEWS(hariTunggakan: number, tglJatuhTempo: Date | null, 
   
   if (tglJanjiBayar) {
     const hariMenujuJanji = differenceInDays(new Date(tglJanjiBayar), today);
+    if (hariMenujuJanji < 0) {
+      return { status: 'JANJI_BAYAR_OVERDUE', label: `Janji Bayar Terlewat! Segera Kunjungi Ulang`, colorClass: 'status-danger', hariTunggakan, wajibKunjungan: true };
+    }
     if (hariMenujuJanji <= 3 && hariMenujuJanji >= 0) {
       return { status: 'JANJI_BAYAR_DEKAT', label: `H-${hariMenujuJanji}: Ingatkan Janji Bayar`, colorClass: 'status-warning', hariTunggakan, wajibKunjungan: false };
     }
@@ -66,6 +69,7 @@ export function determineEWS(hariTunggakan: number, tglJatuhTempo: Date | null, 
 export const EWS_LABEL_MAP: Record<string, string> = {
   AMAN: 'Aman',
   H7_DESK_CALL: 'H-7: Harus Desk Call',
+  JANJI_BAYAR_OVERDUE: 'Janji Bayar Terlewat',
   JANJI_BAYAR_DEKAT: 'Mendekati Janji Bayar',
   KUNJUNGAN_MO: 'Kunjungan MO',
   SURAT_TAGIHAN_1: 'Terbitkan Surat Tagihan 1',

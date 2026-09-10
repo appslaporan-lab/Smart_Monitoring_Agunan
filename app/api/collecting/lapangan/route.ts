@@ -30,15 +30,36 @@ export async function GET(request: Request) {
       tunggakanPokok: true,
       tunggakanBunga: true,
       kunjunganPenagihan: {
-        select: { id: true },
+        select: { id: true, hasil: true, tanggalJanjiBayar: true },
+        orderBy: { createdAt: 'desc' },
         take: 1
       }
     }
   });
 
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
   const visiblePinjamans = pinjamans.filter((p) => {
     if (p.sudahBayar || p.isLunas) return false;
-    if (p.kunjunganPenagihan && p.kunjunganPenagihan.length > 0) return false;
+    
+    let isOverduePromise = false;
+    if (p.kunjunganPenagihan && p.kunjunganPenagihan.length > 0) {
+      const last = p.kunjunganPenagihan[0];
+      if (last.hasil === 'JANJI_BAYAR' && last.tanggalJanjiBayar) {
+        const janjiDate = new Date(last.tanggalJanjiBayar);
+        janjiDate.setHours(0, 0, 0, 0);
+        if (today > janjiDate) {
+          isOverduePromise = true;
+        }
+      }
+      if (!isOverduePromise) return false;
+    }
+
+    if (isOverduePromise) {
+      (p as any).isOverduePromise = true;
+    }
+
     return canAccessKantorData(user.role, user.kantor, user.subKantor, p.subKantor);
   });
 

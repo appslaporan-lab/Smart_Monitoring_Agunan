@@ -35,13 +35,14 @@ type EwsItem = {
 
 const FILTER_OPTIONS: { key: string; label: string; match: (item: EwsItem) => boolean }[] = [
   { key: 'AMAN', label: 'Aman (Lancar)', match: (i) => i.ews.status === 'AMAN' && !i.isLunas && !i.sudahBayar && i.kunjunganCount === 0 },
-  { key: 'JANJI_BAYAR_DEKAT', label: 'Mendekati Janji Bayar', match: (i) => i.ews.status === 'JANJI_BAYAR_DEKAT' && !i.isLunas && !i.sudahBayar },
+  { key: 'JANJI_BAYAR_OVERDUE', label: 'Janji Bayar Terlewat', match: (i) => i.ews.status === 'JANJI_BAYAR_OVERDUE' && !i.isLunas && !i.sudahBayar },
+    { key: 'JANJI_BAYAR_DEKAT', label: 'Mendekati Janji Bayar', match: (i) => i.ews.status === 'JANJI_BAYAR_DEKAT' && !i.isLunas && !i.sudahBayar },
   { key: 'ALL', label: 'Semua', match: () => true },
   { key: 'H7_DESK_CALL', label: 'H-7 Desk Call', match: (i) => i.ews.status === 'H7_DESK_CALL' && !i.isLunas && !i.sudahBayar && i.kunjunganCount === 0 },
   { key: 'KUNJUNGAN_MO', label: 'Kunjungan MO', match: (i) => i.ews.status === 'KUNJUNGAN_MO' && !i.isLunas && !i.sudahBayar && i.kunjunganCount === 0 },
   { key: 'SURAT_TAGIHAN', label: 'Surat Tagihan', match: (i) => i.ews.status.startsWith('SURAT_TAGIHAN') && !i.isLunas && !i.sudahBayar && i.kunjunganCount === 0 },
   { key: 'SP', label: 'Surat Peringatan', match: (i) => i.ews.status.startsWith('SP_') && !i.isLunas && !i.sudahBayar && i.kunjunganCount === 0 },
-  { key: 'SUDAH_DIKUNJUNGI', label: 'Sudah Dikunjungi', match: (i) => i.kunjunganCount > 0 && !i.sudahBayar && !i.isLunas && i.ews.status !== 'JANJI_BAYAR_DEKAT' },
+  { key: 'SUDAH_DIKUNJUNGI', label: 'Sudah Dikunjungi', match: (i) => i.kunjunganCount > 0 && !i.sudahBayar && !i.isLunas && i.ews.status !== 'JANJI_BAYAR_DEKAT' && i.ews.status !== 'JANJI_BAYAR_OVERDUE' },
   { key: 'LUNAS', label: 'Lunas', match: (i) => i.isLunas },
   { key: 'SUDAH_BAYAR', label: 'Sudah Bayar', match: (i) => i.sudahBayar && !i.isLunas },
   { key: 'BELUM_DIKUNJUNGI', label: 'Belum Dikunjungi', match: (i) => i.ews.wajibKunjungan && i.kunjunganCount === 0 && !i.sudahBayar && !i.isLunas },
@@ -90,7 +91,8 @@ export default function CollectingDebiturList({ items, userRole }: { items: EwsI
 
   const cardColors: Record<string, string> = {
     AMAN: '#10b981',
-    JANJI_BAYAR_DEKAT: '#84cc16',
+    JANJI_BAYAR_OVERDUE: '#dc2626',
+      JANJI_BAYAR_DEKAT: '#84cc16',
     H7_DESK_CALL: '#fbbf24',
     KUNJUNGAN_MO: '#fb923c',
     SURAT_TAGIHAN: '#f87171',
@@ -116,7 +118,8 @@ export default function CollectingDebiturList({ items, userRole }: { items: EwsI
   
   const cardLabels: Record<string, string> = {
     AMAN: 'Aman (Lancar)',
-    JANJI_BAYAR_DEKAT: 'Mendekati Janji Bayar',
+    JANJI_BAYAR_OVERDUE: 'Janji Bayar Terlewat',
+      JANJI_BAYAR_DEKAT: 'Mendekati Janji Bayar',
     H7_DESK_CALL: 'H-7 Desk Call',
     KUNJUNGAN_MO: 'Kunjungan MO',
     SURAT_TAGIHAN: 'Surat Tagihan',
