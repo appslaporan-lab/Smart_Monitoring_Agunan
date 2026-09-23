@@ -27,6 +27,7 @@ type EwsItem = {
   lastKunjungan?: {
     tanggalKunjungan: Date | string;
     hasil: string;
+    jenisKontak: string;
     tanggalJanjiBayar: Date | string | null;
     catatan: string | null;
     petugasNama: string;
@@ -42,8 +43,9 @@ const FILTER_OPTIONS: { key: string; label: string; match: (item: EwsItem) => bo
   { key: 'KUNJUNGAN_MO', label: 'Kunjungan MO', match: (i) => i.ews.status === 'KUNJUNGAN_MO' && !i.isLunas && !i.sudahBayar && i.kunjunganCount === 0 },
   { key: 'SURAT_TAGIHAN', label: 'Surat Tagihan', match: (i) => i.ews.status.startsWith('SURAT_TAGIHAN') && !i.isLunas && !i.sudahBayar && i.kunjunganCount === 0 },
   { key: 'SP', label: 'Surat Peringatan', match: (i) => i.ews.status.startsWith('SP_') && !i.isLunas && !i.sudahBayar && i.kunjunganCount === 0 },
-  { key: 'SUDAH_DIKUNJUNGI', label: 'Sudah Dikunjungi', match: (i) => i.kunjunganCount > 0 && !i.sudahBayar && !i.isLunas && i.ews.status !== 'JANJI_BAYAR_DEKAT' && i.ews.status !== 'JANJI_BAYAR_OVERDUE' },
-  { key: 'LUNAS', label: 'Lunas', match: (i) => i.isLunas },
+  { key: 'DESK_CALL_DONE', label: 'Sudah Desk Call', match: (i) => !!(i.kunjunganCount > 0 && !i.sudahBayar && !i.isLunas && i.ews.status !== 'JANJI_BAYAR_DEKAT' && i.ews.status !== 'JANJI_BAYAR_OVERDUE' && i.lastKunjungan && ['TELEPON', 'WHATSAPP'].includes(i.lastKunjungan.jenisKontak)) },
+  { key: 'SUDAH_DIKUNJUNGI', label: 'Sudah Dikunjungi', match: (i) => !!(i.kunjunganCount > 0 && !i.sudahBayar && !i.isLunas && i.ews.status !== 'JANJI_BAYAR_DEKAT' && i.ews.status !== 'JANJI_BAYAR_OVERDUE' && (!i.lastKunjungan || !['TELEPON', 'WHATSAPP'].includes(i.lastKunjungan.jenisKontak))) },
+      { key: 'LUNAS', label: 'Lunas', match: (i) => i.isLunas },
   { key: 'SUDAH_BAYAR', label: 'Sudah Bayar', match: (i) => i.sudahBayar && !i.isLunas },
   { key: 'BELUM_DIKUNJUNGI', label: 'Belum Dikunjungi', match: (i) => i.ews.wajibKunjungan && i.kunjunganCount === 0 && !i.sudahBayar && !i.isLunas },
 ];
@@ -52,6 +54,7 @@ export default function CollectingDebiturList({ items, userRole }: { items: EwsI
   const [query, setQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState('ALL');
   const [activeSubKantor, setActiveSubKantor] = useState('ALL');
+  const [activeDeskCallUser, setActiveDeskCallUser] = useState('ALL');
   const [currentPage, setCurrentPage] = useState(1);
 
   
@@ -64,6 +67,16 @@ export default function CollectingDebiturList({ items, userRole }: { items: EwsI
     userRole === 'DIREKSI' || 
     userRole === 'SUPERADMIN'
   );
+
+  const deskCallUsers = useMemo(() => {
+    const users = new Set<string>();
+    items.forEach(i => {
+      if (i.lastKunjungan && ['TELEPON', 'WHATSAPP'].includes(i.lastKunjungan.jenisKontak)) {
+        users.add(i.lastKunjungan.petugasNama);
+      }
+    });
+    return Array.from(users).sort();
+  }, [items]);
 
   const subKantorList = useMemo(() => {
     const set = new Set<string>();
@@ -84,10 +97,13 @@ export default function CollectingDebiturList({ items, userRole }: { items: EwsI
     return items.filter((item) => {
       if (!filterFn(item)) return false;
       if (activeSubKantor !== 'ALL' && item.subKantor !== activeSubKantor) return false;
+        if (activeFilter === 'DESK_CALL_DONE' && activeDeskCallUser !== 'ALL') {
+          if (!item.lastKunjungan || item.lastKunjungan.petugasNama !== activeDeskCallUser) return false;
+        }
       if (!q) return true;
       return item.namaNasabahExcel.toLowerCase().includes(q) || item.norek.toLowerCase().includes(q);
     });
-  }, [items, activeFilter, query, activeSubKantor]);
+  }, [items, activeFilter, query, activeSubKantor, activeDeskCallUser]);
 
   const cardColors: Record<string, string> = {
     AMAN: '#10b981',
@@ -97,7 +113,8 @@ export default function CollectingDebiturList({ items, userRole }: { items: EwsI
     KUNJUNGAN_MO: '#fb923c',
     SURAT_TAGIHAN: '#f87171',
     SP: '#dc2626',
-    SUDAH_DIKUNJUNGI: '#8b5cf6',
+    DESK_CALL_DONE: '#0ea5e9',
+      SUDAH_DIKUNJUNGI: '#8b5cf6',
     BELUM_DIKUNJUNGI: '#94a3b8',
     SUDAH_BAYAR: '#22c55e',
     LUNAS: '#3b82f6',
@@ -124,7 +141,8 @@ export default function CollectingDebiturList({ items, userRole }: { items: EwsI
     KUNJUNGAN_MO: 'Kunjungan MO',
     SURAT_TAGIHAN: 'Surat Tagihan',
     SP: 'Surat Peringatan',
-    SUDAH_DIKUNJUNGI: 'Sudah Dikunjungi',
+    DESK_CALL_DONE: 'Sudah Desk Call',
+      SUDAH_DIKUNJUNGI: 'Sudah Dikunjungi',
     BELUM_DIKUNJUNGI: 'Belum Dikunjungi',
     SUDAH_BAYAR: 'Sudah Bayar',
     LUNAS: 'Lunas',
@@ -132,7 +150,27 @@ export default function CollectingDebiturList({ items, userRole }: { items: EwsI
 
   return (
     <>
-      {showSubKantorFilter && subKantorList.length > 0 && (
+      {activeFilter === 'DESK_CALL_DONE' && deskCallUsers.length > 0 && (
+          <div style={{ marginBottom: 16 }}>
+            <label style={{ marginRight: 8, fontWeight: 500, fontSize: '0.9rem' }}>Filter Desk Call User:</label>
+            <select 
+              className="inputField" 
+              style={{ width: 'auto', padding: '6px 12px' }}
+              value={activeDeskCallUser}
+              onChange={(e) => {
+                setActiveDeskCallUser(e.target.value);
+                setCurrentPage(1);
+              }}
+            >
+              <option value="ALL">Semua Petugas</option>
+              {deskCallUsers.map(u => (
+                <option key={u} value={u}>{u}</option>
+              ))}
+            </select>
+          </div>
+        )}
+
+        {showSubKantorFilter && subKantorList.length > 0 && (
         <div style={{ marginBottom: 16 }}>
           <label style={{ marginRight: 8, fontWeight: 500, fontSize: '0.9rem' }}>Filter Sub Kantor:</label>
           <select 

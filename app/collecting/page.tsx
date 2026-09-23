@@ -68,6 +68,7 @@ export default async function CollectingDashboardPage({ searchParams }: { search
            tanggalKunjungan: true,
            hasil: true,
            tanggalJanjiBayar: true,
+             jenisKontak: true,
            catatan: true,
            petugasId: true
         }
@@ -158,6 +159,7 @@ export default async function CollectingDashboardPage({ searchParams }: { search
       lastKunjungan: p.kunjunganPenagihan && p.kunjunganPenagihan.length > 0 ? {
         tanggalKunjungan: p.kunjunganPenagihan[0].tanggalKunjungan,
         hasil: p.kunjunganPenagihan[0].hasil,
+          jenisKontak: p.kunjunganPenagihan[0].jenisKontak,
         tanggalJanjiBayar: tglJanji || p.kunjunganPenagihan[0].tanggalJanjiBayar,
         catatan: p.kunjunganPenagihan[0].hasil === 'JANJI_BAYAR' ? p.kunjunganPenagihan[0].catatan : (janjiCatatan || p.kunjunganPenagihan[0].catatan),
         petugasNama: p.kunjunganPenagihan[0].hasil === 'JANJI_BAYAR' ? (userMap.get(p.kunjunganPenagihan[0].petugasId) || 'Petugas') : (janjiPetugas || userMap.get(p.kunjunganPenagihan[0].petugasId) || 'Petugas')
