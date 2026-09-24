@@ -13,13 +13,17 @@ export default function DashboardClient({
   moChartData,
   tellerLineData,
   tellerKesalahanData,
-  bulan,
+    tellerErrorRankingData,
+    tellerRankingData,
+    bulan,
   tahun,
 }: {
   moChartData: any[];
   tellerLineData: any[];
   tellerKesalahanData: any[];
-  bulan: number;
+    tellerErrorRankingData: any[];
+    tellerRankingData: any[];
+    bulan: number;
   tahun: number;
 }) {
   const router = useRouter();
@@ -83,7 +87,29 @@ export default function DashboardClient({
           )}
         </section>
 
-        {/* TELLER LINE CHART */}
+        {/* TELLER RANKING CHART */}
+          <section className="card" style={{ padding: 24 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+              <h2 style={{ margin: 0, fontSize: '1.2rem' }}>Ranking Aktivitas Teller</h2>
+            </div>
+            {tellerRankingData.length === 0 ? (
+              <p style={{ color: '#64748b', textAlign: 'center', padding: '40px 0' }}>Tidak ada data aktivitas Teller.</p>
+            ) : (
+              <div style={{ height: 350 }}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={tellerRankingData} margin={{ top: 20, right: 30, left: 0, bottom: 5 }}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                    <XAxis dataKey="nama" tick={{fontSize: 11}} interval={0} />
+                    <YAxis tickFormatter={(val) => val} />
+                    <RechartsTooltip cursor={{fill: '#f1f5f9'}} formatter={(val) => [val, 'Total Aktivitas']} />
+                    <Bar dataKey="total" name="Total Aktivitas (Transaksi + Desk Call)" fill="#10b981" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            )}
+          </section>
+
+          {/* TELLER LINE CHART */}
         <section className="card" style={{ padding: 24 }}>
           <h2 style={{ marginBottom: 16, fontSize: '1.2rem' }}>Aktivitas Harian Teller (Transaksi)</h2>
           {tellerLineData.length === 0 ? (
@@ -106,7 +132,29 @@ export default function DashboardClient({
           )}
         </section>
 
-        {/* TELLER KESALAHAN CHART */}
+        {/* TELLER KESALAHAN RANKING */}
+          <section className="card" style={{ padding: 24 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+              <h2 style={{ margin: 0, fontSize: '1.2rem' }}>Ranking Kesalahan Teller</h2>
+            </div>
+            {tellerErrorRankingData.length === 0 ? (
+              <p style={{ color: '#64748b', textAlign: 'center', padding: '40px 0' }}>Tidak ada data kesalahan Teller tercatat.</p>
+            ) : (
+              <div style={{ height: 300 }}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={tellerErrorRankingData} margin={{ top: 20, right: 30, left: 0, bottom: 5 }} layout="vertical">
+                    <CartesianGrid strokeDasharray="3 3" horizontal={false} />
+                    <XAxis type="number" />
+                    <YAxis type="category" dataKey="nama" width={120} tick={{fontSize: 11}} />
+                    <RechartsTooltip cursor={{fill: '#f1f5f9'}} formatter={(val) => [val, 'Total Kesalahan']} />
+                    <Bar dataKey="total" name="Total Kesalahan" fill="#ef4444" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            )}
+          </section>
+
+          {/* TELLER KESALAHAN CHART */}
         <section className="card" style={{ padding: 24 }}>
           <h2 style={{ marginBottom: 16, fontSize: '1.2rem' }}>Komposisi Kesalahan Teller</h2>
           {tellerKesalahanData.length === 0 || tellerKesalahanData.every(d => d.value === 0) ? (

@@ -30,6 +30,21 @@ export default async function KpiPage({ searchParams }: { searchParams: { bulan?
     include: { user: { select: { nama: true, subKantor: true } } }
   });
 
+  const allTellers = await prisma.user.findMany({
+    where: { role: 'TELLER' },
+    select: { id: true, nama: true }
+  });
+  const tellerIds = allTellers.map(u => u.id);
+  const tellerMap = new Map(allTellers.map(u => [u.id, u.nama]));
+
+  const tellerDeskCallRecords = await prisma.kunjunganPenagihan.findMany({
+    where: { 
+      tanggalKunjungan: { gte: startDate, lte: endDate },
+      jenisKontak: { in: ['TELEPON', 'WHATSAPP'] },
+      petugasId: { in: tellerIds }
+    }
+  });
+
   // Filter based on roles
   const moRecords = (user.role === 'SUPERADMIN' || user.role === 'DIREKTUR' || user.role === 'DIREKSI') 
     ? moRecordsAll 
@@ -81,13 +96,51 @@ export default async function KpiPage({ searchParams }: { searchParams: { bulan?
     const dayObj = tellerDailyMap.get(dateStr);
     dayObj[r.user.nama] = (dayObj[r.user.nama] || 0) + r.jumlahKegiatan;
   }
-  const sortedTellerLineData = Array.from(tellerDailyMap.values())
+  
+    // Add desk calls to teller daily map
+    for (const dc of tellerDeskCallRecords) {
+      const dateStr = dc.tanggalKunjungan.toISOString().split('T')[0];
+      if (!tellerDailyMap.has(dateStr)) tellerDailyMap.set(dateStr, { _date: dc.tanggalKunjungan, tanggal: dateStr });
+      const dayObj = tellerDailyMap.get(dateStr);
+      const tellerName = tellerMap.get(dc.petugasId) || 'Unknown';
+      dayObj[tellerName] = (dayObj[tellerName] || 0) + 1; // 1 desk call
+    }
+
+    const sortedTellerLineData = Array.from(tellerDailyMap.values())
     .sort((a, b) => a._date.getTime() - b._date.getTime())
     .map(d => {
       const { _date, ...rest } = d;
       rest.tanggal = _date.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' });
       return rest;
     });
+
+  // --- Aggregate Teller Ranking (Bar Chart) ---
+  const tellerActivityStats: Record<string, number> = {};
+  for (const r of tellerRecords) {
+    if (!tellerActivityStats[r.user.nama]) tellerActivityStats[r.user.nama] = 0;
+    tellerActivityStats[r.user.nama] += r.jumlahKegiatan;
+  }
+  for (const dc of tellerDeskCallRecords) {
+    const tellerName = tellerMap.get(dc.petugasId) || 'Unknown';
+    if (!tellerActivityStats[tellerName]) tellerActivityStats[tellerName] = 0;
+    tellerActivityStats[tellerName] += 1;
+  }
+  
+  const tellerRankingData = Object.entries(tellerActivityStats)
+    .map(([nama, total]) => ({ nama, total }))
+    .sort((a, b) => b.total - a.total);
+
+  // --- Aggregate Teller Error Ranking (Bar Chart) ---
+  const tellerErrorStats: Record<string, number> = {};
+  for (const r of tellerRecords) {
+    if (r.kesalahan > 0) {
+      if (!tellerErrorStats[r.user.nama]) tellerErrorStats[r.user.nama] = 0;
+      tellerErrorStats[r.user.nama] += r.kesalahan;
+    }
+  }
+  const tellerErrorRankingData = Object.entries(tellerErrorStats)
+    .map(([nama, total]) => ({ nama, total }))
+    .sort((a, b) => b.total - a.total);
 
   // --- Aggregate Teller Kesalahan (Pie Chart) ---
   const kesalahanStats: Record<string, number> = {};
@@ -101,11 +154,13 @@ export default async function KpiPage({ searchParams }: { searchParams: { bulan?
 
   return (
     <DashboardClient 
-      moChartData={moChartData} 
-      tellerLineData={sortedTellerLineData} 
-      tellerKesalahanData={tellerKesalahanData} 
-      bulan={bulan} 
-      tahun={tahun} 
-    />
+        moChartData={moChartData} 
+        tellerLineData={sortedTellerLineData} 
+        tellerKesalahanData={tellerKesalahanData}
+        tellerErrorRankingData={tellerErrorRankingData} 
+        tellerRankingData={tellerRankingData}
+        bulan={bulan} 
+        tahun={tahun} 
+      />
   );
 }
