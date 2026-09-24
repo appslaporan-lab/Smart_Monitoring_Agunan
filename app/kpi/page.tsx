@@ -24,6 +24,12 @@ export default async function KpiPage({ searchParams }: { searchParams: { bulan?
     include: { user: { select: { nama: true, subKantor: true } } }
   });
 
+  // Fetch Rekap Kesalahan Teller
+  const errorRecords = await prisma.rekapKesalahanTeller.findMany({
+    where: { tanggal: { gte: startDate, lte: endDate } },
+    include: { user: { select: { nama: true } } }
+  });
+
   // 2. Fetch Teller Performa
   const tellerRecordsAll = await prisma.performaKaryawan.findMany({
     where: { tanggal: { gte: startDate, lte: endDate } },
@@ -132,10 +138,10 @@ export default async function KpiPage({ searchParams }: { searchParams: { bulan?
 
   // --- Aggregate Teller Error Ranking (Bar Chart) ---
   const tellerErrorStats: Record<string, number> = {};
-  for (const r of tellerRecords) {
-    if (r.kesalahan > 0) {
+  for (const r of errorRecords) {
+    if (r.jumlah > 0) {
       if (!tellerErrorStats[r.user.nama]) tellerErrorStats[r.user.nama] = 0;
-      tellerErrorStats[r.user.nama] += r.kesalahan;
+      tellerErrorStats[r.user.nama] += r.jumlah;
     }
   }
   const tellerErrorRankingData = Object.entries(tellerErrorStats)
@@ -143,14 +149,9 @@ export default async function KpiPage({ searchParams }: { searchParams: { bulan?
     .sort((a, b) => b.total - a.total);
 
   // --- Aggregate Teller Kesalahan (Pie Chart) ---
-  const kesalahanStats: Record<string, number> = {};
-  for (const r of tellerRecords) {
-    if (r.kesalahan > 0) {
-      if (!kesalahanStats[r.kegiatan]) kesalahanStats[r.kegiatan] = 0;
-      kesalahanStats[r.kegiatan] += r.kesalahan;
-    }
-  }
-  const tellerKesalahanData = Object.entries(kesalahanStats).map(([name, value]) => ({ name, value }));
+  // Since RekapKesalahanTeller doesn't store 'kegiatan', we'll just show errors by Teller on the pie chart too, 
+  // or use the tellerErrorRankingData directly as the pie chart data since both represent errors per teller!
+  const tellerKesalahanData = tellerErrorRankingData.map(d => ({ name: d.nama, value: d.total }));
 
   return (
     <DashboardClient 
