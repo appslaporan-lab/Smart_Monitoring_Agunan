@@ -8,7 +8,7 @@ import EmptyState from '@/components/EmptyState';
 import ExportExcelButton from '@/components/ExportExcelButton';
 import TableSearch from '@/components/TableSearch';
 import SuperadminManageRealisasi from '@/components/SuperadminManageRealisasi';
-import { canAccessKantorData } from '@/lib/kantor';
+import { canAccessKantorData, getKantorGroup } from '@/lib/kantor';
 
 export const dynamic = 'force-dynamic';
 
@@ -86,6 +86,33 @@ export default async function MORankingPage({ searchParams }: { searchParams: { 
     'Selisih': mo.total - TARGET_MO,
     'Status': mo.total >= TARGET_MO ? 'Lulus Target' : 'Belum Lulus'
   }));
+
+  const groupRekonStats: Record<string, { moPlafond: number; moCount: number; tellerTotal: number }> = {
+    'PUSAT_1': { moPlafond: 0, moCount: 0, tellerTotal: 0 },
+    'PUSAT_2': { moPlafond: 0, moCount: 0, tellerTotal: 0 },
+    'CABANG': { moPlafond: 0, moCount: 0, tellerTotal: 0 },
+  };
+
+  for (const r of moRecords) {
+    let group = getKantorGroup(r.user.subKantor) || 'PUSAT_1'; 
+    if (group === 'CABANG') group = 'CABANG';
+    else if (group === 'PUSAT_2') group = 'PUSAT_2';
+    else group = 'PUSAT_1'; // fallback
+    if (groupRekonStats[group]) {
+      groupRekonStats[group].moCount += 1;
+      groupRekonStats[group].moPlafond += (r.nominalAsli || r.nominal);
+    }
+  }
+
+  for (const r of tellerRecords) {
+    let group = getKantorGroup(r.user.subKantor) || 'PUSAT_1';
+    if (group === 'CABANG') group = 'CABANG';
+    else if (group === 'PUSAT_2') group = 'PUSAT_2';
+    else group = 'PUSAT_1'; // fallback
+    if (groupRekonStats[group]) {
+      groupRekonStats[group].tellerTotal += r.nominal;
+    }
+  }
 
   const rekonArray = Object.entries(rekonStats).sort((a, b) => b[1].moNet - a[1].moNet);
   const excelDataRecon = rekonArray.map(([sk, data], idx) => ({
@@ -231,6 +258,33 @@ export default async function MORankingPage({ searchParams }: { searchParams: { 
         <p style={{ color: '#64748b', fontSize: 14, marginTop: -12, marginBottom: 20 }}>
           Membandingkan total Input Manual MO dengan total Laporan Pencairan dari Teller per masing-masing Sub Kantor.
         </p>
+
+        
+        {/* Total Rekonsiliasi Grup */}
+        {Object.keys(rekonStats).length > 0 && (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: 16, marginBottom: 24 }}>
+            {Object.entries(groupRekonStats).map(([group, data]) => {
+              let groupName = group === 'PUSAT_1' ? 'Kantor Pusat 1' : group === 'PUSAT_2' ? 'Kantor Pusat 2' : 'Kantor Cabang';
+              return (
+                <div key={group} style={{ background: '#f8fafc', border: '1px solid #e2e8f0', padding: 16, borderRadius: 8 }}>
+                  <h3 style={{ margin: '0 0 12px 0', fontSize: '1.1rem', color: '#334155' }}>{groupName}</h3>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
+                    <span style={{ color: '#64748b', fontSize: 14 }}>Rekening Realisasi:</span>
+                    <span style={{ fontWeight: 'bold' }}>{data.moCount} Nasabah</span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
+                    <span style={{ color: '#64748b', fontSize: 14 }}>Nominal (MO):</span>
+                    <span style={{ fontWeight: 'bold', color: '#16a34a' }}>{formatCurrency(data.moPlafond)}</span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <span style={{ color: '#64748b', fontSize: 14 }}>Nominal (Teller):</span>
+                    <span style={{ fontWeight: 'bold', color: '#2563eb' }}>{formatCurrency(data.tellerTotal)}</span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
 
         {Object.keys(rekonStats).length === 0 ? (
           <EmptyState title="Belum ada rekonsiliasi" description="Data perbandingan Teller vs MO kosong." />
