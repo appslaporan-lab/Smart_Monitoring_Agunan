@@ -101,7 +101,7 @@ export const ROLE_KANTOR_ACCESS: Record<string, string[]> = {
 };
 
 // Role yang boleh melihat data dari SEMUA kelompok kantor tanpa dibatasi
-const FULL_ACCESS_ROLES = ['DIREKTUR', 'SUPERADMIN', 'KABAG_OPERASIONAL', 'KASUBAG_REMEDIAL'];
+const FULL_ACCESS_ROLES = ['DIREKTUR', 'SUPERADMIN', 'KABAG_OPERASIONAL', 'KASUBAG_REMEDIAL', 'SPI'];
 
 export function canAccessKantorGroup(role: string, group: string | null): boolean {
   const normalizedRole = role?.toUpperCase();

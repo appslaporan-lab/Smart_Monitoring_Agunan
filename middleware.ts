@@ -55,6 +55,15 @@ export async function middleware(request: NextRequest) {
       response.cookies.set({ name: COOKIE_NAME, value: '', maxAge: 0, path: '/' });
       return response;
     }
+    
+    // Block input (POST/PUT/DELETE) for SPI role except for agunan/stock-opname modules
+    if (session.role === 'SPI' && request.method !== 'GET') {
+      const isAgunanModule = pathname.startsWith('/api/agunan') || pathname.startsWith('/api/stock-opname');
+      const isAuthModule = pathname.startsWith('/auth/logout/api') || pathname.startsWith('/api/auth/change-password');
+      if (!isAgunanModule && !isAuthModule && pathname.startsWith('/api/')) {
+        return NextResponse.json({ error: 'Role SPI hanya memiliki akses untuk melihat laporan (Read-only)' }, { status: 403 });
+      }
+    }
   } catch {
     const loginUrl = new URL('/auth/login', request.url);
     const response = NextResponse.redirect(loginUrl);
