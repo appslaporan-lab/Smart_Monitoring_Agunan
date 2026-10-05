@@ -49,7 +49,7 @@ export default function UploadPembayaranForm() {
           continue;
         }
 
-        if (jenisUpload === 'TUNAI' && currentSection === 'PENCAIRAN') continue;
+        if (currentSection === 'PENCAIRAN') continue;
         if (!Array.isArray(row) || row.length === 0) continue;
 
         let norek = '';
