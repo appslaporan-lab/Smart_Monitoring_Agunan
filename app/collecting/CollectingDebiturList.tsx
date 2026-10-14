@@ -3,6 +3,7 @@
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import ExportExcelButton from '@/components/ExportExcelButton';
+import jsPDF from 'jspdf';
 
 type EwsItem = {
   id: number;
@@ -56,6 +57,8 @@ export default function CollectingDebiturList({ items, userRole }: { items: EwsI
   const [activeFilter, setActiveFilter] = useState('ALL');
   const [activeSubKantor, setActiveSubKantor] = useState('ALL');
   const [activeDeskCallUser, setActiveDeskCallUser] = useState('ALL');
+  const [activePetugas, setActivePetugas] = useState('ALL');
+  const [isExportingPdf, setIsExportingPdf] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
 
   
@@ -79,6 +82,27 @@ export default function CollectingDebiturList({ items, userRole }: { items: EwsI
     return Array.from(users).sort();
   }, [items]);
 
+  const petugasList = useMemo(() => {
+    const set = new Set<string>();
+    items.forEach(i => {
+      if (i.lastKunjungan?.petugasNama && i.lastKunjungan.petugasNama !== 'Petugas') {
+        set.add(i.lastKunjungan.petugasNama);
+      }
+      if (i.petugasKunjungan && i.petugasKunjungan !== '-') {
+        i.petugasKunjungan.split(',').forEach(p => {
+          const trimmed = p.trim();
+          if (trimmed && trimmed !== 'Petugas' && trimmed !== '-') {
+            set.add(trimmed);
+          }
+        });
+      }
+      if (i.namaAO && i.namaAO !== '-') {
+        set.add(i.namaAO.trim());
+      }
+    });
+    return Array.from(set).sort();
+  }, [items]);
+
   const subKantorList = useMemo(() => {
     const set = new Set<string>();
     items.forEach(i => i.subKantor && set.add(i.subKantor));
@@ -87,10 +111,20 @@ export default function CollectingDebiturList({ items, userRole }: { items: EwsI
 
   const summaryCounts = useMemo(() => {
     return FILTER_OPTIONS.reduce((acc, f) => {
-      acc[f.key] = items.filter(i => f.match(i) && (activeSubKantor === 'ALL' || i.subKantor === activeSubKantor)).length;
+      acc[f.key] = items.filter(i => {
+        if (!f.match(i)) return false;
+        if (activeSubKantor !== 'ALL' && i.subKantor !== activeSubKantor) return false;
+        if (activePetugas !== 'ALL') {
+          const matchPetugasKunjungan = Boolean(i.petugasKunjungan && i.petugasKunjungan.toLowerCase().includes(activePetugas.toLowerCase()));
+          const matchLastKunjungan = Boolean(i.lastKunjungan && i.lastKunjungan.petugasNama.toLowerCase() === activePetugas.toLowerCase());
+          const matchAO = Boolean(i.namaAO && i.namaAO.toLowerCase() === activePetugas.toLowerCase());
+          if (!matchPetugasKunjungan && !matchLastKunjungan && !matchAO) return false;
+        }
+        return true;
+      }).length;
       return acc;
     }, {} as Record<string, number>);
-  }, [items, activeSubKantor]);
+  }, [items, activeSubKantor, activePetugas]);
 
   const filtered = useMemo(() => {
     const filterFn = FILTER_OPTIONS.find((f) => f.key === activeFilter)?.match || (() => true);
@@ -98,13 +132,19 @@ export default function CollectingDebiturList({ items, userRole }: { items: EwsI
     return items.filter((item) => {
       if (!filterFn(item)) return false;
       if (activeSubKantor !== 'ALL' && item.subKantor !== activeSubKantor) return false;
-        if (activeFilter === 'DESK_CALL_DONE' && activeDeskCallUser !== 'ALL') {
-          if (!item.lastKunjungan || item.lastKunjungan.petugasNama !== activeDeskCallUser) return false;
-        }
+      if (activeFilter === 'DESK_CALL_DONE' && activeDeskCallUser !== 'ALL') {
+        if (!item.lastKunjungan || item.lastKunjungan.petugasNama !== activeDeskCallUser) return false;
+      }
+      if (activePetugas !== 'ALL') {
+        const matchPetugasKunjungan = Boolean(item.petugasKunjungan && item.petugasKunjungan.toLowerCase().includes(activePetugas.toLowerCase()));
+        const matchLastKunjungan = Boolean(item.lastKunjungan && item.lastKunjungan.petugasNama.toLowerCase() === activePetugas.toLowerCase());
+        const matchAO = Boolean(item.namaAO && item.namaAO.toLowerCase() === activePetugas.toLowerCase());
+        if (!matchPetugasKunjungan && !matchLastKunjungan && !matchAO) return false;
+      }
       if (!q) return true;
       return item.namaNasabahExcel.toLowerCase().includes(q) || item.norek.toLowerCase().includes(q);
     });
-  }, [items, activeFilter, query, activeSubKantor, activeDeskCallUser]);
+  }, [items, activeFilter, query, activeSubKantor, activeDeskCallUser, activePetugas]);
 
   const cardColors: Record<string, string> = {
     AMAN: '#10b981',
@@ -150,10 +190,195 @@ export default function CollectingDebiturList({ items, userRole }: { items: EwsI
     LUNAS: 'Lunas',
   };
 
+  const exportPDF = () => {
+    setIsExportingPdf(true);
+    try {
+      const pdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'landscape' });
+      const pageWidth = 297;
+      const pageHeight = 210;
+      let y = 15;
+
+      pdf.setFontSize(14);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text('LAPORAN DAFTAR DEBITUR COLLECTING KREDIT', 14, y);
+      y += 6;
+
+      pdf.setFontSize(9);
+      pdf.setFont('helvetica', 'normal');
+      const filterText = [
+        `Kategori: ${cardLabels[activeFilter] || 'Semua'}`,
+        activeSubKantor !== 'ALL' ? `Sub Kantor: ${activeSubKantor}` : null,
+        activePetugas !== 'ALL' ? `Petugas: ${activePetugas}` : null,
+        `Total: ${filtered.length} Debitur`,
+        `Tgl Cetak: ${new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}`
+      ].filter(Boolean).join(' | ');
+
+      pdf.text(filterText, 14, y);
+      y += 6;
+
+      const cols = [
+        { label: 'No', width: 10, align: 'center' },
+        { label: 'No. Rekening', width: 26, align: 'left' },
+        { label: 'Nama Debitur', width: 44, align: 'left' },
+        { label: 'Kantor', width: 22, align: 'left' },
+        { label: 'AO', width: 24, align: 'left' },
+        { label: 'Petugas Kunjungan', width: 34, align: 'left' },
+        { label: 'Status EWS', width: 32, align: 'left' },
+        { label: 'Tunggakan', width: 22, align: 'center' },
+        { label: 'Status Pembayaran', width: 42, align: 'left' },
+        { label: 'Kunj.', width: 14, align: 'center' },
+      ];
+
+      const drawTableHeader = (curY: number) => {
+        pdf.setFillColor(241, 245, 249);
+        pdf.rect(14, curY, 270, 7, 'F');
+        pdf.setDrawColor(203, 213, 225);
+        pdf.setLineWidth(0.3);
+        pdf.line(14, curY, 284, curY);
+        pdf.line(14, curY + 7, 284, curY + 7);
+
+        pdf.setFont('helvetica', 'bold');
+        pdf.setFontSize(8);
+        pdf.setTextColor(30, 41, 59);
+
+        let curX = 14;
+        cols.forEach(c => {
+          if (c.align === 'center') {
+            pdf.text(c.label, curX + c.width / 2, curY + 4.8, { align: 'center' });
+          } else {
+            pdf.text(c.label, curX + 1.5, curY + 4.8);
+          }
+          curX += c.width;
+        });
+        pdf.setTextColor(0, 0, 0);
+      };
+
+      drawTableHeader(y);
+      y += 7;
+
+      if (filtered.length === 0) {
+        pdf.setFont('helvetica', 'italic');
+        pdf.setFontSize(9);
+        pdf.text('Tidak ada data debitur yang cocok dengan filter.', 14, y + 6);
+      } else {
+        pdf.setFont('helvetica', 'normal');
+        pdf.setFontSize(7.5);
+
+        filtered.forEach((item, idx) => {
+          if (y > 192) {
+            pdf.addPage();
+            y = 15;
+            drawTableHeader(y);
+            y += 7;
+            pdf.setFont('helvetica', 'normal');
+            pdf.setFontSize(7.5);
+          }
+
+          pdf.setDrawColor(241, 245, 249);
+          pdf.line(14, y + 6.5, 284, y + 6.5);
+
+          const petugasStr = item.petugasKunjungan && item.petugasKunjungan !== '-' 
+            ? item.petugasKunjungan 
+            : (item.lastKunjungan?.petugasNama || '-');
+
+          const statusBayarStr = item.isLunas 
+            ? `Lunas (Rp ${(item.nominalBayarHariIni || 0).toLocaleString('id-ID')})`
+            : item.sudahBayar 
+              ? `Sudah Bayar (Rp ${(item.nominalBayarHariIni || 0).toLocaleString('id-ID')})`
+              : 'Belum Bayar';
+
+          const rowData = [
+            { text: String(idx + 1), width: cols[0].width, align: 'center' },
+            { text: item.norek, width: cols[1].width, align: 'left' },
+            { text: pdf.splitTextToSize(item.namaNasabahExcel, cols[2].width - 3)[0] || item.namaNasabahExcel, width: cols[2].width, align: 'left' },
+            { text: item.kantorLabel, width: cols[3].width, align: 'left' },
+            { text: item.namaAO || '-', width: cols[4].width, align: 'left' },
+            { text: pdf.splitTextToSize(petugasStr, cols[5].width - 3)[0] || petugasStr, width: cols[5].width, align: 'left' },
+            { text: item.ews.label, width: cols[6].width, align: 'left' },
+            { text: `${item.hariTunggakan} hr`, width: cols[7].width, align: 'center' },
+            { text: statusBayarStr, width: cols[8].width, align: 'left' },
+            { text: `${item.kunjunganCount}x`, width: cols[9].width, align: 'center' },
+          ];
+
+          let curX = 14;
+          rowData.forEach(r => {
+            if (r.align === 'center') {
+              pdf.text(r.text, curX + r.width / 2, y + 4.5, { align: 'center' });
+            } else {
+              pdf.text(r.text, curX + 1.5, y + 4.5);
+            }
+            curX += r.width;
+          });
+
+          y += 6.5;
+        });
+      }
+
+      const totalPages = pdf.internal.pages.length - 1;
+      for (let p = 1; p <= totalPages; p++) {
+        pdf.setPage(p);
+        pdf.setFontSize(7.5);
+        pdf.setFont('helvetica', 'normal');
+        pdf.setTextColor(100, 116, 139);
+        pdf.text(`Halaman ${p} dari ${totalPages}`, pageWidth - 14, pageHeight - 8, { align: 'right' });
+        pdf.text('Sistem Smart Monitoring - PT BPR Bank Tulungagung (Perseroda)', 14, pageHeight - 8);
+      }
+
+      const petName = activePetugas !== 'ALL' ? `_${activePetugas.replace(/\s+/g, '_')}` : '';
+      pdf.save(`Laporan_Collecting_Debitur${petName}.pdf`);
+    } catch (err) {
+      console.error('Export PDF error:', err);
+      alert('Gagal membuat file PDF');
+    } finally {
+      setIsExportingPdf(false);
+    }
+  };
+
   return (
     <>
-      {activeFilter === 'DESK_CALL_DONE' && deskCallUsers.length > 0 && (
-          <div style={{ marginBottom: 16 }}>
+      <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', alignItems: 'center', marginBottom: 16 }}>
+        {showSubKantorFilter && subKantorList.length > 0 && (
+          <div>
+            <label style={{ marginRight: 8, fontWeight: 500, fontSize: '0.9rem' }}>Filter Sub Kantor:</label>
+            <select 
+              className="inputField" 
+              style={{ width: 'auto', padding: '6px 12px' }}
+              value={activeSubKantor}
+              onChange={(e) => {
+                setActiveSubKantor(e.target.value);
+                setCurrentPage(1);
+              }}
+            >
+              <option value="ALL">Semua Sub Kantor</option>
+              {subKantorList.map(sk => (
+                <option key={sk} value={sk}>{sk}</option>
+              ))}
+            </select>
+          </div>
+        )}
+
+        {petugasList.length > 0 && (
+          <div>
+            <label style={{ marginRight: 8, fontWeight: 500, fontSize: '0.9rem' }}>Filter Nama Petugas:</label>
+            <select 
+              className="inputField" 
+              style={{ width: 'auto', padding: '6px 12px' }}
+              value={activePetugas}
+              onChange={(e) => {
+                setActivePetugas(e.target.value);
+                setCurrentPage(1);
+              }}
+            >
+              <option value="ALL">Semua Petugas</option>
+              {petugasList.map(p => (
+                <option key={p} value={p}>{p}</option>
+              ))}
+            </select>
+          </div>
+        )}
+
+        {activeFilter === 'DESK_CALL_DONE' && deskCallUsers.length > 0 && activePetugas === 'ALL' && (
+          <div>
             <label style={{ marginRight: 8, fontWeight: 500, fontSize: '0.9rem' }}>Filter Desk Call User:</label>
             <select 
               className="inputField" 
@@ -164,30 +389,15 @@ export default function CollectingDebiturList({ items, userRole }: { items: EwsI
                 setCurrentPage(1);
               }}
             >
-              <option value="ALL">Semua Petugas</option>
+              <option value="ALL">Semua Petugas Desk Call</option>
               {deskCallUsers.map(u => (
                 <option key={u} value={u}>{u}</option>
               ))}
             </select>
           </div>
         )}
+      </div>
 
-        {showSubKantorFilter && subKantorList.length > 0 && (
-        <div style={{ marginBottom: 16 }}>
-          <label style={{ marginRight: 8, fontWeight: 500, fontSize: '0.9rem' }}>Filter Sub Kantor:</label>
-          <select 
-            className="inputField" 
-            style={{ width: 'auto', padding: '6px 12px' }}
-            value={activeSubKantor}
-            onChange={(e) => setActiveSubKantor(e.target.value)}
-          >
-            <option value="ALL">Semua Sub Kantor</option>
-            {subKantorList.map(sk => (
-              <option key={sk} value={sk}>{sk}</option>
-            ))}
-          </select>
-        </div>
-      )}
       <section className="grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', marginBottom: 24 }}>
         {Object.keys(cardLabels).map((key) => (
           <button
@@ -216,15 +426,31 @@ export default function CollectingDebiturList({ items, userRole }: { items: EwsI
           <h2 style={{ margin: 0 }}>
             Daftar Debitur {activeFilter !== 'ALL' && `— ${cardLabels[activeFilter] || activeFilter}`}
           </h2>
-          <ExportExcelButton data={excelData} fileName="Collecting_Debitur" sheetName="Collecting" />
-          <input
-            className="inputField"
-            type="search"
-            placeholder="Cari nama nasabah atau nomor rekening..."
-            value={query}
-            onChange={(e) => { setQuery(e.target.value); setCurrentPage(1); }}
-            style={{ maxWidth: 320 }}
-          />
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+            <ExportExcelButton 
+              data={excelData} 
+              fileName={`Collecting_Debitur${activePetugas !== 'ALL' ? `_${activePetugas.replace(/\s+/g, '_')}` : ''}`} 
+              sheetName="Collecting" 
+            />
+            <button
+              type="button"
+              className="button secondary"
+              onClick={exportPDF}
+              disabled={isExportingPdf || filtered.length === 0}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+              {isExportingPdf ? 'Membuat PDF...' : 'Ekspor PDF'}
+            </button>
+            <input
+              className="inputField"
+              type="search"
+              placeholder="Cari nama nasabah atau nomor rekening..."
+              value={query}
+              onChange={(e) => { setQuery(e.target.value); setCurrentPage(1); }}
+              style={{ maxWidth: 260 }}
+            />
+          </div>
         </div>
 
         {activeFilter !== 'ALL' && (
