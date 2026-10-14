@@ -13,6 +13,7 @@ type EwsItem = {
   hariTunggakan: number;
   kantorLabel: string;
   kunjunganCount: number;
+  petugasKunjungan?: string;
   ews: { status: string; label: string; colorClass: string; wajibKunjungan: boolean };
   kolBulanIni: string | null;
   kolBulanLalu: string | null;
@@ -125,6 +126,7 @@ export default function CollectingDebiturList({ items, userRole }: { items: EwsI
     'Nama Debitur': item.namaNasabahExcel,
     'Kantor': item.kantorLabel,
     'AO': item.namaAO || '-',
+    'Petugas Kunjungan': item.petugasKunjungan && item.petugasKunjungan !== '-' ? item.petugasKunjungan : (item.lastKunjungan?.petugasNama || '-'),
     'Status EWS': item.ews.label,
     'Hari Tunggakan': item.hariTunggakan,
     'Kolektibilitas': item.kolBulanIni || '-',

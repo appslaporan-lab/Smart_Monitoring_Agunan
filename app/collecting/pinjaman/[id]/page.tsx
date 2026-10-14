@@ -46,6 +46,14 @@ export default async function PinjamanDetailPage({ params }: { params: { id: str
 
   const ews = determineEWS(pinjaman.hariTunggakan, pinjaman.tglJatuhTempo);
 
+  const allUsers = await prisma.user.findMany({ select: { id: true, nama: true } });
+  const userMap = new Map(allUsers.map(u => [u.id, u.nama]));
+
+  const riwayat = pinjaman.kunjunganPenagihan.map((k) => ({
+    ...k,
+    petugasNama: userMap.get(k.petugasId) || 'Petugas',
+  }));
+
   return (
     <main className="container">
       <section style={{ marginBottom: 32, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -104,15 +112,16 @@ export default async function PinjamanDetailPage({ params }: { params: { id: str
         <ExportHistoriButtons
           namaNasabah={pinjaman.namaNasabahExcel}
           norek={pinjaman.norek}
-          riwayat={pinjaman.kunjunganPenagihan}
+          riwayat={riwayat}
         />
-        {pinjaman.kunjunganPenagihan.length === 0 ? (
+        {riwayat.length === 0 ? (
           <p>Belum ada kunjungan tercatat.</p>
         ) : (
           <div style={{ display: 'grid', gap: 14, marginTop: 12 }}>
-            {pinjaman.kunjunganPenagihan.map((k) => (
+            {riwayat.map((k) => (
               <article key={k.id} className="card" style={{ padding: 16 }}>
                 <p style={{ margin: 0, fontWeight: 600 }}>{formatDate(k.tanggalKunjungan)} — {k.jenisKontak}</p>
+                <p style={{ margin: '4px 0' }}>Petugas: <strong>{k.petugasNama}</strong></p>
                 <p style={{ margin: '4px 0' }}>Hasil: <strong>{k.hasil.replace(/_/g, ' ')}</strong></p>
                 {k.nominalDibayar && <p style={{ margin: '4px 0' }}>Nominal Dibayar: {formatRupiah(k.nominalDibayar)}</p>}
                 {k.tanggalJanjiBayar && <p style={{ margin: '4px 0' }}>Janji Bayar: {formatDate(k.tanggalJanjiBayar)}</p>}

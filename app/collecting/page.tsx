@@ -145,6 +145,9 @@ export default async function CollectingDashboardPage({ searchParams }: { search
       hariTunggakan: dynamicHariTunggakan,
       kantorLabel: getKantorLabel(p.subKantor),
       kunjunganCount: p.kunjunganPenagihan.length,
+      petugasKunjungan: p.kunjunganPenagihan && p.kunjunganPenagihan.length > 0
+        ? Array.from(new Set(p.kunjunganPenagihan.map((k: any) => userMap.get(k.petugasId) || 'Petugas'))).join(', ')
+        : '-',
       ews: determineEWS(dynamicHariTunggakan, p.tglJatuhTempo, p.tglRealisasi, tglJanji),
       kolBulanIni: p.kdKolektibilitas,
       kolBulanLalu: prevKolMap.get(p.norek) || null,
