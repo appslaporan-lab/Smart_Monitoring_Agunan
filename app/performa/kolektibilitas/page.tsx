@@ -1,4 +1,5 @@
 import SelisihNoaClickable from './SelisihNoaClickable';
+import ExportKolektibilitasExcelButton from './ExportKolektibilitasExcelButton';
 import { getCurrentUser } from '@/lib/session';
 import { redirect } from 'next/navigation';
 import { prisma } from '@/lib/prisma';
@@ -588,6 +589,7 @@ export default async function PerformaKolektibilitasPage({ searchParams }: { sea
         </div>
         <div>
           <div style={{ display: 'flex', gap: '8px' }}>
+            <ExportKolektibilitasExcelButton rows={mainTableRows} periode={`${periodeAktif.bulan}/${periodeAktif.tahun}`} />
             <PrintButton />
             <Link href="/admin/upload-nominatif?type=performa" className="button secondary no-print">Kelola Data Laporan</Link>
           </div>
@@ -595,6 +597,10 @@ export default async function PerformaKolektibilitasPage({ searchParams }: { sea
       </section>
 
       {/* Main Table */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }} className="no-print">
+        <h2 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 600 }}>Laporan Kolektibilitas per Kantor</h2>
+        <ExportKolektibilitasExcelButton rows={mainTableRows} periode={`${periodeAktif.bulan}/${periodeAktif.tahun}`} />
+      </div>
       <section className="card" style={{ padding: 24, marginBottom: 24, overflowX: 'auto', fontSize: '13px' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead>
