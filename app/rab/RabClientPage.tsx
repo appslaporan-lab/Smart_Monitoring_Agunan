@@ -101,14 +101,25 @@ const KANTOR_KAS_LIST = [
 ];
 
 const REKENING_PENAMPUNG_OPTIONS = [
-  'Bank Jatim - Rek. Penampung Kas Pusat',
-  'Bank BRI - Rek. Penampung Kas Pusat',
-  'Bank Mandiri - Rek. Penampung Kas Pusat',
-  'Bank BCA - Rek. Penampung Kas Pusat',
-  'Bank BNI - Rek. Penampung Kas Pusat',
-  'Bank Jatim - Rek. Penampung Cabang Campurdarat',
-  'Bank BRI - Rek. Penampung Cabang Campurdarat',
-  'Kas Kantor Kas (Tunai / Setoran Kas)',
+  { value: 'BCA Pusat (048-1322013)', label: 'BCA Pusat' },
+  { value: 'Mandiri Ngunut (171-0020-573-492)', label: 'Mandiri Ngunut' },
+  { value: 'Mandiri Pusat (144-0012-783-533)', label: 'Mandiri Pusat' },
+  { value: 'BRI Pusat (6596-0100-0923-532)', label: 'BRI Pusat' },
+  { value: 'BRI Boyolangu (6581-0100-0008-567)', label: 'BRI Boyolangu' },
+  { value: 'BRI Pucanglaban (7668-0100-8524-530)', label: 'BRI Pucanglaban' },
+  { value: 'BRI Karangrejo (6591-0102-0782-534)', label: 'BRI Karangrejo' },
+  { value: 'BRI Ngentrong (6582-0101-9593-537)', label: 'BRI Ngentrong' },
+  { value: 'BNI Pusat (030-920-1992)', label: 'BNI Pusat' },
+  { value: 'Bank Jatim Pusat (0152170622)', label: 'Bank Jatim Pusat' },
+  { value: 'Bank Jatim Campurdarat (0152356072)', label: 'Bank Jatim Campurdarat' },
+  { value: 'Bank Jatim Ngunut (0472019708)', label: 'Bank Jatim Ngunut' },
+  { value: 'Bank Jatim Bandung (05892002207)', label: 'Bank Jatim Bandung' },
+  { value: 'Bank Jatim Kalidawir (0152791551)', label: 'Bank Jatim Kalidawir' },
+  { value: 'Bank Jatim Kauman (1292006850)', label: 'Bank Jatim Kauman' },
+  { value: 'Bank Jatim Ngantru (0153015384)', label: 'Bank Jatim Ngantru' },
+  { value: 'Bank Jatim Rejotangan (0473011077)', label: 'Bank Jatim Rejotangan' },
+  { value: 'Bank Jatim Ngemplak (0152801360)', label: 'Bank Jatim Ngemplak' },
+  { value: 'Bank Jatim Pakel (1562013055)', label: 'Bank Jatim Pakel' },
 ];
 
 export function getCheckerAndSigner(subKantor: string | null | undefined) {
@@ -1216,8 +1227,8 @@ export default function RabClientPage({ user, initialCounts, initialItems }: Pro
                   >
                     <option value="">-- Pilih Rekening Penampung --</option>
                     {REKENING_PENAMPUNG_OPTIONS.map((opt) => (
-                      <option key={opt} value={opt}>
-                        {opt}
+                      <option key={opt.value} value={opt.value}>
+                        {opt.label}
                       </option>
                     ))}
                   </select>
