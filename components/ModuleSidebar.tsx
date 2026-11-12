@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation';
 import { 
   LogOut, Trophy, Shield, LayoutDashboard, PlusCircle, FileSpreadsheet, Users, ClipboardCheck,
   FileText, ShieldCheck, Archive, FileSignature, PackageOpen, CheckCircle2,
-  UserCog, Wallet, TrendingUp, BarChart3, Settings, Activity
+  UserCog, Wallet, TrendingUp, BarChart3, Settings, Activity, FileCheck2
 , ChevronDown, ChevronRight } from 'lucide-react';
 
 type MenuItem = { href: string; label: string; roles: string[] | 'all'; icon: any; module: string; submenu?: string };
@@ -25,10 +25,12 @@ const MODULES: ModuleDef[] = [
   { key: 'collecting', label: 'Collecting Kredit', icon: Wallet, pathPrefix: '/collecting' },
   { key: 'kpi', label: 'KPI', icon: TrendingUp, pathPrefix: '/kpi' },
   { key: 'performa', label: 'Performa Kantor', icon: BarChart3, pathPrefix: '/performa' },
-    { key: 'settings', label: 'Pengaturan', icon: Settings, pathPrefix: '/settings' },
+  { key: 'rab', label: 'RAB', icon: FileCheck2, pathPrefix: '/rab' },
+  { key: 'settings', label: 'Pengaturan', icon: Settings, pathPrefix: '/settings' },
 ];
 
 const MENU_CONFIG: MenuItem[] = [
+  { href: '/rab', label: 'Alur Pengajuan RAB', roles: 'all', icon: FileCheck2, module: 'rab' },
   { href: '/superadmin/users', label: 'Approval User', roles: ['SUPERADMIN'], icon: UserCog, module: 'settings' },
     { href: '/superadmin/audit-log', label: 'Log Aktivitas', roles: ['SUPERADMIN', 'DIREKTUR', 'DIREKSI'], icon: Activity, module: 'settings' },
   { href: '/', label: 'Dashboard', roles: AGUNAN_ROLES, icon: LayoutDashboard, module: 'agunan' },

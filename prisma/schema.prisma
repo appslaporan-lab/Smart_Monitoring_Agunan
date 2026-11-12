@@ -434,7 +434,10 @@ enum UserRole {
   KABAG_MARKETING_PUSAT_1
   KABAG_MARKETING_PUSAT_2
   SPI
-}model AppSetting {
+  AKUNTING_PUSAT
+}
+
+model AppSetting {
   id Int @id @default(autoincrement())
   key String @unique
   value String @db.Text
@@ -515,4 +518,50 @@ model Notification {
   isRead Boolean @default(false)
   createdAt DateTime @default(now())
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model PengajuanRab {
+  id                Int       @id @default(autoincrement())
+  nomorPengajuan    String    @unique
+  pinjamanPeriodeId Int?
+  norek             String
+  namaNasabah       String
+  subKantor         String
+  kantorGroup       String?
+  nominal           Float     @default(0)
+  keterangan        String?
+  fotoResiUrl       String?   @db.Text
+  status            String    @default("PENDING_VERIFIKASI")
+  catatanPenolakan  String?
+
+  pemohonId         Int
+  pemohonNama       String
+  pemohonRole       String
+  waktuPengajuan    DateTime  @default(now())
+
+  checkerId         Int?
+  checkerNama       String?
+  checkerRole       String?
+  checkerCatatan    String?
+  waktuChecker      DateTime?
+
+  signerId          Int?
+  signerNama        String?
+  signerRole        String?
+  nomorRab          String?   @unique
+  waktuSigner       DateTime?
+
+  tellerId          Int?
+  tellerNama        String?
+  noValidasiCbs     String?
+  catatanTeller     String?
+  waktuTeller       DateTime?
+
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  @@index([status])
+  @@index([subKantor])
+  @@index([norek])
+  @@index([nomorRab])
 }
