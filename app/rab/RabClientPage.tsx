@@ -5,13 +5,14 @@ import {
   FileCheck2, Search, PlusCircle, CheckCircle2, XCircle, Clock, 
   Copy, Check, FileSpreadsheet, AlertCircle, Building2, User, 
   FileText, ShieldCheck, FileSignature, Wallet, ChevronRight, 
-  ExternalLink, Eye, ArrowRight, RotateCw, Filter, RefreshCw, Lock
+  ExternalLink, Eye, ArrowRight, RotateCw, Filter, RefreshCw, Lock,
+  UploadCloud, Calendar
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import * as XLSX from 'xlsx';
 import CurrencyInput from '@/components/CurrencyInput';
 import EmptyState from '@/components/EmptyState';
-import { SUB_KANTOR_NAMES, getKantorGroup } from '@/lib/kantor';
+import { SUB_KANTOR_NAMES, getKantorGroup, getSubKantorName } from '@/lib/kantor';
 
 export type UserSession = {
   id: number;
@@ -35,6 +36,13 @@ export type PengajuanRabItem = {
   fotoResiUrl?: string | null;
   status: string; // PENDING_VERIFIKASI | DISETUJUI_RAB | MENUNGGU_INPUT_TELLER | SUDAH_INPUT | DITOLAK
   catatanPenolakan?: string | null;
+
+  tanggalTransfer?: string | null;
+  norekTabungan?: string | null;
+  saldoTabungan?: number | null;
+  rekeningBankTujuan?: string | null;
+  checkerBertugas?: string | null;
+  signerBertugas?: string | null;
 
   pemohonId: number;
   pemohonNama: string;
@@ -92,6 +100,52 @@ const KANTOR_KAS_LIST = [
   { code: '15', name: 'Kas Ngentrong', group: 'CABANG' },
 ];
 
+const REKENING_PENAMPUNG_OPTIONS = [
+  'Bank Jatim - Rek. Penampung Kas Pusat',
+  'Bank BRI - Rek. Penampung Kas Pusat',
+  'Bank Mandiri - Rek. Penampung Kas Pusat',
+  'Bank BCA - Rek. Penampung Kas Pusat',
+  'Bank BNI - Rek. Penampung Kas Pusat',
+  'Bank Jatim - Rek. Penampung Cabang Campurdarat',
+  'Bank BRI - Rek. Penampung Cabang Campurdarat',
+  'Kas Kantor Kas (Tunai / Setoran Kas)',
+];
+
+export function getCheckerAndSigner(subKantor: string | null | undefined) {
+  const norm = (subKantor || '').toUpperCase();
+  const group = getKantorGroup(subKantor) || 'CABANG';
+  const kantorName = getSubKantorName(subKantor);
+
+  let checker = 'Kasubag Kredit Pusat';
+  let signer = 'Akunting Pusat';
+
+  const isKasPusat = norm.includes('01') || norm.includes('PUSAT');
+  const isKasCampurdarat = norm.includes('02') || norm.includes('CAMPURDARAT');
+
+  if (isKasPusat) {
+    checker = 'Kasubag Kredit Pusat';
+  } else if (isKasCampurdarat) {
+    checker = 'Kasubag Kredit Cabang';
+  } else {
+    checker = `Kepala ${kantorName}`;
+  }
+
+  if (group === 'CABANG') {
+    signer = 'Kasubag Operasional Cabang';
+  } else {
+    signer = 'Akunting Pusat';
+  }
+
+  const groupLabel = group === 'PUSAT_1' ? 'Kantor Pusat 1' : group === 'PUSAT_2' ? 'Kantor Pusat 2' : 'Kantor Cabang';
+  const kantorPengelolaLabel = `Kantor ${kantorName} (${groupLabel})`;
+
+  return {
+    checker,
+    signer,
+    kantorPengelolaLabel,
+  };
+}
+
 export default function RabClientPage({ user, initialCounts, initialItems }: Props) {
   // Determine initial tab based on role
   const defaultTab = useMemo(() => {
@@ -139,15 +193,27 @@ export default function RabClientPage({ user, initialCounts, initialItems }: Pro
   } | null>(null);
 
   // ===================== TAB 1 FORM STATE =====================
+  const todayStr = new Date().toISOString().slice(0, 10);
+  const [namaPetugasMo, setNamaPetugasMo] = useState(user.nama || '');
+  const [tanggalTransfer, setTanggalTransfer] = useState(todayStr);
+
   const [searchNasabahQuery, setSearchNasabahQuery] = useState('');
   const [nasabahResults, setNasabahResults] = useState<any[]>([]);
   const [searchingNasabah, setSearchingNasabah] = useState(false);
   const [selectedNasabah, setSelectedNasabah] = useState<any | null>(null);
+
   const [nominalRab, setNominalRab] = useState('');
+  const [rekeningBankTujuan, setRekeningBankTujuan] = useState('');
   const [keteranganRab, setKeteranganRab] = useState('');
   const [fotoResiPreview, setFotoResiPreview] = useState<string | null>(null);
   const [submittingTab1, setSubmittingTab1] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Computed debtor office info
+  const debtorInfo = useMemo(() => {
+    if (!selectedNasabah) return null;
+    return getCheckerAndSigner(selectedNasabah.subKantor);
+  }, [selectedNasabah]);
 
   // Filters
   const [checkerKantorFilter, setCheckerKantorFilter] = useState('ALL');
@@ -247,15 +313,19 @@ export default function RabClientPage({ user, initialCounts, initialItems }: Pro
   const handleSubmitTab1 = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedNasabah) {
-      toast.error('Pilih nasabah dari nominatif terlebih dahulu.');
+      toast.error('Pilih nasabah dari nominatif CBS terlebih dahulu.');
       return;
     }
     if (!nominalRab || Number(nominalRab) <= 0) {
-      toast.error('Masukkan nominal RAB yang valid.');
+      toast.error('Masukkan nominal transfer yang valid.');
+      return;
+    }
+    if (!rekeningBankTujuan) {
+      toast.error('Pilih Rekening Bank Tujuan Kantor.');
       return;
     }
     if (!fotoResiPreview) {
-      toast.error('Foto bukti resi/setoran wajib dilampirkan.');
+      toast.error('Upload foto bukti resi / screenshot transfer wajib dilampirkan.');
       return;
     }
 
@@ -272,6 +342,12 @@ export default function RabClientPage({ user, initialCounts, initialItems }: Pro
           nominal: Number(nominalRab),
           keterangan: keteranganRab,
           fotoResiUrl: fotoResiPreview,
+          tanggalTransfer,
+          norekTabungan: selectedNasabah.norekTabungan || null,
+          saldoTabungan: selectedNasabah.saldoTabungan !== undefined ? Number(selectedNasabah.saldoTabungan) : null,
+          rekeningBankTujuan,
+          checkerBertugas: debtorInfo?.checker || null,
+          signerBertugas: debtorInfo?.signer || null,
         }),
       });
 
@@ -283,6 +359,7 @@ export default function RabClientPage({ user, initialCounts, initialItems }: Pro
       setSelectedNasabah(null);
       setSearchNasabahQuery('');
       setNominalRab('');
+      setRekeningBankTujuan('');
       setKeteranganRab('');
       setFotoResiPreview(null);
       if (fileInputRef.current) fileInputRef.current.value = '';
@@ -341,8 +418,8 @@ export default function RabClientPage({ user, initialCounts, initialItems }: Pro
   const openSignerModal = (item: PengajuanRabItem) => {
     const isPusat = item.kantorGroup === 'PUSAT_1' || item.kantorGroup === 'PUSAT_2';
     const prefix = isPusat ? 'RAB-PST-' : 'RAB-CPD-';
-    const todayStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
-    const suggested = `${prefix}${todayStr}-${String(item.id).padStart(4, '0')}`;
+    const curDateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+    const suggested = `${prefix}${curDateStr}-${String(item.id).padStart(4, '0')}`;
     setSignerModal({ item, nomorRab: suggested });
   };
 
@@ -428,14 +505,17 @@ export default function RabClientPage({ user, initialCounts, initialItems }: Pro
         'No',
         'No. Pengajuan',
         'No. RAB',
-        'Tanggal Pengajuan',
-        'Nama Nasabah',
-        'No. Rekening',
-        'Kantor Kas',
+        'Tanggal Transfer',
+        'Nama Debitur',
+        'No. Rekening Pinjaman',
+        'No. Rek Tabungan (Auto-debet)',
+        'Saldo Eff Tabungan (Rp)',
+        'Kantor Kas Pengelola',
         'Wilayah',
-        'Nominal (Rp)',
+        'Nominal Transfer (Rp)',
+        'Rekening Bank Tujuan',
         'Status',
-        'Pemohon (MO)',
+        'Petugas MO',
         'Waktu Pengajuan',
         'Checker (Pemeriksa)',
         'Waktu Checker',
@@ -445,7 +525,7 @@ export default function RabClientPage({ user, initialCounts, initialItems }: Pro
         'Teller (Eksekutor)',
         'No. Validasi CBS',
         'Waktu Teller',
-        'Catatan Teller / Alasan Penolakan',
+        'Catatan / Alasan Penolakan',
       ],
     ];
 
@@ -454,19 +534,22 @@ export default function RabClientPage({ user, initialCounts, initialItems }: Pro
         idx + 1,
         it.nomorPengajuan,
         it.nomorRab || '-',
-        new Date(it.waktuPengajuan).toLocaleDateString('id-ID'),
+        it.tanggalTransfer ? new Date(it.tanggalTransfer).toLocaleDateString('id-ID') : new Date(it.waktuPengajuan).toLocaleDateString('id-ID'),
         it.namaNasabah,
         it.norek,
+        it.norekTabungan || '-',
+        it.saldoTabungan !== null && it.saldoTabungan !== undefined ? it.saldoTabungan : '-',
         SUB_KANTOR_NAMES[it.subKantor] || it.subKantor,
         it.kantorGroup || '-',
         it.nominal,
+        it.rekeningBankTujuan || '-',
         formatStatusLabel(it.status),
         `${it.pemohonNama} (${it.pemohonRole})`,
         new Date(it.waktuPengajuan).toLocaleString('id-ID'),
-        it.checkerNama ? `${it.checkerNama} (${it.checkerRole})` : '-',
+        it.checkerNama ? `${it.checkerNama} (${it.checkerRole})` : (it.checkerBertugas || '-'),
         it.waktuChecker ? new Date(it.waktuChecker).toLocaleString('id-ID') : '-',
         it.checkerCatatan || '-',
-        it.signerNama ? `${it.signerNama} (${it.signerRole})` : '-',
+        it.signerNama ? `${it.signerNama} (${it.signerRole})` : (it.signerBertugas || '-'),
         it.waktuSigner ? new Date(it.waktuSigner).toLocaleString('id-ID') : '-',
         it.tellerNama || '-',
         it.noValidasiCbs || '-',
@@ -556,6 +639,7 @@ export default function RabClientPage({ user, initialCounts, initialItems }: Pro
         const matches =
           it.namaNasabah.toLowerCase().includes(q) ||
           it.norek.toLowerCase().includes(q) ||
+          (it.norekTabungan && it.norekTabungan.toLowerCase().includes(q)) ||
           it.nomorPengajuan.toLowerCase().includes(q) ||
           (it.nomorRab && it.nomorRab.toLowerCase().includes(q)) ||
           it.pemohonNama.toLowerCase().includes(q) ||
@@ -643,7 +727,7 @@ export default function RabClientPage({ user, initialCounts, initialItems }: Pro
             </span>
             <ArrowRight size={14} color="#94a3b8" />
             <span style={{ background: '#dcfce7', color: '#166534', padding: '3px 8px', borderRadius: '6px', fontWeight: 600 }}>
-              5. Audit Trail & Selesai ✅
+              5. Audit Trail &amp; Selesai ✅
             </span>
           </div>
         </div>
@@ -703,7 +787,7 @@ export default function RabClientPage({ user, initialCounts, initialItems }: Pro
           {counts.pendingChecker > 0 && (
             <span
               style={{
-                background: activeTab === 'tab2_checker' ? '#ef4444' : '#ef4444',
+                background: '#ef4444',
                 color: 'white',
                 padding: '2px 7px',
                 borderRadius: '12px',
@@ -804,7 +888,7 @@ export default function RabClientPage({ user, initialCounts, initialItems }: Pro
           }}
         >
           <FileSpreadsheet size={18} />
-          Tab 5: Audit Trail & Monitoring
+          Tab 5: Audit Trail &amp; Monitoring
           <span
             style={{
               background: activeTab === 'tab5_audit' ? '#10b981' : '#e2e8f0',
@@ -825,287 +909,429 @@ export default function RabClientPage({ user, initialCounts, initialItems }: Pro
       {/* ========================================================================= */}
       {activeTab === 'tab1_mo' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-          <div className="card" style={{ padding: 24 }}>
-            <div style={{ marginBottom: 20 }}>
-              <h2 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 700, color: '#0f172a' }}>
-                Formulir Pengajuan RAB Baru (MO / Marketing)
-              </h2>
-              <p style={{ margin: '4px 0 0 0', color: '#64748b', fontSize: '0.88rem' }}>
-                Cari dan pilih nasabah dari data nominatif CBS. Nomor rekening otomatis terkunci demi integritas data transaksi.
-              </p>
-            </div>
-
+          <div className="card" style={{ padding: '28px 24px' }}>
             <form onSubmit={handleSubmitTab1}>
-              {/* Step 1: Debtor Lookup */}
-              <div style={{ marginBottom: 20 }}>
-                <label style={{ display: 'block', fontWeight: 600, marginBottom: 8, fontSize: '0.9rem', color: '#334155' }}>
-                  1. Cari Nasabah dari Nominatif CBS <span style={{ color: '#ef4444' }}>*</span>
-                </label>
+              {/* ROW 1: NAMA PETUGAS MO & TANGGAL TRANSFER NASABAH */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 20, marginBottom: 20 }}>
+                <div>
+                  <label style={{ display: 'block', fontWeight: 700, fontSize: '0.85rem', color: '#1e293b', marginBottom: 6 }}>
+                    NAMA PETUGAS MO <span style={{ color: '#ef4444' }}>*</span>
+                  </label>
+                  <input
+                    type="text"
+                    className="inputField"
+                    value={namaPetugasMo}
+                    onChange={(e) => setNamaPetugasMo(e.target.value)}
+                    placeholder="Nama Petugas MO..."
+                    required
+                  />
+                </div>
 
-                {!selectedNasabah ? (
-                  <div style={{ position: 'relative' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', position: 'relative' }}>
-                      <Search size={18} style={{ position: 'absolute', left: 14, color: '#94a3b8' }} />
-                      <input
-                        type="text"
-                        className="inputField"
-                        style={{ paddingLeft: 42 }}
-                        placeholder="Ketik minimal 2 karakter (Nama nasabah atau Nomor Rekening)..."
-                        value={searchNasabahQuery}
-                        onChange={(e) => setSearchNasabahQuery(e.target.value)}
-                      />
-                      {searchingNasabah && (
-                        <div style={{ position: 'absolute', right: 14, fontSize: '0.8rem', color: '#64748b' }}>
-                          Mencari...
-                        </div>
-                      )}
-                    </div>
+                <div>
+                  <label style={{ display: 'block', fontWeight: 700, fontSize: '0.85rem', color: '#1e293b', marginBottom: 6 }}>
+                    TANGGAL TRANSFER NASABAH <span style={{ color: '#ef4444' }}>*</span>
+                  </label>
+                  <input
+                    type="date"
+                    className="inputField"
+                    value={tanggalTransfer}
+                    onChange={(e) => setTanggalTransfer(e.target.value)}
+                    required
+                  />
+                </div>
+              </div>
 
-                    {nasabahResults.length > 0 && (
-                      <div
-                        style={{
-                          position: 'absolute',
-                          top: '100%',
-                          left: 0,
-                          right: 0,
-                          zIndex: 50,
-                          background: 'white',
-                          border: '1px solid #cbd5e1',
-                          borderRadius: 12,
-                          marginTop: 4,
-                          boxShadow: '0 10px 25px rgba(0,0,0,0.1)',
-                          maxHeight: 280,
-                          overflowY: 'auto',
-                        }}
-                      >
-                        {nasabahResults.map((nas) => (
-                          <div
-                            key={nas.id}
-                            onClick={() => {
-                              setSelectedNasabah(nas);
-                              setSearchNasabahQuery('');
-                              setNasabahResults([]);
-                            }}
-                            style={{
-                              padding: '10px 16px',
-                              borderBottom: '1px solid #f1f5f9',
-                              cursor: 'pointer',
-                              display: 'flex',
-                              justifyContent: 'space-between',
-                              alignItems: 'center',
-                            }}
-                            onMouseEnter={(e) => (e.currentTarget.style.background = '#f8fafc')}
-                            onMouseLeave={(e) => (e.currentTarget.style.background = 'white')}
-                          >
-                            <div>
-                              <div style={{ fontWeight: 600, color: '#0f172a' }}>{nas.namaNasabahExcel}</div>
-                              <div style={{ fontSize: '0.8rem', color: '#64748b' }}>
-                                Norek: <strong style={{ color: '#2563eb' }}>{nas.norek}</strong> | AO: {nas.namaAO || '-'}
-                              </div>
-                            </div>
-                            <div style={{ textAlign: 'right', fontSize: '0.8rem' }}>
-                              <span style={{ background: '#e0f2fe', color: '#0369a1', padding: '2px 8px', borderRadius: 4, fontWeight: 600 }}>
-                                {SUB_KANTOR_NAMES[nas.subKantor] || nas.subKantor}
-                              </span>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
+              {/* CARD: CARI DEBITUR DARI NOMINATIF CBS */}
+              <div
+                style={{
+                  border: '1.5px solid #bfdbfe',
+                  borderRadius: 14,
+                  padding: '20px 22px',
+                  background: '#f8fafc',
+                  marginBottom: 22,
+                }}
+              >
+                {/* Header Card */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontWeight: 700, fontSize: '0.9rem', color: '#1e40af' }}>
+                    <Search size={17} />
+                    <span>CARI DEBITUR DARI NOMINATIF CBS <span style={{ color: '#ef4444' }}>*</span></span>
                   </div>
-                ) : (
-                  <div
+                  <span
                     style={{
-                      background: '#f8fafc',
-                      border: '1.5px solid #cbd5e1',
-                      borderRadius: 12,
-                      padding: 16,
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      flexWrap: 'wrap',
-                      gap: 12,
+                      background: '#dbeafe',
+                      color: '#1e40af',
+                      fontSize: '0.78rem',
+                      fontWeight: 600,
+                      padding: '4px 12px',
+                      borderRadius: 6,
                     }}
                   >
-                    <div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                        <h4 style={{ margin: 0, color: '#0f172a', fontSize: '1.05rem' }}>{selectedNasabah.namaNasabahExcel}</h4>
-                        <span style={{ background: '#dcfce7', color: '#15803d', padding: '2px 8px', borderRadius: 6, fontSize: '0.75rem', fontWeight: 600 }}>
-                          Nasabah Terpilih
+                    Terkunci Otomatis
+                  </span>
+                </div>
+
+                {/* Input Search Debitur */}
+                <div style={{ position: 'relative', marginBottom: selectedNasabah ? 16 : 0 }}>
+                  <input
+                    type="text"
+                    className="inputField"
+                    style={{
+                      background: 'white',
+                      borderColor: '#cbd5e1',
+                      fontWeight: selectedNasabah ? 700 : 400,
+                      color: selectedNasabah ? '#0f172a' : '#64748b',
+                    }}
+                    value={
+                      selectedNasabah
+                        ? `${selectedNasabah.namaNasabahExcel} - ${selectedNasabah.norek}`
+                        : searchNasabahQuery
+                    }
+                    placeholder="Ketik nama debitur atau nomor rekening..."
+                    onChange={(e) => {
+                      if (selectedNasabah) {
+                        setSelectedNasabah(null);
+                      }
+                      setSearchNasabahQuery(e.target.value);
+                    }}
+                    onFocus={() => {
+                      if (selectedNasabah) {
+                        setSearchNasabahQuery('');
+                        setSelectedNasabah(null);
+                      }
+                    }}
+                  />
+                  {searchingNasabah && (
+                    <div style={{ position: 'absolute', right: 14, top: 12, fontSize: '0.8rem', color: '#64748b' }}>
+                      Mencari...
+                    </div>
+                  )}
+
+                  {/* Dropdown Hasil Pencarian */}
+                  {nasabahResults.length > 0 && !selectedNasabah && (
+                    <div
+                      style={{
+                        position: 'absolute',
+                        top: '100%',
+                        left: 0,
+                        right: 0,
+                        zIndex: 50,
+                        background: 'white',
+                        border: '1px solid #cbd5e1',
+                        borderRadius: 12,
+                        marginTop: 4,
+                        boxShadow: '0 10px 25px rgba(0,0,0,0.1)',
+                        maxHeight: 280,
+                        overflowY: 'auto',
+                      }}
+                    >
+                      {nasabahResults.map((nas) => (
+                        <div
+                          key={nas.id}
+                          onClick={() => {
+                            setSelectedNasabah(nas);
+                            setSearchNasabahQuery('');
+                            setNasabahResults([]);
+                          }}
+                          style={{
+                            padding: '12px 16px',
+                            borderBottom: '1px solid #f1f5f9',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                          }}
+                          onMouseEnter={(e) => (e.currentTarget.style.background = '#f8fafc')}
+                          onMouseLeave={(e) => (e.currentTarget.style.background = 'white')}
+                        >
+                          <div>
+                            <div style={{ fontWeight: 700, color: '#0f172a' }}>{nas.namaNasabahExcel}</div>
+                            <div style={{ fontSize: '0.8rem', color: '#64748b', marginTop: 2 }}>
+                              Norek: <strong style={{ color: '#2563eb' }}>{nas.norek}</strong> | Tabungan: <strong>{nas.norekTabungan || '-'}</strong>
+                            </div>
+                          </div>
+                          <div style={{ textAlign: 'right', fontSize: '0.8rem' }}>
+                            <span style={{ background: '#e0f2fe', color: '#0369a1', padding: '3px 8px', borderRadius: 4, fontWeight: 600 }}>
+                              {SUB_KANTOR_NAMES[nas.subKantor] || nas.subKantor}
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Inner Card (Detail Debitur) */}
+                {selectedNasabah && debtorInfo && (
+                  <div
+                    style={{
+                      background: 'white',
+                      border: '1px solid #e2e8f0',
+                      borderRadius: 12,
+                      padding: 18,
+                    }}
+                  >
+                    {/* Top Row: 4 Kolom */}
+                    <div
+                      style={{
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+                        gap: 16,
+                        marginBottom: 16,
+                        paddingBottom: 16,
+                        borderBottom: '1px solid #f1f5f9',
+                      }}
+                    >
+                      <div>
+                        <div style={{ fontSize: '0.78rem', color: '#64748b', marginBottom: 4 }}>Nama Debitur:</div>
+                        <div style={{ fontWeight: 800, fontSize: '1rem', color: '#0f172a' }}>
+                          {selectedNasabah.namaNasabahExcel}
+                        </div>
+                      </div>
+
+                      <div>
+                        <div style={{ fontSize: '0.78rem', color: '#64748b', marginBottom: 4 }}>No. Rekening Pinjaman:</div>
+                        <span
+                          style={{
+                            background: '#eff6ff',
+                            border: '1px solid #bfdbfe',
+                            color: '#1d4ed8',
+                            fontWeight: 700,
+                            fontSize: '0.9rem',
+                            padding: '3px 10px',
+                            borderRadius: 6,
+                            display: 'inline-block',
+                          }}
+                        >
+                          {selectedNasabah.norek}
                         </span>
                       </div>
-                      <div style={{ display: 'flex', gap: 16, marginTop: 6, fontSize: '0.85rem', color: '#475569', flexWrap: 'wrap' }}>
-                        <span>
-                          Kantor: <strong>{SUB_KANTOR_NAMES[selectedNasabah.subKantor] || selectedNasabah.subKantor}</strong>
+
+                      <div>
+                        <div style={{ fontSize: '0.78rem', color: '#64748b', marginBottom: 4 }}>No. Rek Tabungan (Auto-debet):</div>
+                        <span
+                          style={{
+                            background: '#eef2ff',
+                            border: '1px solid #c7d2fe',
+                            color: '#4338ca',
+                            fontWeight: 700,
+                            fontSize: '0.9rem',
+                            padding: '3px 10px',
+                            borderRadius: 6,
+                            display: 'inline-block',
+                          }}
+                        >
+                          {selectedNasabah.norekTabungan || '-'}
                         </span>
-                        <span>
-                          Wilayah: <strong>{getKantorGroup(selectedNasabah.subKantor) || 'CABANG'}</strong>
-                        </span>
-                        <span>
-                          AO: <strong>{selectedNasabah.namaAO || '-'}</strong>
-                        </span>
+                      </div>
+
+                      <div>
+                        <div style={{ fontSize: '0.78rem', color: '#64748b', marginBottom: 4 }}>Saldo Eff Tabungan:</div>
+                        <div style={{ fontWeight: 800, fontSize: '1.05rem', color: '#16a34a' }}>
+                          Rp {(selectedNasabah.saldoTabungan ?? 0).toLocaleString('id-ID')}
+                        </div>
                       </div>
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => setSelectedNasabah(null)}
-                      className="button secondary"
-                      style={{ padding: '6px 14px', fontSize: '0.8rem' }}
+
+                    {/* Bottom Row: 3 Kotak Status */}
+                    <div
+                      style={{
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+                        gap: 12,
+                      }}
                     >
-                      Ganti Nasabah
-                    </button>
+                      {/* Kotak 1: Kantor Kas Pengelola */}
+                      <div
+                        style={{
+                          background: '#ffffff',
+                          border: '1px solid #e2e8f0',
+                          borderRadius: 8,
+                          padding: '10px 14px',
+                        }}
+                      >
+                        <div style={{ fontSize: '0.75rem', color: '#64748b', marginBottom: 2 }}>Kantor Kas Pengelola:</div>
+                        <div style={{ fontWeight: 700, fontSize: '0.88rem', color: '#0f172a' }}>
+                          {debtorInfo.kantorPengelolaLabel}
+                        </div>
+                      </div>
+
+                      {/* Kotak 2: Checker Bertugas */}
+                      <div
+                        style={{
+                          background: '#fffbeb',
+                          border: '1px solid #fde68a',
+                          borderRadius: 8,
+                          padding: '10px 14px',
+                        }}
+                      >
+                        <div style={{ fontSize: '0.75rem', color: '#b45309', marginBottom: 2 }}>Checker Bertugas:</div>
+                        <div style={{ fontWeight: 800, fontSize: '0.88rem', color: '#92400e' }}>
+                          {debtorInfo.checker}
+                        </div>
+                      </div>
+
+                      {/* Kotak 3: Signer Bertugas */}
+                      <div
+                        style={{
+                          background: '#f0fdfa',
+                          border: '1px solid #99f6e4',
+                          borderRadius: 8,
+                          padding: '10px 14px',
+                        }}
+                      >
+                        <div style={{ fontSize: '0.75rem', color: '#0e7490', marginBottom: 2 }}>Signer Bertugas:</div>
+                        <div style={{ fontWeight: 800, fontSize: '0.88rem', color: '#0891b2' }}>
+                          {debtorInfo.signer}
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 )}
               </div>
 
-              {/* Step 2: Locked Norek Field */}
-              <div className="form-grid" style={{ marginBottom: 20 }}>
+              {/* ROW 3: NOMINAL TRANSFER & REKENING BANK TUJUAN KANTOR */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 20, marginBottom: 22 }}>
                 <div>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontWeight: 600, marginBottom: 8, fontSize: '0.9rem', color: '#334155' }}>
-                    <Lock size={15} color="#64748b" />
-                    Nomor Rekening (Terkunci Otomatis) <span style={{ color: '#ef4444' }}>*</span>
-                  </label>
-                  <input
-                    type="text"
-                    readOnly
-                    disabled
-                    value={selectedNasabah ? selectedNasabah.norek : ''}
-                    placeholder="Pilih nasabah di atas untuk mengunci rekening..."
-                    className="inputField"
-                    style={{ background: '#f1f5f9', cursor: 'not-allowed', color: '#1e293b', fontWeight: 600 }}
-                  />
-                  <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: 4 }}>
-                    🔒 Rekening terkunci demi mencegah salah bayar / salah kredit di CBS.
-                  </div>
-                </div>
-
-                <div>
-                  <label style={{ display: 'block', fontWeight: 600, marginBottom: 8, fontSize: '0.9rem', color: '#334155' }}>
-                    Nominal Pengajuan RAB (Rp) <span style={{ color: '#ef4444' }}>*</span>
+                  <label style={{ display: 'block', fontWeight: 700, fontSize: '0.85rem', color: '#1e293b', marginBottom: 6 }}>
+                    NOMINAL TRANSFER (RP) <span style={{ color: '#ef4444' }}>*</span>
                   </label>
                   <CurrencyInput
                     value={nominalRab}
                     onChange={(val) => setNominalRab(val)}
-                    placeholder="Contoh: Rp 1.500.000"
+                    placeholder="Rp 0"
                     required
                   />
-                  <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: 4 }}>
-                    Masukkan nominal pengajuan yang sesuai dengan bukti resi transfer/setoran.
-                  </div>
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontWeight: 700, fontSize: '0.85rem', color: '#1e293b', marginBottom: 6 }}>
+                    REKENING BANK TUJUAN KANTOR <span style={{ color: '#ef4444' }}>*</span>
+                  </label>
+                  <select
+                    className="inputField"
+                    value={rekeningBankTujuan}
+                    onChange={(e) => setRekeningBankTujuan(e.target.value)}
+                    required
+                  >
+                    <option value="">-- Pilih Rekening Penampung --</option>
+                    {REKENING_PENAMPUNG_OPTIONS.map((opt) => (
+                      <option key={opt} value={opt}>
+                        {opt}
+                      </option>
+                    ))}
+                  </select>
                 </div>
               </div>
 
-              {/* Step 3: Keterangan & Upload Bukti Resi */}
-              <div className="form-grid" style={{ marginBottom: 24 }}>
-                <div>
-                  <label style={{ display: 'block', fontWeight: 600, marginBottom: 8, fontSize: '0.9rem', color: '#334155' }}>
-                    Keterangan / Keperluan RAB
-                  </label>
-                  <textarea
-                    rows={4}
-                    className="inputField"
-                    placeholder="Tuliskan keterangan pengajuan RAB (misal: pelunasan titipan nasabah, angsuran kredit via transfer, dll)..."
-                    value={keteranganRab}
-                    onChange={(e) => setKeteranganRab(e.target.value)}
+              {/* ROW 4: UPLOAD BUKTI RESI / SCREENSHOT TRANSFER */}
+              <div style={{ marginBottom: 26 }}>
+                <label style={{ display: 'block', fontWeight: 700, fontSize: '0.85rem', color: '#1e293b', marginBottom: 8 }}>
+                  UPLOAD BUKTI RESI / SCREENSHOT TRANSFER <span style={{ color: '#ef4444' }}>*</span>
+                </label>
+
+                <div
+                  style={{
+                    border: '2px dashed #93c5fd',
+                    borderRadius: 12,
+                    padding: '24px 20px',
+                    textAlign: 'center',
+                    background: fotoResiPreview ? '#f8fafc' : '#ffffff',
+                    transition: 'all 0.2s',
+                  }}
+                >
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handlePhotoUpload}
+                    style={{ display: 'none' }}
+                    id="fotoResiUpload"
                   />
-                </div>
 
-                <div>
-                  <label style={{ display: 'block', fontWeight: 600, marginBottom: 8, fontSize: '0.9rem', color: '#334155' }}>
-                    Foto Bukti Resi / Setoran / Transfer <span style={{ color: '#ef4444' }}>*</span>
-                  </label>
-
-                  <div
-                    style={{
-                      border: '2px dashed #cbd5e1',
-                      borderRadius: 12,
-                      padding: 16,
-                      textAlign: 'center',
-                      background: fotoResiPreview ? '#f8fafc' : '#ffffff',
-                    }}
-                  >
-                    {!fotoResiPreview ? (
-                      <div>
-                        <input
-                          ref={fileInputRef}
-                          type="file"
-                          accept="image/*"
-                          onChange={handlePhotoUpload}
-                          style={{ display: 'none' }}
-                          id="fotoResiUpload"
+                  {!fotoResiPreview ? (
+                    <label
+                      htmlFor="fotoResiUpload"
+                      style={{ cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}
+                    >
+                      <div
+                        style={{
+                          background: '#eff6ff',
+                          padding: '12px',
+                          borderRadius: '50%',
+                          color: '#2563eb',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                        }}
+                      >
+                        <UploadCloud size={30} />
+                      </div>
+                      <div style={{ fontWeight: 600, color: '#1e40af', fontSize: '0.9rem' }}>
+                        Pilih / Ambil Foto Bukti Resi Transfer
+                      </div>
+                      <div style={{ fontSize: '0.78rem', color: '#64748b' }}>
+                        Klik di sini atau seret foto bukti transfer/setoran (JPG/PNG otomatis dikompresi)
+                      </div>
+                    </label>
+                  ) : (
+                    <div>
+                      <div style={{ position: 'relative', display: 'inline-block' }}>
+                        <img
+                          src={fotoResiPreview}
+                          alt="Bukti Resi"
+                          style={{
+                            maxHeight: '170px',
+                            borderRadius: 8,
+                            border: '1px solid #cbd5e1',
+                            cursor: 'pointer',
+                          }}
+                          onClick={() =>
+                            setZoomImage({
+                              url: fotoResiPreview,
+                              title: 'Foto Bukti Resi (Preview Pengajuan)',
+                              subtitle: selectedNasabah ? `${selectedNasabah.namaNasabahExcel} - ${selectedNasabah.norek}` : undefined,
+                            })
+                          }
                         />
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'center', gap: 10, marginTop: 12 }}>
+                        <button
+                          type="button"
+                          className="button secondary"
+                          style={{ padding: '6px 14px', fontSize: '0.8rem' }}
+                          onClick={() =>
+                            setZoomImage({
+                              url: fotoResiPreview,
+                              title: 'Foto Bukti Resi (Preview Pengajuan)',
+                              subtitle: selectedNasabah ? `${selectedNasabah.namaNasabahExcel} - ${selectedNasabah.norek}` : undefined,
+                            })
+                          }
+                        >
+                          <Eye size={14} style={{ marginRight: 4 }} />
+                          Perbesar
+                        </button>
                         <label
                           htmlFor="fotoResiUpload"
-                          style={{
-                            cursor: 'pointer',
-                            display: 'inline-block',
-                            padding: '10px 18px',
-                            background: '#eff6ff',
-                            color: '#2563eb',
-                            borderRadius: 8,
-                            fontWeight: 600,
-                            fontSize: '0.85rem',
-                            marginBottom: 8,
+                          className="button secondary"
+                          style={{ padding: '6px 14px', fontSize: '0.8rem', cursor: 'pointer' }}
+                        >
+                          Ganti Foto
+                        </label>
+                        <button
+                          type="button"
+                          className="button danger"
+                          style={{ padding: '6px 14px', fontSize: '0.8rem' }}
+                          onClick={() => {
+                            setFotoResiPreview(null);
+                            if (fileInputRef.current) fileInputRef.current.value = '';
                           }}
                         >
-                          Pilih / Ambil Foto Bukti Resi
-                        </label>
-                        <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>
-                          Format gambar JPG/PNG (otomatis dikompresi agar ringan)
-                        </div>
+                          Hapus Foto
+                        </button>
                       </div>
-                    ) : (
-                      <div>
-                        <div style={{ position: 'relative', display: 'inline-block' }}>
-                          <img
-                            src={fotoResiPreview}
-                            alt="Bukti Resi"
-                            style={{
-                              maxHeight: '160px',
-                              borderRadius: 8,
-                              border: '1px solid #cbd5e1',
-                              cursor: 'pointer',
-                            }}
-                            onClick={() =>
-                              setZoomImage({
-                                url: fotoResiPreview,
-                                title: 'Foto Bukti Resi (Preview Pengajuan)',
-                                subtitle: selectedNasabah ? `${selectedNasabah.namaNasabahExcel} - ${selectedNasabah.norek}` : undefined,
-                              })
-                            }
-                          />
-                        </div>
-                        <div style={{ display: 'flex', justifyContent: 'center', gap: 8, marginTop: 10 }}>
-                          <button
-                            type="button"
-                            className="button secondary"
-                            style={{ padding: '4px 10px', fontSize: '0.75rem' }}
-                            onClick={() =>
-                              setZoomImage({
-                                url: fotoResiPreview,
-                                title: 'Foto Bukti Resi (Preview Pengajuan)',
-                                subtitle: selectedNasabah ? `${selectedNasabah.namaNasabahExcel} - ${selectedNasabah.norek}` : undefined,
-                              })
-                            }
-                          >
-                            <Eye size={13} style={{ marginRight: 4 }} />
-                            Perbesar
-                          </button>
-                          <button
-                            type="button"
-                            className="button danger"
-                            style={{ padding: '4px 10px', fontSize: '0.75rem' }}
-                            onClick={() => {
-                              setFotoResiPreview(null);
-                              if (fileInputRef.current) fileInputRef.current.value = '';
-                            }}
-                          >
-                            Hapus Foto
-                          </button>
-                        </div>
-                      </div>
-                    )}
-                  </div>
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -1115,7 +1341,14 @@ export default function RabClientPage({ user, initialCounts, initialItems }: Pro
                   type="submit"
                   disabled={submittingTab1}
                   className="button"
-                  style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '12px 28px', fontSize: '0.95rem' }}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 8,
+                    padding: '12px 28px',
+                    fontSize: '0.95rem',
+                    background: '#2563eb',
+                  }}
                 >
                   {submittingTab1 ? (
                     'Mengirim Pengajuan...'
@@ -1157,9 +1390,11 @@ export default function RabClientPage({ user, initialCounts, initialItems }: Pro
                   <thead>
                     <tr style={{ background: '#f8fafc', borderBottom: '2px solid #e2e8f0', textAlign: 'left', color: '#475569' }}>
                       <th style={{ padding: '12px 14px' }}>No. Pengajuan</th>
-                      <th style={{ padding: '12px 14px' }}>Nasabah & Rekening</th>
+                      <th style={{ padding: '12px 14px' }}>Tgl Transfer</th>
+                      <th style={{ padding: '12px 14px' }}>Nasabah &amp; Rekening</th>
                       <th style={{ padding: '12px 14px' }}>Kantor Kas</th>
                       <th style={{ padding: '12px 14px', textAlign: 'right' }}>Nominal (Rp)</th>
+                      <th style={{ padding: '12px 14px' }}>Rekening Tujuan</th>
                       <th style={{ padding: '12px 14px' }}>Status Alur</th>
                       <th style={{ padding: '12px 14px' }}>Bukti Resi</th>
                       <th style={{ padding: '12px 14px', textAlign: 'center' }}>Aksi</th>
@@ -1174,9 +1409,15 @@ export default function RabClientPage({ user, initialCounts, initialItems }: Pro
                             {new Date(item.waktuPengajuan).toLocaleDateString('id-ID')}
                           </div>
                         </td>
+                        <td style={{ padding: '12px 14px', color: '#475569' }}>
+                          {item.tanggalTransfer ? new Date(item.tanggalTransfer).toLocaleDateString('id-ID') : '-'}
+                        </td>
                         <td style={{ padding: '12px 14px' }}>
                           <div style={{ fontWeight: 600, color: '#0f172a' }}>{item.namaNasabah}</div>
                           <div style={{ fontSize: '0.8rem', color: '#2563eb' }}>{item.norek}</div>
+                          {item.norekTabungan && (
+                            <div style={{ fontSize: '0.75rem', color: '#64748b' }}>Tab: {item.norekTabungan}</div>
+                          )}
                         </td>
                         <td style={{ padding: '12px 14px' }}>
                           <div>{SUB_KANTOR_NAMES[item.subKantor] || item.subKantor}</div>
@@ -1184,6 +1425,9 @@ export default function RabClientPage({ user, initialCounts, initialItems }: Pro
                         </td>
                         <td style={{ padding: '12px 14px', textAlign: 'right', fontWeight: 600 }}>
                           Rp {item.nominal.toLocaleString('id-ID')}
+                        </td>
+                        <td style={{ padding: '12px 14px', fontSize: '0.8rem', color: '#334155' }}>
+                          {item.rekeningBankTujuan || '-'}
                         </td>
                         <td style={{ padding: '12px 14px' }}>
                           <span
@@ -1262,13 +1506,13 @@ export default function RabClientPage({ user, initialCounts, initialItems }: Pro
               <strong>Aturan Verifikasi Checker:</strong>
               <ul style={{ margin: '4px 0 0 0', paddingLeft: 18 }}>
                 <li>
-                  Khusus <strong>Kas Pusat (01)</strong> & <strong>Kas Campurdarat (02)</strong> ditangani oleh <strong>Kasubag Kredit</strong>.
+                  Khusus <strong>Kas Pusat (01)</strong> &amp; <strong>Kas Campurdarat (02)</strong> ditangani oleh <strong>Kasubag Kredit</strong>.
                 </li>
                 <li>
                   Kantor kas lainnya (12 kantor kas) ditangani langsung oleh <strong>Kepala Kas</strong> masing-masing.
                 </li>
                 <li>
-                  Periksa dengan teliti kecocokan antara <strong>Foto Bukti Resi / Setoran</strong> dengan <strong>Nomor Rekening</strong> serta nominal pengajuan sebelum menyetujui.
+                  Periksa dengan teliti kecocokan antara <strong>Foto Bukti Resi / Screenshot Transfer</strong> dengan <strong>Nomor Rekening</strong> serta nominal transfer sebelum menyetujui.
                 </li>
               </ul>
             </div>
@@ -1328,7 +1572,7 @@ export default function RabClientPage({ user, initialCounts, initialItems }: Pro
                         <div>
                           <div style={{ fontWeight: 700, fontSize: '0.95rem', color: '#0f172a' }}>{item.nomorPengajuan}</div>
                           <div style={{ fontSize: '0.78rem', color: '#64748b' }}>
-                            {new Date(item.waktuPengajuan).toLocaleString('id-ID')}
+                            {item.tanggalTransfer ? `Tgl Transfer: ${new Date(item.tanggalTransfer).toLocaleDateString('id-ID')}` : new Date(item.waktuPengajuan).toLocaleString('id-ID')}
                           </div>
                         </div>
                         <span
@@ -1348,9 +1592,20 @@ export default function RabClientPage({ user, initialCounts, initialItems }: Pro
                       <div style={{ background: '#f8fafc', padding: 12, borderRadius: 8, marginBottom: 12 }}>
                         <div style={{ fontWeight: 700, color: '#0f172a', fontSize: '1rem' }}>{item.namaNasabah}</div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 4 }}>
-                          <span style={{ fontSize: '0.8rem', color: '#64748b' }}>No. Rekening:</span>
+                          <span style={{ fontSize: '0.8rem', color: '#64748b' }}>No. Rekening Pinjaman:</span>
                           <strong style={{ fontSize: '0.9rem', color: '#2563eb' }}>{item.norek}</strong>
                         </div>
+                        {item.norekTabungan && (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 2, fontSize: '0.8rem' }}>
+                            <span style={{ color: '#64748b' }}>Rek. Tabungan:</span>
+                            <span style={{ fontWeight: 600, color: '#4338ca' }}>{item.norekTabungan}</span>
+                            {item.saldoTabungan !== null && item.saldoTabungan !== undefined && (
+                              <span style={{ color: '#16a34a', fontWeight: 700 }}>
+                                (Saldo: Rp {Number(item.saldoTabungan).toLocaleString('id-ID')})
+                              </span>
+                            )}
+                          </div>
+                        )}
                         <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 8, fontSize: '0.82rem' }}>
                           <span style={{ color: '#475569' }}>
                             Kantor: <strong>{SUB_KANTOR_NAMES[item.subKantor] || item.subKantor}</strong>
@@ -1359,17 +1614,17 @@ export default function RabClientPage({ user, initialCounts, initialItems }: Pro
                             Rp {item.nominal.toLocaleString('id-ID')}
                           </span>
                         </div>
+                        {item.rekeningBankTujuan && (
+                          <div style={{ marginTop: 6, fontSize: '0.78rem', color: '#334155', borderTop: '1px dashed #cbd5e1', paddingTop: 6 }}>
+                            Tujuan: <strong>{item.rekeningBankTujuan}</strong>
+                          </div>
+                        )}
                       </div>
 
                       <div style={{ fontSize: '0.8rem', color: '#475569', marginBottom: 12 }}>
                         <div>
                           Pemohon (MO): <strong>{item.pemohonNama}</strong> ({item.pemohonRole})
                         </div>
-                        {item.keterangan && (
-                          <div style={{ marginTop: 4, color: '#64748b', fontStyle: 'italic' }}>
-                            &ldquo;{item.keterangan}&rdquo;
-                          </div>
-                        )}
                         <div style={{ marginTop: 6, fontSize: '0.75rem', color: '#b45309', fontWeight: 600 }}>
                           ℹ️ {checkerRuleNotice}
                         </div>
@@ -1549,7 +1804,7 @@ export default function RabClientPage({ user, initialCounts, initialItems }: Pro
                       <div style={{ background: '#f8fafc', padding: 12, borderRadius: 8, marginBottom: 12 }}>
                         <div style={{ fontWeight: 700, color: '#0f172a', fontSize: '1rem' }}>{item.namaNasabah}</div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 4 }}>
-                          <span style={{ fontSize: '0.8rem', color: '#64748b' }}>No. Rekening:</span>
+                          <span style={{ fontSize: '0.8rem', color: '#64748b' }}>No. Rekening Pinjaman:</span>
                           <strong style={{ fontSize: '0.9rem', color: '#2563eb' }}>{item.norek}</strong>
                         </div>
                         <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 8, fontSize: '0.82rem' }}>
@@ -1560,6 +1815,11 @@ export default function RabClientPage({ user, initialCounts, initialItems }: Pro
                             Rp {item.nominal.toLocaleString('id-ID')}
                           </span>
                         </div>
+                        {item.rekeningBankTujuan && (
+                          <div style={{ marginTop: 6, fontSize: '0.78rem', color: '#334155', borderTop: '1px dashed #cbd5e1', paddingTop: 6 }}>
+                            Tujuan: <strong>{item.rekeningBankTujuan}</strong>
+                          </div>
+                        )}
                       </div>
 
                       <div style={{ fontSize: '0.8rem', color: '#475569', marginBottom: 14 }}>
@@ -1796,6 +2056,11 @@ export default function RabClientPage({ user, initialCounts, initialItems }: Pro
                           Rp {item.nominal.toLocaleString('id-ID')}
                         </span>
                       </div>
+                      {item.rekeningBankTujuan && (
+                        <div style={{ marginTop: 6, fontSize: '0.78rem', color: '#334155', borderTop: '1px dashed #cbd5e1', paddingTop: 6 }}>
+                          Tujuan: <strong>{item.rekeningBankTujuan}</strong>
+                        </div>
+                      )}
                     </div>
 
                     <div style={{ fontSize: '0.78rem', color: '#64748b', marginBottom: 12 }}>
@@ -1873,7 +2138,7 @@ export default function RabClientPage({ user, initialCounts, initialItems }: Pro
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 12 }}>
               <div>
                 <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#475569', marginBottom: 4 }}>
-                  Pencarian Nasabah / Rek / No. RAB:
+                  Pencarian Debitur / Rek / No. RAB:
                 </label>
                 <input
                   type="text"
@@ -1941,9 +2206,11 @@ export default function RabClientPage({ user, initialCounts, initialItems }: Pro
                   <thead>
                     <tr style={{ background: '#f8fafc', borderBottom: '2px solid #e2e8f0', textAlign: 'left', color: '#475569' }}>
                       <th style={{ padding: '12px 10px' }}>No. Pengajuan &amp; RAB</th>
-                      <th style={{ padding: '12px 10px' }}>Nasabah &amp; Rekening</th>
+                      <th style={{ padding: '12px 10px' }}>Tgl Transfer</th>
+                      <th style={{ padding: '12px 10px' }}>Debitur &amp; Rekening</th>
                       <th style={{ padding: '12px 10px' }}>Kantor Kas</th>
                       <th style={{ padding: '12px 10px', textAlign: 'right' }}>Nominal</th>
+                      <th style={{ padding: '12px 10px' }}>Rekening Tujuan</th>
                       <th style={{ padding: '12px 10px' }}>Status</th>
                       <th style={{ padding: '12px 10px' }}>1. Pemohon (MO)</th>
                       <th style={{ padding: '12px 10px' }}>2. Checker</th>
@@ -1963,9 +2230,15 @@ export default function RabClientPage({ user, initialCounts, initialItems }: Pro
                             <span style={{ fontSize: '0.72rem', color: '#94a3b8' }}>Belum terbit</span>
                           )}
                         </td>
+                        <td style={{ padding: '10px 10px', color: '#475569' }}>
+                          {item.tanggalTransfer ? new Date(item.tanggalTransfer).toLocaleDateString('id-ID') : '-'}
+                        </td>
                         <td style={{ padding: '10px 10px' }}>
                           <div style={{ fontWeight: 600, color: '#0f172a' }}>{item.namaNasabah}</div>
                           <div style={{ color: '#2563eb' }}>{item.norek}</div>
+                          {item.norekTabungan && (
+                            <div style={{ fontSize: '0.72rem', color: '#64748b' }}>Tab: {item.norekTabungan}</div>
+                          )}
                         </td>
                         <td style={{ padding: '10px 10px' }}>
                           <div>{SUB_KANTOR_NAMES[item.subKantor] || item.subKantor}</div>
@@ -1973,6 +2246,9 @@ export default function RabClientPage({ user, initialCounts, initialItems }: Pro
                         </td>
                         <td style={{ padding: '10px 10px', textAlign: 'right', fontWeight: 700, color: '#059669' }}>
                           Rp {item.nominal.toLocaleString('id-ID')}
+                        </td>
+                        <td style={{ padding: '10px 10px', color: '#334155', fontSize: '0.78rem' }}>
+                          {item.rekeningBankTujuan || '-'}
                         </td>
                         <td style={{ padding: '10px 10px' }}>
                           <span
@@ -2004,7 +2280,7 @@ export default function RabClientPage({ user, initialCounts, initialItems }: Pro
                               </div>
                             </>
                           ) : (
-                            <span style={{ color: '#cbd5e1' }}>-</span>
+                            <span style={{ color: '#94a3b8' }}>{item.checkerBertugas || '-'}</span>
                           )}
                         </td>
                         <td style={{ padding: '10px 10px', color: '#334155' }}>
@@ -2016,7 +2292,7 @@ export default function RabClientPage({ user, initialCounts, initialItems }: Pro
                               </div>
                             </>
                           ) : (
-                            <span style={{ color: '#cbd5e1' }}>-</span>
+                            <span style={{ color: '#94a3b8' }}>{item.signerBertugas || '-'}</span>
                           )}
                         </td>
                         <td style={{ padding: '10px 10px', color: '#334155' }}>
@@ -2077,8 +2353,12 @@ export default function RabClientPage({ user, initialCounts, initialItems }: Pro
 
             <div style={{ background: '#f8fafc', padding: 12, borderRadius: 8, marginBottom: 16, fontSize: '0.85rem' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                <span style={{ color: '#64748b' }}>Nominal:</span>
+                <span style={{ color: '#64748b' }}>Nominal Transfer:</span>
                 <strong style={{ color: '#059669' }}>Rp {checkerModal.item.nominal.toLocaleString('id-ID')}</strong>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+                <span style={{ color: '#64748b' }}>Rekening Tujuan:</span>
+                <strong>{checkerModal.item.rekeningBankTujuan || '-'}</strong>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                 <span style={{ color: '#64748b' }}>Kantor Kas:</span>
@@ -2149,6 +2429,7 @@ export default function RabClientPage({ user, initialCounts, initialItems }: Pro
               <div>Nasabah: <strong>{signerModal.item.namaNasabah}</strong> ({signerModal.item.norek})</div>
               <div style={{ marginTop: 4 }}>Nominal: <strong style={{ color: '#059669' }}>Rp {signerModal.item.nominal.toLocaleString('id-ID')}</strong></div>
               <div style={{ marginTop: 4 }}>Kantor Kas: <strong>{SUB_KANTOR_NAMES[signerModal.item.subKantor] || signerModal.item.subKantor}</strong></div>
+              <div style={{ marginTop: 4 }}>Tujuan: <strong>{signerModal.item.rekeningBankTujuan || '-'}</strong></div>
             </div>
 
             <div style={{ marginBottom: 16 }}>
@@ -2324,14 +2605,18 @@ export default function RabClientPage({ user, initialCounts, initialItems }: Pro
             {/* Debtor Details Card */}
             <div style={{ background: '#f8fafc', padding: 14, borderRadius: 10, marginBottom: 20 }}>
               <div style={{ fontWeight: 700, fontSize: '1.05rem', color: '#0f172a' }}>{detailItem.namaNasabah}</div>
-              <div style={{ display: 'flex', gap: 16, marginTop: 6, fontSize: '0.85rem', color: '#475569', flexWrap: 'wrap' }}>
-                <span>Rekening: <strong style={{ color: '#2563eb' }}>{detailItem.norek}</strong></span>
-                <span>Kantor: <strong>{SUB_KANTOR_NAMES[detailItem.subKantor] || detailItem.subKantor}</strong></span>
-                <span>Nominal: <strong style={{ color: '#059669' }}>Rp {detailItem.nominal.toLocaleString('id-ID')}</strong></span>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 10, marginTop: 8, fontSize: '0.85rem', color: '#475569' }}>
+                <div>Rek. Pinjaman: <strong style={{ color: '#2563eb' }}>{detailItem.norek}</strong></div>
+                <div>Rek. Tabungan: <strong style={{ color: '#4338ca' }}>{detailItem.norekTabungan || '-'}</strong></div>
+                <div>Saldo Eff Tabungan: <strong style={{ color: '#16a34a' }}>Rp {(detailItem.saldoTabungan ?? 0).toLocaleString('id-ID')}</strong></div>
+                <div>Kantor: <strong>{SUB_KANTOR_NAMES[detailItem.subKantor] || detailItem.subKantor}</strong></div>
+                <div>Nominal Transfer: <strong style={{ color: '#059669' }}>Rp {detailItem.nominal.toLocaleString('id-ID')}</strong></div>
+                <div>Rek. Tujuan: <strong>{detailItem.rekeningBankTujuan || '-'}</strong></div>
+                <div>Tgl Transfer: <strong>{detailItem.tanggalTransfer ? new Date(detailItem.tanggalTransfer).toLocaleDateString('id-ID') : '-'}</strong></div>
               </div>
               {detailItem.keterangan && (
-                <div style={{ marginTop: 8, fontSize: '0.82rem', color: '#64748b', fontStyle: 'italic' }}>
-                  Keperluan: &ldquo;{detailItem.keterangan}&rdquo;
+                <div style={{ marginTop: 10, fontSize: '0.82rem', color: '#64748b', fontStyle: 'italic', borderTop: '1px solid #e2e8f0', paddingTop: 6 }}>
+                  Keterangan: &ldquo;{detailItem.keterangan}&rdquo;
                 </div>
               )}
             </div>
@@ -2382,7 +2667,9 @@ export default function RabClientPage({ user, initialCounts, initialItems }: Pro
                       </div>
                     </>
                   ) : (
-                    <div style={{ fontSize: '0.78rem', color: '#94a3b8' }}>Menunggu pemeriksaan checker</div>
+                    <div style={{ fontSize: '0.78rem', color: '#94a3b8' }}>
+                      Menunggu pemeriksaan checker ({detailItem.checkerBertugas || 'Pemeriksa'})
+                    </div>
                   )}
                 </div>
 
@@ -2415,7 +2702,9 @@ export default function RabClientPage({ user, initialCounts, initialItems }: Pro
                       </div>
                     </>
                   ) : (
-                    <div style={{ fontSize: '0.78rem', color: '#94a3b8' }}>Menunggu penerbitan nomor RAB</div>
+                    <div style={{ fontSize: '0.78rem', color: '#94a3b8' }}>
+                      Menunggu penerbitan nomor RAB ({detailItem.signerBertugas || 'Penerbit RAB'})
+                    </div>
                   )}
                 </div>
 
@@ -2460,7 +2749,7 @@ export default function RabClientPage({ user, initialCounts, initialItems }: Pro
             {/* Foto Resi Preview */}
             {detailItem.fotoResiUrl && (
               <div style={{ marginTop: 16 }}>
-                <h4 style={{ margin: '0 0 8px 0', fontSize: '0.9rem', color: '#334155' }}>Foto Bukti Resi:</h4>
+                <h4 style={{ margin: '0 0 8px 0', fontSize: '0.9rem', color: '#334155' }}>Foto Bukti Resi / Screenshot Transfer:</h4>
                 <img
                   src={detailItem.fotoResiUrl}
                   alt="Bukti Resi"

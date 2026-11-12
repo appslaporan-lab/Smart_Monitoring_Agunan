@@ -534,6 +534,13 @@ model PengajuanRab {
   status            String    @default("PENDING_VERIFIKASI")
   catatanPenolakan  String?
 
+  tanggalTransfer   DateTime?
+  norekTabungan     String?
+  saldoTabungan     Float?
+  rekeningBankTujuan String?
+  checkerBertugas   String?
+  signerBertugas    String?
+
   pemohonId         Int
   pemohonNama       String
   pemohonRole       String

@@ -31,6 +31,8 @@ export async function GET(request: Request) {
         namaAO: true,
         plafon: true,
         outstanding: true,
+        norekTabungan: true,
+        saldoTabungan: true,
       },
       take: 20,
       orderBy: { id: 'desc' },

@@ -92,7 +92,21 @@ export async function POST(request: Request) {
 
   try {
     const body = await request.json();
-    const { pinjamanPeriodeId, norek, namaNasabah, subKantor, nominal, keterangan, fotoResiUrl } = body;
+    const { 
+      pinjamanPeriodeId, 
+      norek, 
+      namaNasabah, 
+      subKantor, 
+      nominal, 
+      keterangan, 
+      fotoResiUrl,
+      tanggalTransfer,
+      norekTabungan,
+      saldoTabungan,
+      rekeningBankTujuan,
+      checkerBertugas,
+      signerBertugas
+    } = body;
 
     if (!norek || !namaNasabah || !subKantor || !nominal) {
       return NextResponse.json({ error: 'Mohon lengkapi semua data wajib: Nasabah (Norek), Kantor Kas, dan Nominal.' }, { status: 400 });
@@ -128,6 +142,12 @@ export async function POST(request: Request) {
         nominal: Number(nominal) || 0,
         keterangan: keterangan || '',
         fotoResiUrl,
+        tanggalTransfer: tanggalTransfer ? new Date(tanggalTransfer) : new Date(),
+        norekTabungan: norekTabungan ? String(norekTabungan).trim() : null,
+        saldoTabungan: saldoTabungan !== undefined && saldoTabungan !== null ? Number(saldoTabungan) : null,
+        rekeningBankTujuan: rekeningBankTujuan || null,
+        checkerBertugas: checkerBertugas || null,
+        signerBertugas: signerBertugas || null,
         status: 'PENDING_VERIFIKASI',
         pemohonId: user.id,
         pemohonNama: user.nama,
